@@ -12,15 +12,25 @@ A real-time, interactive dashboard for monitoring Philips Hue sensors throughout
 🚶 **Motion Detection**
 - Visual indicators when motion is detected
 - Voice announcements for key areas (Outdoor, Hall, Landing, Bathroom)
+- Google Home broadcast support via IFTTT webhooks (see IFTTT_SETUP.md)
+- 48-hour motion event log with timestamps
 - Real-time updates every 3 seconds
 
 💡 **Smart Lighting Status**
 - Shows which lights are on/off in each room
 - Narnia-style lamppost for outdoor lighting
+- Double-click any light to toggle on/off
+- Fun light effects: Red Alert, Party Mode, Disco, Wave, Sunset
 - Auto-updates every 10 seconds
 
+📡 **Comprehensive Sensor Details**
+- Temperature, light level, motion, and battery status
+- Real-time updates for all sensor capabilities
+- Color-coded battery warnings
+- Ambient light detection (daylight/dim/dark)
+
 🎨 **Beautiful UI**
-- Dollhouse cutaway view showing all 9 rooms
+- Pixel art UK semi-detached house design
 - Animated smoke, clouds, and birds
 - Sparkle effects on temperature updates
 - Massive shake animation on hover
@@ -40,6 +50,10 @@ A real-time, interactive dashboard for monitoring Philips Hue sensors throughout
    ```
    celcius.html.html
    ```
+
+4. **(Optional) Setup Google Home broadcasts:**
+   - See [IFTTT_SETUP.md](IFTTT_SETUP.md) for detailed instructions
+   - Enables motion alerts on Google Home speakers via IFTTT webhooks
 
 ## Room Layout
 

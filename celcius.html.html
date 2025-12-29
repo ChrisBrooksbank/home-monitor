@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🏠 Funky Home Temperature Monitor</title>
+    <title>🏠 28 Barn Green - Home Monitor</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Baloo+2:wght@400;700&display=swap');
 
@@ -423,6 +423,44 @@
                 transform: translateY(-3px);
             }
         }
+
+        /* Collapsible sections */
+        .section-header {
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .section-header:hover {
+            transform: scale(1.02);
+            filter: brightness(1.1);
+        }
+
+        .section-arrow {
+            transition: transform 0.3s ease;
+            font-size: 0.8em;
+        }
+
+        .section-arrow.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .collapsible-content {
+            max-height: 2000px;
+            overflow: hidden;
+            transition: max-height 0.5s ease, opacity 0.3s ease, margin 0.3s ease;
+            opacity: 1;
+        }
+
+        .collapsible-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+            margin: 0 !important;
+        }
     </style>
 </head>
 <body>
@@ -435,7 +473,7 @@
     <div class="bird bird2">🕊️</div>
 
     <div class="container">
-        <h1>🏡 Funky Home Temp Tracker 🌡️</h1>
+        <h1>🏡 28 Barn Green 🌡️</h1>
         <div class="last-update" id="lastUpdate">Loading magical temperatures...</div>
 
         <div class="house-container">
@@ -517,92 +555,149 @@
                 <ellipse cx="300" cy="595" rx="200" ry="35" fill="#69B578" opacity="0.6"/>
                 <ellipse cx="700" cy="605" rx="250" ry="40" fill="#69B578" opacity="0.6"/>
 
-                <!-- Main House Structure -->
-                <g filter="url(#shadow)">
-                    <!-- Roof -->
-                    <polygon points="50,350 500,160 950,350" fill="url(#roofGradient)" stroke="#AA2222" stroke-width="4"/>
+                <!-- Pixel Art UK Semi-Detached House -->
+                <g>
+                    <!-- Attached neighbor house (left side, partial) -->
+                    <rect x="20" y="250" width="80" height="350" fill="#8B4513" stroke="#654321" stroke-width="2"/>
+                    <rect x="20" y="250" width="80" height="350" fill="url(#brickPattern)" opacity="0.8"/>
 
-                    <!-- Chimney -->
-                    <rect x="700" y="230" width="40" height="120" fill="#C92A2A" stroke="#8B0000" stroke-width="3"/>
-                    <rect x="692" y="220" width="56" height="18" fill="#8B0000"/>
+                    <!-- Main house structure - brick exterior -->
+                    <rect x="100" y="200" width="800" height="400" fill="#A0522D" stroke="#654321" stroke-width="4"/>
 
-                    <!-- Smoke -->
-                    <circle cx="720" cy="205" r="12" fill="#D3D3D3" opacity="0.6">
-                        <animate attributeName="cy" values="205;185;205" dur="3s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="0.6;0.2;0.6" dur="3s" repeatCount="indefinite"/>
-                    </circle>
-                    <circle cx="720" cy="185" r="15" fill="#D3D3D3" opacity="0.5">
-                        <animate attributeName="cy" values="185;165;185" dur="3s" repeatCount="indefinite" begin="0.5s"/>
-                        <animate attributeName="opacity" values="0.5;0.1;0.5" dur="3s" repeatCount="indefinite"/>
-                    </circle>
+                    <!-- Pixel brick pattern overlay -->
+                    <defs>
+                        <pattern id="pixelBrick" x="0" y="0" width="32" height="16" patternUnits="userSpaceOnUse">
+                            <rect width="32" height="16" fill="#A0522D"/>
+                            <rect x="0" y="0" width="15" height="7" fill="#8B4513" stroke="#654321" stroke-width="0.5"/>
+                            <rect x="16" y="0" width="15" height="7" fill="#8B4513" stroke="#654321" stroke-width="0.5"/>
+                            <rect x="8" y="8" width="15" height="7" fill="#8B4513" stroke="#654321" stroke-width="0.5"/>
+                            <rect x="24" y="8" width="7" height="7" fill="#8B4513" stroke="#654321" stroke-width="0.5"/>
+                            <rect x="0" y="8" width="7" height="7" fill="#8B4513" stroke="#654321" stroke-width="0.5"/>
+                        </pattern>
+                    </defs>
+                    <rect x="100" y="200" width="800" height="400" fill="url(#pixelBrick)" opacity="0.6"/>
+
+                    <!-- Pitched roof - pixel style -->
+                    <polygon points="80,200 500,80 920,200" fill="#7D0000" stroke="#4A0000" stroke-width="3"/>
+                    <!-- Roof tiles effect -->
+                    <line x1="500" y1="80" x2="80" y2="200" stroke="#5A0000" stroke-width="2"/>
+                    <line x1="500" y1="80" x2="920" y2="200" stroke="#5A0000" stroke-width="2"/>
+                    <line x1="290" y1="140" x2="80" y2="200" stroke="#5A0000" stroke-width="1"/>
+                    <line x1="710" y1="140" x2="920" y2="200" stroke="#5A0000" stroke-width="1"/>
+
+                    <!-- Chimney stack - pixel style -->
+                    <rect x="700" y="100" width="48" height="100" fill="#8B4513" stroke="#654321" stroke-width="2"/>
+                    <rect x="700" y="100" width="48" height="100" fill="url(#pixelBrick)" opacity="0.7"/>
+                    <rect x="692" y="92" width="64" height="16" fill="#654321"/>
+
+                    <!-- Chimney pots -->
+                    <rect x="708" y="76" width="12" height="20" fill="#654321" stroke="#000" stroke-width="1"/>
+                    <rect x="728" y="76" width="12" height="20" fill="#654321" stroke="#000" stroke-width="1"/>
+
+                    <!-- Smoke (pixelated) -->
+                    <rect x="710" y="60" width="8" height="8" fill="#D3D3D3" opacity="0.5">
+                        <animate attributeName="opacity" values="0.5;0.2;0.5" dur="2s" repeatCount="indefinite"/>
+                    </rect>
+                    <rect x="718" y="52" width="8" height="8" fill="#D3D3D3" opacity="0.4">
+                        <animate attributeName="opacity" values="0.4;0.1;0.4" dur="2s" repeatCount="indefinite" begin="0.5s"/>
+                    </rect>
+                    <rect x="730" y="62" width="8" height="8" fill="#D3D3D3" opacity="0.5">
+                        <animate attributeName="opacity" values="0.5;0.2;0.5" dur="2s" repeatCount="indefinite" begin="1s"/>
+                    </rect>
+
+                    <!-- Pixel art windows on exterior (first floor) -->
+                    <g id="exterior-windows-first">
+                        <rect x="140" y="240" width="48" height="56" fill="#87CEEB" stroke="#2C1507" stroke-width="2"/>
+                        <line x1="164" y1="240" x2="164" y2="296" stroke="#2C1507" stroke-width="2"/>
+                        <line x1="140" y1="268" x2="188" y2="268" stroke="#2C1507" stroke-width="2"/>
+
+                        <rect x="300" y="240" width="48" height="56" fill="#87CEEB" stroke="#2C1507" stroke-width="2"/>
+                        <line x1="324" y1="240" x2="324" y2="296" stroke="#2C1507" stroke-width="2"/>
+                        <line x1="300" y1="268" x2="348" y2="268" stroke="#2C1507" stroke-width="2"/>
+
+                        <rect x="460" y="240" width="48" height="56" fill="#87CEEB" stroke="#2C1507" stroke-width="2"/>
+                        <line x1="484" y1="240" x2="484" y2="296" stroke="#2C1507" stroke-width="2"/>
+                        <line x1="460" y1="268" x2="508" y2="268" stroke="#2C1507" stroke-width="2"/>
+
+                        <rect x="620" y="240" width="48" height="56" fill="#87CEEB" stroke="#2C1507" stroke-width="2"/>
+                        <line x1="644" y1="240" x2="644" y2="296" stroke="#2C1507" stroke-width="2"/>
+                        <line x1="620" y1="268" x2="668" y2="268" stroke="#2C1507" stroke-width="2"/>
+
+                        <rect x="780" y="240" width="48" height="56" fill="#87CEEB" stroke="#2C1507" stroke-width="2"/>
+                        <line x1="804" y1="240" x2="804" y2="296" stroke="#2C1507" stroke-width="2"/>
+                        <line x1="780" y1="268" x2="828" y2="268" stroke="#2C1507" stroke-width="2"/>
+                    </g>
+
+                    <!-- Pixel art windows on exterior (ground floor) -->
+                    <g id="exterior-windows-ground">
+                        <rect x="320" y="420" width="56" height="72" fill="#87CEEB" stroke="#2C1507" stroke-width="2"/>
+                        <line x1="348" y1="420" x2="348" y2="492" stroke="#2C1507" stroke-width="2"/>
+                        <line x1="320" y1="456" x2="376" y2="456" stroke="#2C1507" stroke-width="2"/>
+
+                        <rect x="520" y="420" width="56" height="72" fill="#87CEEB" stroke="#2C1507" stroke-width="2"/>
+                        <line x1="548" y1="420" x2="548" y2="492" stroke="#2C1507" stroke-width="2"/>
+                        <line x1="520" y1="456" x2="576" y2="456" stroke="#2C1507" stroke-width="2"/>
+
+                        <rect x="740" y="420" width="56" height="72" fill="#87CEEB" stroke="#2C1507" stroke-width="2"/>
+                        <line x1="768" y1="420" x2="768" y2="492" stroke="#2C1507" stroke-width="2"/>
+                        <line x1="740" y1="456" x2="796" y2="456" stroke="#2C1507" stroke-width="2"/>
+                    </g>
 
                     <!-- FIRST FLOOR ROOMS (y: 200-350) -->
-                    <!-- Main Bedroom (left) -->
+                    <!-- Main Bedroom (above Hall) -->
                     <rect x="100" y="200" width="160" height="150" fill="rgba(255,182,193,0.5)" stroke="#CC9933" stroke-width="3"/>
                     <text x="180" y="225" text-anchor="middle" font-size="14" font-weight="700" font-family="Fredoka" fill="#8B4513">Main Bedroom</text>
-                    <rect x="110" y="210" width="50" height="45" rx="5" fill="#87CEEB" stroke="#4682B4" stroke-width="2"/>
-                    <line x1="135" y1="210" x2="135" y2="255" stroke="#4682B4" stroke-width="2"/>
-                    <line x1="110" y1="232" x2="160" y2="232" stroke="#4682B4" stroke-width="2"/>
 
-                    <!-- Guest Bedroom -->
-                    <rect x="260" y="200" width="160" height="150" fill="rgba(221,160,221,0.5)" stroke="#CC9933" stroke-width="3"/>
-                    <text x="340" y="225" text-anchor="middle" font-size="14" font-weight="700" font-family="Fredoka" fill="#8B4513">Guest Bedroom</text>
-                    <rect x="270" y="210" width="50" height="45" rx="5" fill="#87CEEB" stroke="#4682B4" stroke-width="2"/>
-                    <line x1="295" y1="210" x2="295" y2="255" stroke="#4682B4" stroke-width="2"/>
-                    <line x1="270" y1="232" x2="320" y2="232" stroke="#4682B4" stroke-width="2"/>
-
-                    <!-- Landing (center) -->
-                    <rect x="420" y="200" width="160" height="150" fill="rgba(255,218,185,0.5)" stroke="#CC9933" stroke-width="3"/>
-                    <text x="500" y="225" text-anchor="middle" font-size="14" font-weight="700" font-family="Fredoka" fill="#8B4513">Landing</text>
+                    <!-- Landing -->
+                    <rect x="260" y="200" width="160" height="150" fill="rgba(255,218,185,0.5)" stroke="#CC9933" stroke-width="3"/>
+                    <text x="340" y="225" text-anchor="middle" font-size="14" font-weight="700" font-family="Fredoka" fill="#8B4513">Landing</text>
                     <!-- Stairs icon -->
-                    <rect x="470" y="260" width="60" height="6" fill="rgba(139,69,19,0.6)"/>
-                    <rect x="470" y="270" width="60" height="6" fill="rgba(139,69,19,0.6)"/>
-                    <rect x="470" y="280" width="60" height="6" fill="rgba(139,69,19,0.6)"/>
-                    <rect x="470" y="290" width="60" height="6" fill="rgba(139,69,19,0.6)"/>
+                    <rect x="310" y="260" width="60" height="6" fill="rgba(139,69,19,0.6)"/>
+                    <rect x="310" y="270" width="60" height="6" fill="rgba(139,69,19,0.6)"/>
+                    <rect x="310" y="280" width="60" height="6" fill="rgba(139,69,19,0.6)"/>
+                    <rect x="310" y="290" width="60" height="6" fill="rgba(139,69,19,0.6)"/>
 
                     <!-- Home Office -->
-                    <rect x="580" y="200" width="160" height="150" fill="rgba(173,216,230,0.5)" stroke="#CC9933" stroke-width="3"/>
-                    <text x="660" y="225" text-anchor="middle" font-size="14" font-weight="700" font-family="Fredoka" fill="#8B4513">Home Office</text>
-                    <rect x="590" y="210" width="50" height="45" rx="5" fill="#87CEEB" stroke="#4682B4" stroke-width="2"/>
-                    <line x1="615" y1="210" x2="615" y2="255" stroke="#4682B4" stroke-width="2"/>
-                    <line x1="590" y1="232" x2="640" y2="232" stroke="#4682B4" stroke-width="2"/>
+                    <rect x="420" y="200" width="160" height="150" fill="rgba(173,216,230,0.5)" stroke="#CC9933" stroke-width="3"/>
+                    <text x="500" y="225" text-anchor="middle" font-size="14" font-weight="700" font-family="Fredoka" fill="#8B4513">Home Office</text>
 
                     <!-- Bathroom -->
-                    <rect x="740" y="200" width="160" height="150" fill="rgba(152,251,152,0.5)" stroke="#CC9933" stroke-width="3"/>
-                    <text x="820" y="225" text-anchor="middle" font-size="14" font-weight="700" font-family="Fredoka" fill="#8B4513">Bathroom</text>
-                    <rect x="750" y="210" width="50" height="45" rx="5" fill="#87CEEB" stroke="#4682B4" stroke-width="2"/>
-                    <line x1="775" y1="210" x2="775" y2="255" stroke="#4682B4" stroke-width="2"/>
-                    <line x1="750" y1="232" x2="800" y2="232" stroke="#4682B4" stroke-width="2"/>
+                    <rect x="580" y="200" width="160" height="150" fill="rgba(152,251,152,0.5)" stroke="#CC9933" stroke-width="3"/>
+                    <text x="660" y="225" text-anchor="middle" font-size="14" font-weight="700" font-family="Fredoka" fill="#8B4513">Bathroom</text>
+
+                    <!-- Guest Bedroom -->
+                    <rect x="740" y="200" width="160" height="150" fill="rgba(221,160,221,0.5)" stroke="#CC9933" stroke-width="3"/>
+                    <text x="820" y="225" text-anchor="middle" font-size="14" font-weight="700" font-family="Fredoka" fill="#8B4513">Guest Bedroom</text>
 
                     <!-- GROUND FLOOR ROOMS (y: 350-600) -->
-                    <!-- Lounge (left) -->
-                    <rect x="100" y="350" width="200" height="250" fill="rgba(244,164,96,0.5)" stroke="#CC9933" stroke-width="4"/>
-                    <text x="200" y="380" text-anchor="middle" font-size="16" font-weight="700" font-family="Fredoka" fill="#8B4513">Lounge</text>
-                    <rect x="120" y="400" width="70" height="65" rx="8" fill="#87CEEB" stroke="#4682B4" stroke-width="2"/>
-                    <line x1="155" y1="400" x2="155" y2="465" stroke="#4682B4" stroke-width="2"/>
-                    <line x1="120" y1="432" x2="190" y2="432" stroke="#4682B4" stroke-width="2"/>
+                    <!-- Hall (left, with door) -->
+                    <rect x="100" y="350" width="200" height="250" fill="rgba(152,216,211,0.5)" stroke="#CC9933" stroke-width="4"/>
+                    <text x="200" y="380" text-anchor="middle" font-size="16" font-weight="700" font-family="Fredoka" fill="#8B4513">Hall</text>
+                    <!-- Front Door - pixel art style -->
+                    <rect x="160" y="500" width="80" height="100" fill="#4A2511" stroke="#2C1507" stroke-width="3"/>
+                    <!-- Door panels -->
+                    <rect x="168" y="508" width="64" height="40" fill="#5D3116" stroke="#2C1507" stroke-width="1"/>
+                    <rect x="168" y="552" width="64" height="40" fill="#5D3116" stroke="#2C1507" stroke-width="1"/>
+                    <!-- Door handle -->
+                    <circle cx="215" cy="560" r="4" fill="#FFD700" stroke="#CC9900" stroke-width="1"/>
+                    <!-- Door letterbox -->
+                    <rect x="180" y="530" width="40" height="6" fill="#2C1507"/>
 
-                    <!-- Hall (center, with door) -->
-                    <rect x="300" y="350" width="240" height="250" fill="rgba(152,216,211,0.5)" stroke="#CC9933" stroke-width="4"/>
-                    <text x="420" y="380" text-anchor="middle" font-size="16" font-weight="700" font-family="Fredoka" fill="#8B4513">Hall</text>
-                    <!-- Front Door -->
-                    <rect x="380" y="510" width="80" height="90" rx="40" ry="20" fill="#8B4513" stroke="#654321" stroke-width="3"/>
-                    <circle cx="445" cy="555" r="5" fill="#FFD700"/>
-                    <rect x="405" y="525" width="30" height="35" rx="5" fill="rgba(173,216,230,0.6)"/>
+                    <!-- House Number Plaque -->
+                    <rect x="125" y="520" width="30" height="35" fill="#F5F5DC" stroke="#8B7355" stroke-width="2" rx="3"/>
+                    <text x="140" y="542" text-anchor="middle" font-size="20" font-weight="700" font-family="Georgia, serif" fill="#2C1507">28</text>
 
-                    <!-- Extension (right-center) -->
-                    <rect x="540" y="350" width="180" height="250" fill="rgba(152,216,200,0.5)" stroke="#CC9933" stroke-width="4"/>
-                    <text x="630" y="380" text-anchor="middle" font-size="16" font-weight="700" font-family="Fredoka" fill="#8B4513">Extension</text>
-                    <rect x="560" y="400" width="70" height="65" rx="8" fill="#87CEEB" stroke="#4682B4" stroke-width="2"/>
-                    <line x1="595" y1="400" x2="595" y2="465" stroke="#4682B4" stroke-width="2"/>
-                    <line x1="560" y1="432" x2="630" y2="432" stroke="#4682B4" stroke-width="2"/>
+                    <!-- Lounge -->
+                    <rect x="300" y="350" width="200" height="250" fill="rgba(244,164,96,0.5)" stroke="#CC9933" stroke-width="4"/>
+                    <text x="400" y="380" text-anchor="middle" font-size="16" font-weight="700" font-family="Fredoka" fill="#8B4513">Lounge</text>
 
-                    <!-- Kitchen (right) -->
-                    <rect x="720" y="350" width="180" height="250" fill="rgba(255,179,71,0.5)" stroke="#CC9933" stroke-width="4"/>
-                    <text x="810" y="380" text-anchor="middle" font-size="16" font-weight="700" font-family="Fredoka" fill="#8B4513">Kitchen</text>
-                    <rect x="740" y="400" width="70" height="65" rx="8" fill="#87CEEB" stroke="#4682B4" stroke-width="2"/>
-                    <line x1="775" y1="400" x2="775" y2="465" stroke="#4682B4" stroke-width="2"/>
-                    <line x1="740" y1="432" x2="810" y2="432" stroke="#4682B4" stroke-width="2"/>
+                    <!-- Kitchen -->
+                    <rect x="500" y="350" width="200" height="250" fill="rgba(255,179,71,0.5)" stroke="#CC9933" stroke-width="4"/>
+                    <text x="600" y="380" text-anchor="middle" font-size="16" font-weight="700" font-family="Fredoka" fill="#8B4513">Kitchen</text>
+
+                    <!-- Extension (right) -->
+                    <rect x="700" y="350" width="200" height="250" fill="rgba(152,216,200,0.5)" stroke="#CC9933" stroke-width="4"/>
+                    <text x="800" y="380" text-anchor="middle" font-size="16" font-weight="700" font-family="Fredoka" fill="#8B4513">Extension</text>
                 </g>
 
                 <!-- Light indicators will be dynamically added here by JavaScript -->
@@ -707,6 +802,54 @@
             🔄 Refresh Temps!
         </button>
 
+        <!-- Fun Action Buttons -->
+        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px; flex-wrap: wrap;">
+            <button class="refresh-btn" onclick="redAlert()" id="redAlertBtn" style="background: linear-gradient(135deg, #FF0000 0%, #8B0000 100%);">
+                🚨 Red Alert
+            </button>
+            <button class="refresh-btn" onclick="partyMode()" id="partyBtn" style="background: linear-gradient(135deg, #FF00FF 0%, #00FFFF 100%);">
+                🎉 Party Mode
+            </button>
+            <button class="refresh-btn" onclick="discoMode()" id="discoBtn" style="background: linear-gradient(135deg, #FFD700 0%, #FF1493 100%);">
+                🕺 Disco
+            </button>
+            <button class="refresh-btn" onclick="waveEffect()" id="waveBtn" style="background: linear-gradient(135deg, #4169E1 0%, #1E90FF 100%);">
+                🌊 Wave
+            </button>
+            <button class="refresh-btn" onclick="sunsetMode()" id="sunsetBtn" style="background: linear-gradient(135deg, #FF6B35 0%, #FF8E53 100%);">
+                🌅 Sunset
+            </button>
+        </div>
+
+        <!-- Sensor Details Panel -->
+        <div class="graph-container" style="margin-top: 20px;">
+            <h2 class="graph-title section-header" onclick="toggleSection('sensor-details-content', 'sensor-arrow')">
+                <span class="section-arrow collapsed" id="sensor-arrow">▼</span>
+                📡 Sensor Details
+            </h2>
+            <div id="sensor-details-content" class="collapsible-content collapsed">
+                <div id="sensor-details" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; padding: 15px;">
+                    <div style="text-align: center; color: #999; padding: 20px;">Loading sensor data...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Motion Detection Log -->
+        <div class="graph-container" style="margin-top: 20px;">
+            <h2 class="graph-title section-header" onclick="toggleSection('motion-log-content', 'motion-arrow')">
+                <span class="section-arrow collapsed" id="motion-arrow">▼</span>
+                🚶 48-Hour Motion Detection Log
+            </h2>
+            <div id="motion-log-content" class="collapsible-content collapsed">
+                <div id="motion-log" style="max-height: 300px; overflow-y: auto; padding: 15px; background: #f9f9f9; border-radius: 10px; font-family: 'Courier New', monospace; font-size: 13px;">
+                    <div style="text-align: center; color: #999; padding: 20px;">Loading motion history...</div>
+                </div>
+                <div style="text-align: center; margin-top: 10px; font-size: 12px; color: #666;">
+                    <span id="motion-log-count">0</span> events in last 48 hours
+                </div>
+            </div>
+        </div>
+
         <!-- Temperature Graph -->
         <div class="graph-container">
             <h2 class="graph-title">📈 24-Hour Temperature History</h2>
@@ -741,6 +884,18 @@
     <script>
         const BRIDGE_IP = HUE_CONFIG.BRIDGE_IP;
         const USERNAME = HUE_CONFIG.USERNAME;
+
+        // IFTTT Configuration - loaded from config.js (not committed to git)
+        const IFTTT_CONFIG = HUE_CONFIG.IFTTT || {
+            enabled: false,
+            webhookKey: '',
+            events: {
+                'Outdoor': 'motion_outdoor',
+                'Hall': 'motion_hall',
+                'Landing': 'motion_landing',
+                'Bathroom': 'motion_bathroom'
+            }
+        };
 
         const sensorMapping = {
             // First Floor
@@ -816,8 +971,153 @@
             'Bathroom': { detected: false, lastUpdated: null, previousDetected: false }
         };
 
+        // Motion detection history (48 hours)
+        let motionHistory = [];
+
+        // Initialize motion history from localStorage
+        function initMotionHistory() {
+            const stored = localStorage.getItem('motionHistory');
+            if (stored) {
+                motionHistory = JSON.parse(stored);
+                // Clean old data (older than 48 hours)
+                const now = Date.now();
+                const twoDaysAgo = now - (48 * 60 * 60 * 1000);
+                motionHistory = motionHistory.filter(entry => entry.time > twoDaysAgo);
+                localStorage.setItem('motionHistory', JSON.stringify(motionHistory));
+            }
+            updateMotionLogDisplay();
+        }
+
+        // Log a motion detection event
+        function logMotionEvent(room) {
+            const now = Date.now();
+            motionHistory.push({
+                time: now,
+                room: room
+            });
+
+            // Keep only last 48 hours
+            const twoDaysAgo = now - (48 * 60 * 60 * 1000);
+            motionHistory = motionHistory.filter(entry => entry.time > twoDaysAgo);
+
+            // Save to localStorage
+            localStorage.setItem('motionHistory', JSON.stringify(motionHistory));
+
+            // Update display
+            updateMotionLogDisplay();
+        }
+
+        // Update the motion log display
+        function updateMotionLogDisplay() {
+            const logContainer = document.getElementById('motion-log');
+            const countDisplay = document.getElementById('motion-log-count');
+
+            if (!logContainer) return;
+
+            // Count display
+            countDisplay.textContent = motionHistory.length;
+
+            if (motionHistory.length === 0) {
+                logContainer.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">No motion events recorded yet</div>';
+                return;
+            }
+
+            // Sort by most recent first
+            const sortedHistory = [...motionHistory].sort((a, b) => b.time - a.time);
+
+            // Group by date
+            const groupedByDate = {};
+            sortedHistory.forEach(entry => {
+                const date = new Date(entry.time);
+                const dateKey = date.toLocaleDateString();
+                if (!groupedByDate[dateKey]) {
+                    groupedByDate[dateKey] = [];
+                }
+                groupedByDate[dateKey].push(entry);
+            });
+
+            // Build HTML
+            let html = '';
+            for (const [dateKey, events] of Object.entries(groupedByDate)) {
+                html += `<div style="margin-bottom: 15px;">`;
+                html += `<div style="font-weight: bold; color: #667eea; margin-bottom: 8px; font-family: 'Fredoka', sans-serif;">📅 ${dateKey}</div>`;
+
+                events.forEach(entry => {
+                    const date = new Date(entry.time);
+                    const timeStr = date.toLocaleTimeString();
+                    const roomEmoji = {
+                        'Outdoor': '🌳',
+                        'Hall': '🚪',
+                        'Landing': '🪜',
+                        'Bathroom': '🚿'
+                    };
+                    const emoji = roomEmoji[entry.room] || '🚶';
+
+                    // Calculate how long ago
+                    const now = Date.now();
+                    const diff = now - entry.time;
+                    const hours = Math.floor(diff / (60 * 60 * 1000));
+                    const minutes = Math.floor((diff % (60 * 60 * 1000)) / (60 * 1000));
+                    let ago = '';
+                    if (hours > 0) {
+                        ago = `${hours}h ${minutes}m ago`;
+                    } else if (minutes > 0) {
+                        ago = `${minutes}m ago`;
+                    } else {
+                        ago = 'just now';
+                    }
+
+                    html += `<div style="padding: 6px 10px; margin: 4px 0; background: white; border-radius: 6px; border-left: 3px solid #667eea; display: flex; justify-content: space-between; align-items: center;">`;
+                    html += `<span>${emoji} <strong>${entry.room}</strong> - ${timeStr}</span>`;
+                    html += `<span style="color: #999; font-size: 11px;">${ago}</span>`;
+                    html += `</div>`;
+                });
+
+                html += `</div>`;
+            }
+
+            logContainer.innerHTML = html;
+
+            // Auto-scroll to top (most recent)
+            logContainer.scrollTop = 0;
+        }
+
+        // IFTTT Webhook trigger function
+        async function triggerIFTTT(room) {
+            if (!IFTTT_CONFIG.enabled) return;
+
+            const eventName = IFTTT_CONFIG.events[room];
+            if (!eventName) return;
+
+            // Use GET request to avoid CORS preflight issues
+            // Pass data as query parameters
+            const params = new URLSearchParams({
+                value1: room,
+                value2: new Date().toLocaleTimeString(),
+                value3: 'Motion detected'
+            });
+            const url = `https://maker.ifttt.com/trigger/${eventName}/with/key/${IFTTT_CONFIG.webhookKey}?${params}`;
+
+            try {
+                // Use fetch with no-cors mode OR use an image beacon as fallback
+                // Method 1: Try fetch (may not work in all browsers from file://)
+                await fetch(url, { method: 'GET', mode: 'no-cors' });
+                console.log(`✅ IFTTT notification sent for ${room}`);
+            } catch (error) {
+                // Method 2: Fallback to image beacon (always works, no CORS issues)
+                console.log(`📡 Using image beacon fallback for ${room}`);
+                const img = new Image();
+                img.src = url;
+                img.onerror = () => console.log(`✅ IFTTT notification sent for ${room} (via beacon)`);
+            }
+        }
+
         // Voice announcement function
         function announceMotion(room) {
+            // Trigger IFTTT webhook (Google Home broadcast)
+            triggerIFTTT(room);
+
+            // Also do local Web Speech API announcement
             if ('speechSynthesis' in window) {
                 const utterance = new SpeechSynthesisUtterance();
 
@@ -1060,19 +1360,19 @@
             }
         }
 
-        // Room positions for thermometers (centered in each room)
+        // Room positions for thermometers (bulb positioned inside each room)
         const roomPositions = {
-            // First Floor (y: 200-350)
-            'temp-main-bedroom': { x: 180, y: 275 },
-            'temp-guest-bedroom': { x: 340, y: 275 },
-            'temp-landing': { x: 500, y: 275 },
-            'temp-office': { x: 660, y: 275 },
-            'temp-bathroom': { x: 820, y: 275 },
-            // Ground Floor (y: 350-600)
-            'temp-lounge': { x: 200, y: 475 },
-            'temp-hall': { x: 420, y: 475 },
-            'temp-extension': { x: 630, y: 475 },
-            'temp-kitchen': { x: 810, y: 475 },
+            // First Floor (y: 200-350) - bulbs near bottom of rooms
+            'temp-main-bedroom': { x: 180, y: 220 },
+            'temp-landing': { x: 340, y: 220 },
+            'temp-office': { x: 500, y: 220 },
+            'temp-bathroom': { x: 660, y: 220 },
+            'temp-guest-bedroom': { x: 820, y: 220 },
+            // Ground Floor (y: 350-600) - bulbs in middle/lower section
+            'temp-hall': { x: 200, y: 420 },
+            'temp-lounge': { x: 400, y: 420 },
+            'temp-kitchen': { x: 600, y: 420 },
+            'temp-extension': { x: 800, y: 420 },
             // Outdoor (relative to outdoor-area transform)
             'temp-outdoor': { x: 60, y: 10, isOutdoor: true }
         };
@@ -1233,8 +1533,14 @@
             const nameLower = lightName.toLowerCase();
 
             if (nameLower.includes('outdoor') || nameLower.includes('outside') || nameLower.includes('garden')) return 'Outdoor';
-            if (nameLower.includes('main bedroom') || nameLower.includes('mainbedroom')) return 'Main Bedroom';
-            if (nameLower.includes('guest') && (nameLower.includes('bedroom') || nameLower.includes('room'))) return 'Guest Bedroom';
+
+            // Guest bedroom must be checked BEFORE main bedroom to avoid conflicts
+            if (nameLower.includes('guest')) return 'Guest Bedroom';
+
+            // Main bedroom - check for various naming patterns
+            if (nameLower.includes('main bedroom') || nameLower.includes('mainbedroom') ||
+                nameLower === 'bedroomlight' || nameLower === 'bedroom') return 'Main Bedroom';
+
             if (nameLower.includes('landing')) return 'Landing';
             if (nameLower.includes('office')) return 'Home Office';
             if (nameLower.includes('bathroom') || nameLower.includes('bath')) return 'Bathroom';
@@ -1251,8 +1557,14 @@
             const panel1 = document.getElementById('lamp-panel-1');
             const panel2 = document.getElementById('lamp-panel-2');
             const panelCenter = document.getElementById('lamp-panel-center');
+            const lampHousing = document.getElementById('lamp-housing');
 
             if (!bulb) return;
+
+            // Make lamppost clickable
+            if (lampHousing) {
+                lampHousing.style.cursor = 'pointer';
+            }
 
             if (isOn) {
                 // Light is ON - glow effect
@@ -1311,6 +1623,29 @@
             }
         }
 
+        async function toggleLight(lightId, currentState) {
+            try {
+                const newState = !currentState;
+
+                // Send command to Hue Bridge
+                const response = await fetch(`http://${BRIDGE_IP}/api/${USERNAME}/lights/${lightId}/state`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ on: newState })
+                });
+
+                if (response.ok) {
+                    console.log(`Light ${lightId} toggled to ${newState ? 'ON' : 'OFF'}`);
+                    // Refresh lights after a short delay
+                    setTimeout(loadLights, 500);
+                } else {
+                    console.error('Failed to toggle light');
+                }
+            } catch (error) {
+                console.error('Error toggling light:', error);
+            }
+        }
+
         async function loadLights() {
             try {
                 const response = await fetch(`http://${BRIDGE_IP}/api/${USERNAME}/lights`);
@@ -1364,6 +1699,142 @@
             return null;
         }
 
+        async function loadSensorDetails() {
+            try {
+                const response = await fetch(`http://${BRIDGE_IP}/api/${USERNAME}/sensors`);
+                if (!response.ok) return;
+
+                const sensors = await response.json();
+                const container = document.getElementById('sensor-details');
+                if (!container) return;
+
+                // Group sensors by their physical device (based on uniqueid prefix)
+                const sensorGroups = {};
+
+                for (const [sensorId, sensorInfo] of Object.entries(sensors)) {
+                    // Extract base name (remove "motion sensor", "temperature", etc.)
+                    let baseName = sensorInfo.name
+                        .replace(/temperature sensor/i, '')
+                        .replace(/motion sensor/i, '')
+                        .replace(/ambient light sensor/i, '')
+                        .replace(/\d+$/i, '') // Remove trailing numbers
+                        .trim();
+
+                    if (!baseName) baseName = sensorInfo.name;
+
+                    if (!sensorGroups[baseName]) {
+                        sensorGroups[baseName] = {
+                            name: baseName,
+                            temperature: null,
+                            lightLevel: null,
+                            motion: null,
+                            battery: null
+                        };
+                    }
+
+                    // Collect data based on sensor type
+                    if (sensorInfo.type === 'ZLLTemperature' && sensorInfo.state.temperature !== null) {
+                        sensorGroups[baseName].temperature = (sensorInfo.state.temperature / 100).toFixed(1);
+                    }
+                    if (sensorInfo.type === 'ZLLLightLevel' && sensorInfo.state.lightlevel !== null) {
+                        sensorGroups[baseName].lightLevel = sensorInfo.state.lightlevel;
+                        sensorGroups[baseName].lux = sensorInfo.state.daylight ? 'Daylight' : sensorInfo.state.dark ? 'Dark' : 'Dim';
+                    }
+                    if (sensorInfo.type === 'ZLLPresence') {
+                        sensorGroups[baseName].motion = sensorInfo.state.presence;
+                    }
+                    if (sensorInfo.config && sensorInfo.config.battery !== undefined) {
+                        sensorGroups[baseName].battery = sensorInfo.config.battery;
+                    }
+                }
+
+                // Build HTML for sensor cards
+                let html = '';
+                for (const [key, sensor] of Object.entries(sensorGroups)) {
+                    // Only show sensors that have at least one data point
+                    if (!sensor.temperature && sensor.lightLevel === null && sensor.motion === null && sensor.battery === null) {
+                        continue;
+                    }
+
+                    const roomEmoji = {
+                        'Landing': '🪜',
+                        'Main Bedroom': '🛏️',
+                        'Guest Room': '🛏️',
+                        'Hue temperature sensor': '🏢',
+                        'Bathroom': '🚿',
+                        'Hall': '🚪',
+                        'Lounge': '🛋️',
+                        'ExtensionDimmer': '🏠',
+                        'KitchenSensor': '🍳',
+                        'Hue outdoor temp. sensor': '🌳'
+                    };
+                    const emoji = roomEmoji[sensor.name] || '📍';
+
+                    // Battery color based on level
+                    let batteryColor = '#4CAF50'; // Green
+                    if (sensor.battery !== null) {
+                        if (sensor.battery < 20) batteryColor = '#f44336'; // Red
+                        else if (sensor.battery < 50) batteryColor = '#FF9800'; // Orange
+                    }
+
+                    // Light level emoji
+                    let lightEmoji = '☀️';
+                    if (sensor.lux === 'Dark') lightEmoji = '🌙';
+                    else if (sensor.lux === 'Dim') lightEmoji = '🌤️';
+
+                    html += `<div style="background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%); padding: 15px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 2px solid #e0e0e0;">`;
+                    html += `<div style="font-weight: 700; font-size: 16px; margin-bottom: 12px; color: #333; font-family: 'Fredoka', sans-serif;">${emoji} ${sensor.name}</div>`;
+
+                    // Temperature
+                    if (sensor.temperature) {
+                        const tempColor = getTemperatureColor(parseFloat(sensor.temperature));
+                        html += `<div style="display: flex; align-items: center; margin-bottom: 8px; padding: 6px; background: white; border-radius: 8px;">`;
+                        html += `<span style="font-size: 20px; margin-right: 8px;">🌡️</span>`;
+                        html += `<span style="flex: 1; font-weight: 600;">Temperature</span>`;
+                        html += `<span style="font-weight: 700; color: ${tempColor}; font-size: 18px;">${sensor.temperature}°C</span>`;
+                        html += `</div>`;
+                    }
+
+                    // Light Level
+                    if (sensor.lightLevel !== null) {
+                        html += `<div style="display: flex; align-items: center; margin-bottom: 8px; padding: 6px; background: white; border-radius: 8px;">`;
+                        html += `<span style="font-size: 20px; margin-right: 8px;">${lightEmoji}</span>`;
+                        html += `<span style="flex: 1; font-weight: 600;">Light Level</span>`;
+                        html += `<span style="font-weight: 700; color: #FFA500;">${sensor.lux} (${sensor.lightLevel})</span>`;
+                        html += `</div>`;
+                    }
+
+                    // Motion
+                    if (sensor.motion !== null) {
+                        const motionColor = sensor.motion ? '#f44336' : '#4CAF50';
+                        const motionText = sensor.motion ? '🚶 DETECTED' : '✅ Clear';
+                        html += `<div style="display: flex; align-items: center; margin-bottom: 8px; padding: 6px; background: white; border-radius: 8px;">`;
+                        html += `<span style="flex: 1; font-weight: 600;">Motion</span>`;
+                        html += `<span style="font-weight: 700; color: ${motionColor};">${motionText}</span>`;
+                        html += `</div>`;
+                    }
+
+                    // Battery
+                    if (sensor.battery !== null) {
+                        let batteryIcon = '🔋';
+                        if (sensor.battery < 20) batteryIcon = '🪫';
+                        html += `<div style="display: flex; align-items: center; padding: 6px; background: white; border-radius: 8px;">`;
+                        html += `<span style="font-size: 20px; margin-right: 8px;">${batteryIcon}</span>`;
+                        html += `<span style="flex: 1; font-weight: 600;">Battery</span>`;
+                        html += `<span style="font-weight: 700; color: ${batteryColor};">${sensor.battery}%</span>`;
+                        html += `</div>`;
+                    }
+
+                    html += `</div>`;
+                }
+
+                container.innerHTML = html || '<div style="text-align: center; color: #999; padding: 20px;">No sensor data available</div>';
+
+            } catch (error) {
+                console.error('Error loading sensor details:', error);
+            }
+        }
+
         async function loadMotionSensors() {
             try {
                 const response = await fetch(`http://${BRIDGE_IP}/api/${USERNAME}/sensors`);
@@ -1394,6 +1865,7 @@
                             if (motionSensors[room].detected && !motionSensors[room].previousDetected) {
                                 console.log(`🔊 ANNOUNCING: Motion in ${room}`);
                                 announceMotion(room);
+                                logMotionEvent(room); // Log the event
                             }
                         }
                     }
@@ -1410,15 +1882,24 @@
         function updateMotionIndicators() {
             const positions = {
                 'Outdoor': { x: 155, y: 100, isOutdoor: true },
-                'Hall': { x: 380, y: 420 },
-                'Landing': { x: 470, y: 250 },
-                'Bathroom': { x: 820, y: 250 }
+                'Hall': { x: 200, y: 420 },
+                'Landing': { x: 340, y: 250 },
+                'Bathroom': { x: 660, y: 250 }
             };
 
             const container = document.getElementById('motion-indicators-container');
             if (!container) return;
 
+            // Clear both indoor and outdoor motion indicators
             container.innerHTML = '';
+
+            // Clear outdoor motion indicators (they're in the outdoor-area container)
+            const outdoorArea = document.querySelector('#outdoor-area');
+            if (outdoorArea) {
+                // Remove any existing motion indicator groups from outdoor area
+                const outdoorMotionIndicators = outdoorArea.querySelectorAll('.motion-indicator');
+                outdoorMotionIndicators.forEach(el => el.remove());
+            }
 
             const ns = 'http://www.w3.org/2000/svg';
 
@@ -1430,6 +1911,7 @@
 
                 // Create motion indicator group
                 const group = document.createElementNS(ns, 'g');
+                group.setAttribute('class', 'motion-indicator'); // Add class for easy cleanup
 
                 if (pos.isOutdoor) {
                     // Position relative to outdoor area
@@ -1532,14 +2014,14 @@
         function updateLightIndicators() {
             const roomPositionsForLights = {
                 'Main Bedroom': { x: 180, y: 240 },
-                'Guest Bedroom': { x: 340, y: 240 },
-                'Landing': { x: 500, y: 240 },
-                'Home Office': { x: 660, y: 240 },
-                'Bathroom': { x: 820, y: 240 },
-                'Lounge': { x: 200, y: 405 },
-                'Hall': { x: 420, y: 405 },
-                'Extension': { x: 630, y: 405 },
-                'Kitchen': { x: 810, y: 405 }
+                'Landing': { x: 340, y: 240 },
+                'Home Office': { x: 500, y: 240 },
+                'Bathroom': { x: 660, y: 240 },
+                'Guest Bedroom': { x: 820, y: 240 },
+                'Hall': { x: 200, y: 405 },
+                'Lounge': { x: 400, y: 405 },
+                'Kitchen': { x: 600, y: 405 },
+                'Extension': { x: 800, y: 405 }
             };
 
             const container = document.getElementById('light-indicators-container');
@@ -1570,6 +2052,7 @@
                     bulb.setAttribute('stroke', light.on ? '#FFA500' : '#333');
                     bulb.setAttribute('stroke-width', '1.5');
                     bulb.setAttribute('class', 'light-indicator');
+                    bulb.style.cursor = 'pointer';
 
                     if (light.on) {
                         bulb.setAttribute('filter', 'url(#glow)');
@@ -1577,8 +2060,13 @@
 
                     // Tooltip
                     const title = document.createElementNS(ns, 'title');
-                    title.textContent = `${light.name}: ${light.on ? 'ON' : 'OFF'}`;
+                    title.textContent = `${light.name}: ${light.on ? 'ON' : 'OFF'} (double-click to toggle)`;
                     bulb.appendChild(title);
+
+                    // Double-click to toggle light
+                    bulb.addEventListener('dblclick', () => {
+                        toggleLight(light.id, light.on);
+                    });
 
                     group.appendChild(bulb);
                 });
@@ -1680,6 +2168,41 @@
             }
         }
 
+        // Diagnostic: Show all lights
+        async function showAllLights() {
+            try {
+                const response = await fetch(`http://${BRIDGE_IP}/api/${USERNAME}/lights`);
+                const lights = await response.json();
+
+                console.log('\n');
+                console.log('═══════════════════════════════════════════════════════════');
+                console.log('                    ALL HUE LIGHTS                         ');
+                console.log('═══════════════════════════════════════════════════════════');
+                console.log('\n');
+
+                for (const [id, light] of Object.entries(lights)) {
+                    const room = mapLightToRoom(light.name);
+                    console.log(`┌─ Light ID: ${id} ─────────────────────────────────────`);
+                    console.log(`│ Name: "${light.name}"`);
+                    console.log(`│ Type: ${light.type}`);
+                    console.log(`│ Model: ${light.modelid || 'N/A'}`);
+                    console.log(`│ State: ${light.state.on ? 'ON' : 'OFF'}`);
+                    console.log(`│ Reachable: ${light.state.reachable}`);
+                    console.log(`│ Mapped to room: ${room || '❌ NOT MAPPED'}`);
+                    console.log('└────────────────────────────────────────────────────────');
+                    console.log('\n');
+                }
+
+                console.log('═══════════════════════════════════════════════════════════');
+                console.log(`Total lights found: ${Object.keys(lights).length}`);
+                console.log('═══════════════════════════════════════════════════════════');
+                console.log('\n');
+
+            } catch (error) {
+                console.error('Error fetching lights:', error);
+            }
+        }
+
         // Diagnostic: Show all sensors
         async function showAllSensors() {
             try {
@@ -1723,13 +2246,46 @@
         // Initialize temperature history
         initTempHistory();
 
-        // Show all sensors for debugging
+        // Initialize motion detection history
+        initMotionHistory();
+
+        // Toggle collapsible sections
+        function toggleSection(contentId, arrowId) {
+            const content = document.getElementById(contentId);
+            const arrow = document.getElementById(arrowId);
+
+            if (content && arrow) {
+                content.classList.toggle('collapsed');
+                arrow.classList.toggle('collapsed');
+            }
+        }
+
+        // Setup outdoor lamppost double-click handler
+        function setupLampostClickHandler() {
+            const lampHousing = document.getElementById('lamp-housing');
+            if (lampHousing) {
+                lampHousing.addEventListener('dblclick', () => {
+                    // Find the outdoor light
+                    if (roomLights['Outdoor'] && roomLights['Outdoor'].length > 0) {
+                        const outdoorLight = roomLights['Outdoor'][0];
+                        toggleLight(outdoorLight.id, outdoorLight.on);
+                    }
+                });
+            }
+        }
+
+        // Show all sensors and lights for debugging
         showAllSensors();
+        showAllLights();
 
         // Load all data on page load
         loadTemperatures();
-        loadLights();
+        loadLights().then(() => {
+            // Setup lamppost click handler after lights are loaded
+            setupLampostClickHandler();
+        });
         loadMotionSensors();
+        loadSensorDetails();
 
         // Real-time polling with different intervals for different data types
         // Motion sensors: every 3 seconds (critical for real-time detection)
@@ -1738,8 +2294,335 @@
         // Lights: every 10 seconds (change frequently)
         setInterval(loadLights, 10000);
 
+        // Sensor details: every 10 seconds (includes light levels, battery, motion)
+        setInterval(loadSensorDetails, 10000);
+
         // Temperatures: every 60 seconds (change slowly, without sparkles to reduce visual noise)
         setInterval(() => loadTemperatures(false), 60000);
+
+        // Update motion log display every minute to refresh "time ago"
+        setInterval(updateMotionLogDisplay, 60000);
+
+        // ============================================================================
+        // FUN LIGHT EFFECTS
+        // ============================================================================
+
+        let originalLightStates = {};
+        let effectInProgress = false;
+
+        // Helper: Get all lights with their current state
+        async function getAllLights() {
+            try {
+                const response = await fetch(`http://${BRIDGE_IP}/api/${USERNAME}/lights`);
+                if (!response.ok) return null;
+                return await response.json();
+            } catch (error) {
+                console.error('Error getting lights:', error);
+                return null;
+            }
+        }
+
+        // Helper: Set a light to specific state
+        async function setLightState(lightId, state) {
+            try {
+                await fetch(`http://${BRIDGE_IP}/api/${USERNAME}/lights/${lightId}/state`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(state)
+                });
+            } catch (error) {
+                console.error(`Error setting light ${lightId}:`, error);
+            }
+        }
+
+        // Helper: Save current state of all lights
+        async function saveLightStates() {
+            const lights = await getAllLights();
+            if (!lights) return false;
+
+            originalLightStates = {};
+            for (const [lightId, light] of Object.entries(lights)) {
+                originalLightStates[lightId] = {
+                    on: light.state.on,
+                    bri: light.state.bri,
+                    hue: light.state.hue,
+                    sat: light.state.sat
+                };
+            }
+            return true;
+        }
+
+        // Helper: Restore original light states
+        async function restoreLightStates() {
+            for (const [lightId, state] of Object.entries(originalLightStates)) {
+                await setLightState(lightId, state);
+                await new Promise(resolve => setTimeout(resolve, 50)); // Small delay between commands
+            }
+            setTimeout(loadLights, 500); // Refresh UI
+            effectInProgress = false;
+        }
+
+        // Helper: Disable all effect buttons
+        function disableEffectButtons(disable) {
+            const buttons = ['redAlertBtn', 'partyBtn', 'discoBtn', 'waveBtn', 'sunsetBtn'];
+            buttons.forEach(btnId => {
+                const btn = document.getElementById(btnId);
+                if (btn) btn.disabled = disable;
+            });
+        }
+
+        // 🚨 RED ALERT - Flash all lights red
+        async function redAlert() {
+            if (effectInProgress) return;
+            effectInProgress = true;
+            disableEffectButtons(true);
+
+            const success = await saveLightStates();
+            if (!success) {
+                effectInProgress = false;
+                disableEffectButtons(false);
+                return;
+            }
+
+            const lights = await getAllLights();
+            if (!lights) {
+                effectInProgress = false;
+                disableEffectButtons(false);
+                return;
+            }
+
+            // Flash red 6 times (3 seconds total)
+            for (let i = 0; i < 6; i++) {
+                // Turn all lights red and bright
+                for (const lightId of Object.keys(lights)) {
+                    await setLightState(lightId, {
+                        on: true,
+                        bri: 254,
+                        hue: 0, // Red
+                        sat: 254,
+                        transitiontime: 0 // Instant
+                    });
+                }
+
+                await new Promise(resolve => setTimeout(resolve, 250));
+
+                // Turn all lights off briefly
+                for (const lightId of Object.keys(lights)) {
+                    await setLightState(lightId, { on: false, transitiontime: 0 });
+                }
+
+                await new Promise(resolve => setTimeout(resolve, 250));
+            }
+
+            // Restore original states
+            await restoreLightStates();
+            disableEffectButtons(false);
+        }
+
+        // 🎉 PARTY MODE - Cycle through rainbow colors
+        async function partyMode() {
+            if (effectInProgress) return;
+            effectInProgress = true;
+            disableEffectButtons(true);
+
+            const success = await saveLightStates();
+            if (!success) {
+                effectInProgress = false;
+                disableEffectButtons(false);
+                return;
+            }
+
+            const lights = await getAllLights();
+            if (!lights) {
+                effectInProgress = false;
+                disableEffectButtons(false);
+                return;
+            }
+
+            // Rainbow colors (hue values in Philips Hue scale: 0-65535)
+            const colors = [
+                0,      // Red
+                10922,  // Orange
+                12750,  // Yellow
+                25500,  // Green
+                46920,  // Blue
+                56100   // Purple
+            ];
+
+            // Cycle through colors for 6 seconds
+            for (let cycle = 0; cycle < 12; cycle++) {
+                const hue = colors[cycle % colors.length];
+
+                for (const lightId of Object.keys(lights)) {
+                    await setLightState(lightId, {
+                        on: true,
+                        bri: 254,
+                        hue: hue,
+                        sat: 254,
+                        transitiontime: 5 // Smooth transition
+                    });
+                }
+
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+
+            // Restore original states
+            await restoreLightStates();
+            disableEffectButtons(false);
+        }
+
+        // 🕺 DISCO - Random flashing colors
+        async function discoMode() {
+            if (effectInProgress) return;
+            effectInProgress = true;
+            disableEffectButtons(true);
+
+            const success = await saveLightStates();
+            if (!success) {
+                effectInProgress = false;
+                disableEffectButtons(false);
+                return;
+            }
+
+            const lights = await getAllLights();
+            if (!lights) {
+                effectInProgress = false;
+                disableEffectButtons(false);
+                return;
+            }
+
+            const lightIds = Object.keys(lights);
+
+            // Random flashing for 5 seconds
+            for (let i = 0; i < 20; i++) {
+                // Each light gets a random color
+                for (const lightId of lightIds) {
+                    const randomHue = Math.floor(Math.random() * 65535);
+                    const randomOn = Math.random() > 0.3; // 70% chance to be on
+
+                    await setLightState(lightId, {
+                        on: randomOn,
+                        bri: randomOn ? 254 : 0,
+                        hue: randomHue,
+                        sat: 254,
+                        transitiontime: 0
+                    });
+                }
+
+                await new Promise(resolve => setTimeout(resolve, 250));
+            }
+
+            // Restore original states
+            await restoreLightStates();
+            disableEffectButtons(false);
+        }
+
+        // 🌊 WAVE - Lights turn on in sequence
+        async function waveEffect() {
+            if (effectInProgress) return;
+            effectInProgress = true;
+            disableEffectButtons(true);
+
+            const success = await saveLightStates();
+            if (!success) {
+                effectInProgress = false;
+                disableEffectButtons(false);
+                return;
+            }
+
+            const lights = await getAllLights();
+            if (!lights) {
+                effectInProgress = false;
+                disableEffectButtons(false);
+                return;
+            }
+
+            const lightIds = Object.keys(lights);
+
+            // Turn all lights off first
+            for (const lightId of lightIds) {
+                await setLightState(lightId, { on: false, transitiontime: 0 });
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 300));
+
+            // Wave through lights 3 times
+            for (let wave = 0; wave < 3; wave++) {
+                for (const lightId of lightIds) {
+                    // Turn this light on with cyan color
+                    await setLightState(lightId, {
+                        on: true,
+                        bri: 254,
+                        hue: 46920, // Cyan/Blue
+                        sat: 254,
+                        transitiontime: 0
+                    });
+
+                    await new Promise(resolve => setTimeout(resolve, 150));
+
+                    // Turn it back off
+                    await setLightState(lightId, { on: false, transitiontime: 2 });
+                }
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            // Restore original states
+            await restoreLightStates();
+            disableEffectButtons(false);
+        }
+
+        // 🌅 SUNSET - Gradual warm orange glow then fade
+        async function sunsetMode() {
+            if (effectInProgress) return;
+            effectInProgress = true;
+            disableEffectButtons(true);
+
+            const success = await saveLightStates();
+            if (!success) {
+                effectInProgress = false;
+                disableEffectButtons(false);
+                return;
+            }
+
+            const lights = await getAllLights();
+            if (!lights) {
+                effectInProgress = false;
+                disableEffectButtons(false);
+                return;
+            }
+
+            // Fade to warm sunset orange
+            for (const lightId of Object.keys(lights)) {
+                await setLightState(lightId, {
+                    on: true,
+                    bri: 200,
+                    hue: 5000, // Warm orange
+                    sat: 200,
+                    transitiontime: 30 // 3 seconds fade in
+                });
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 3500));
+
+            // Hold for 2 seconds
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            // Fade to dim
+            for (const lightId of Object.keys(lights)) {
+                await setLightState(lightId, {
+                    on: true,
+                    bri: 1,
+                    transitiontime: 30 // 3 seconds fade out
+                });
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 3500));
+
+            // Restore original states
+            await restoreLightStates();
+            disableEffectButtons(false);
+        }
     </script>
 </body>
 </html>
