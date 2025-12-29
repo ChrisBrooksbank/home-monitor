@@ -1,0 +1,1745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏠 Funky Home Temperature Monitor</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Baloo+2:wght@400;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background: linear-gradient(180deg, #87CEEB 0%, #98D8E8 30%, #F0E68C 70%, #90EE90 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Floating clouds */
+        .cloud {
+            position: absolute;
+            background: white;
+            border-radius: 100px;
+            opacity: 0.7;
+            animation: float-cloud 30s infinite linear;
+        }
+
+        .cloud::before,
+        .cloud::after {
+            content: '';
+            position: absolute;
+            background: white;
+            border-radius: 100px;
+        }
+
+        .cloud1 {
+            width: 100px;
+            height: 40px;
+            top: 10%;
+            left: -150px;
+        }
+
+        .cloud1::before {
+            width: 50px;
+            height: 50px;
+            top: -25px;
+            left: 10px;
+        }
+
+        .cloud1::after {
+            width: 60px;
+            height: 40px;
+            top: -15px;
+            right: 10px;
+        }
+
+        .cloud2 {
+            width: 120px;
+            height: 50px;
+            top: 20%;
+            left: -200px;
+            animation-delay: -15s;
+        }
+
+        .cloud2::before {
+            width: 60px;
+            height: 60px;
+            top: -30px;
+            left: 15px;
+        }
+
+        .cloud2::after {
+            width: 70px;
+            height: 50px;
+            top: -20px;
+            right: 15px;
+        }
+
+        @keyframes float-cloud {
+            to {
+                left: calc(100% + 200px);
+            }
+        }
+
+        /* Birds */
+        .bird {
+            position: absolute;
+            font-size: 24px;
+            animation: fly 20s infinite ease-in-out;
+            opacity: 0.6;
+        }
+
+        .bird1 {
+            top: 15%;
+            left: -50px;
+        }
+
+        .bird2 {
+            top: 25%;
+            left: -80px;
+            animation-delay: -7s;
+        }
+
+        @keyframes fly {
+            to {
+                left: calc(100% + 100px);
+                top: calc(15% + 50px);
+            }
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border-radius: 30px;
+            padding: 20px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.2);
+            max-width: 1400px;
+            max-height: 95vh;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+            border: 4px solid rgba(255, 255, 255, 0.8);
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .container::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .container::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 10px;
+        }
+
+        .container::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+        }
+
+        .container::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #5568d3 0%, #653a8a 100%);
+        }
+
+        h1 {
+            text-align: center;
+            background: linear-gradient(135deg, #FF6B9D 0%, #FFA07A 50%, #FFD700 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 5px;
+            font-size: 2em;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            animation: wiggle 3s ease-in-out infinite;
+        }
+
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(-1deg); }
+            50% { transform: rotate(1deg); }
+        }
+
+        .last-update {
+            text-align: center;
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 0.85em;
+        }
+
+        .house-container {
+            position: relative;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        svg {
+            width: 100%;
+            height: auto;
+            filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.2));
+        }
+
+        .room-fill {
+            transition: all 0.4s ease;
+        }
+
+        .room-fill:hover {
+            filter: brightness(1.15);
+            transform: scale(1.02);
+        }
+
+        .temp-badge, .thermometer {
+            cursor: pointer;
+        }
+
+        .temp-badge:hover, .thermometer:hover {
+            animation: massive-shake 0.5s ease-in-out infinite;
+        }
+
+        @keyframes massive-shake {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            10% { transform: translate(-10px, -10px) rotate(-8deg); }
+            20% { transform: translate(10px, -8px) rotate(8deg); }
+            30% { transform: translate(-8px, 10px) rotate(-6deg); }
+            40% { transform: translate(12px, 5px) rotate(10deg); }
+            50% { transform: translate(-12px, -5px) rotate(-10deg); }
+            60% { transform: translate(8px, 8px) rotate(6deg); }
+            70% { transform: translate(-10px, 10px) rotate(-8deg); }
+            80% { transform: translate(10px, -10px) rotate(8deg); }
+            90% { transform: translate(-8px, -8px) rotate(-6deg); }
+        }
+
+        .temp-display {
+            font-family: 'Baloo 2', cursive;
+            font-size: 28px;
+            font-weight: 700;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 15px;
+            border-radius: 20px;
+            color: white;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px) rotate(2deg);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
+        }
+
+        .stat-label {
+            font-size: 0.75em;
+            opacity: 0.95;
+            margin-bottom: 5px;
+        }
+
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: 700;
+            font-family: 'Baloo 2', cursive;
+        }
+
+        .refresh-btn {
+            display: block;
+            margin: 15px auto 0;
+            padding: 10px 30px;
+            background: linear-gradient(135deg, #FF6B9D 0%, #FFA07A 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(255, 107, 157, 0.4);
+            font-family: 'Fredoka', sans-serif;
+            border: 3px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(255, 107, 157, 0.6);
+        }
+
+        .refresh-btn:active {
+            transform: translateY(-2px) scale(1.02);
+        }
+
+        .refresh-btn.loading {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Sparkle animation */
+        .sparkle {
+            position: absolute;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .sparkle-star {
+            position: absolute;
+            font-size: 20px;
+            animation: sparkle-float 1s ease-out forwards;
+        }
+
+        @keyframes sparkle-float {
+            0% {
+                opacity: 1;
+                transform: translate(0, 0) scale(0) rotate(0deg);
+            }
+            50% {
+                opacity: 1;
+                transform: translate(var(--tx), var(--ty)) scale(1.5) rotate(180deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(calc(var(--tx) * 2), calc(var(--ty) * 2)) scale(0) rotate(360deg);
+            }
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+
+        /* Glow effect for updated temps */
+        .temp-updated {
+            animation: temp-glow 1s ease-out;
+        }
+
+        @keyframes temp-glow {
+            0%, 100% { filter: drop-shadow(0 0 0 transparent); }
+            50% { filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8)); }
+        }
+
+        /* Graph styles */
+        .graph-container {
+            margin-top: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .graph-title {
+            text-align: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            font-weight: 700;
+        }
+
+        #temp-graph {
+            width: 100%;
+            height: auto;
+            filter: drop-shadow(0 5px 15px rgba(0, 0, 0, 0.1));
+        }
+
+        .graph-line {
+            fill: none;
+            stroke-width: 3;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .graph-point {
+            transition: all 0.3s ease;
+        }
+
+        .graph-point:hover {
+            r: 8;
+            filter: drop-shadow(0 0 10px currentColor);
+        }
+
+        @keyframes draw-line {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        /* Motion detection animations */
+        .motion-pulse {
+            animation: motion-pulse 1.5s ease-out infinite;
+        }
+
+        @keyframes motion-pulse {
+            0% {
+                r: 15;
+                opacity: 0.6;
+            }
+            50% {
+                r: 25;
+                opacity: 0.3;
+            }
+            100% {
+                r: 15;
+                opacity: 0.6;
+            }
+        }
+
+        .motion-person {
+            animation: motion-bounce 0.6s ease-in-out infinite alternate;
+        }
+
+        @keyframes motion-bounce {
+            0% {
+                transform: translateY(0);
+            }
+            100% {
+                transform: translateY(-3px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Clouds -->
+    <div class="cloud cloud1"></div>
+    <div class="cloud cloud2"></div>
+
+    <!-- Birds -->
+    <div class="bird bird1">🐦</div>
+    <div class="bird bird2">🕊️</div>
+
+    <div class="container">
+        <h1>🏡 Funky Home Temp Tracker 🌡️</h1>
+        <div class="last-update" id="lastUpdate">Loading magical temperatures...</div>
+
+        <div class="house-container">
+            <svg viewBox="0 0 1000 650" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <!-- Gradients -->
+                    <linearGradient id="skyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#87CEEB;stop-opacity:0.3" />
+                        <stop offset="100%" style="stop-color:#E0F6FF;stop-opacity:0.1" />
+                    </linearGradient>
+
+                    <linearGradient id="roofGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#FF6B6B;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#C92A2A;stop-opacity:1" />
+                    </linearGradient>
+
+                    <linearGradient id="wallGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#FFE66D;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#FFC93C;stop-opacity:1" />
+                    </linearGradient>
+
+                    <linearGradient id="grassGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#7AE582;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#4CAF50;stop-opacity:1" />
+                    </linearGradient>
+
+                    <!-- Room gradients - temperature based -->
+                    <linearGradient id="coldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#A8DADC;stop-opacity:0.9" />
+                        <stop offset="100%" style="stop-color:#1D3557;stop-opacity:0.9" />
+                    </linearGradient>
+
+                    <linearGradient id="coolGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#B8F2E6;stop-opacity:0.9" />
+                        <stop offset="100%" style="stop-color:#5FA9A1;stop-opacity:0.9" />
+                    </linearGradient>
+
+                    <linearGradient id="warmGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#FFD6A5;stop-opacity:0.9" />
+                        <stop offset="100%" style="stop-color:#FFADAD;stop-opacity:0.9" />
+                    </linearGradient>
+
+                    <linearGradient id="hotGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#FF9999;stop-opacity:0.9" />
+                        <stop offset="100%" style="stop-color:#FF6B6B;stop-opacity:0.9" />
+                    </linearGradient>
+
+                    <!-- Patterns -->
+                    <pattern id="brickPattern" x="0" y="0" width="40" height="20" patternUnits="userSpaceOnUse">
+                        <rect width="40" height="20" fill="none"/>
+                        <rect width="18" height="8" x="1" y="1" fill="rgba(200,100,100,0.3)" stroke="rgba(150,50,50,0.4)" stroke-width="0.5"/>
+                        <rect width="18" height="8" x="21" y="11" fill="rgba(200,100,100,0.3)" stroke="rgba(150,50,50,0.4)" stroke-width="0.5"/>
+                    </pattern>
+
+                    <filter id="shadow">
+                        <feDropShadow dx="0" dy="6" stdDeviation="8" flood-opacity="0.4"/>
+                    </filter>
+
+                    <filter id="glow">
+                        <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+                        <feMerge>
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                    </filter>
+                </defs>
+
+                <!-- Sky background -->
+                <rect width="1000" height="600" fill="url(#skyGradient)"/>
+
+                <!-- Sun -->
+                <g id="sun" style="animation: spin 30s linear infinite; transform-origin: 880px 100px;">
+                    <circle cx="880" cy="100" r="50" fill="#FFD700" opacity="0.8" filter="url(#glow)"/>
+                    <circle cx="880" cy="100" r="40" fill="#FFA500"/>
+                </g>
+
+                <!-- Grass -->
+                <ellipse cx="500" cy="620" rx="600" ry="80" fill="url(#grassGradient)"/>
+                <ellipse cx="300" cy="595" rx="200" ry="35" fill="#69B578" opacity="0.6"/>
+                <ellipse cx="700" cy="605" rx="250" ry="40" fill="#69B578" opacity="0.6"/>
+
+                <!-- Main House Structure -->
+                <g filter="url(#shadow)">
+                    <!-- Roof -->
+                    <polygon points="50,350 500,160 950,350" fill="url(#roofGradient)" stroke="#AA2222" stroke-width="4"/>
+
+                    <!-- Chimney -->
+                    <rect x="700" y="230" width="40" height="120" fill="#C92A2A" stroke="#8B0000" stroke-width="3"/>
+                    <rect x="692" y="220" width="56" height="18" fill="#8B0000"/>
+
+                    <!-- Smoke -->
+                    <circle cx="720" cy="205" r="12" fill="#D3D3D3" opacity="0.6">
+                        <animate attributeName="cy" values="205;185;205" dur="3s" repeatCount="indefinite"/>
+                        <animate attributeName="opacity" values="0.6;0.2;0.6" dur="3s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle cx="720" cy="185" r="15" fill="#D3D3D3" opacity="0.5">
+                        <animate attributeName="cy" values="185;165;185" dur="3s" repeatCount="indefinite" begin="0.5s"/>
+                        <animate attributeName="opacity" values="0.5;0.1;0.5" dur="3s" repeatCount="indefinite"/>
+                    </circle>
+
+                    <!-- FIRST FLOOR ROOMS (y: 200-350) -->
+                    <!-- Main Bedroom (left) -->
+                    <rect x="100" y="200" width="160" height="150" fill="rgba(255,182,193,0.5)" stroke="#CC9933" stroke-width="3"/>
+                    <text x="180" y="225" text-anchor="middle" font-size="14" font-weight="700" font-family="Fredoka" fill="#8B4513">Main Bedroom</text>
+                    <rect x="110" y="210" width="50" height="45" rx="5" fill="#87CEEB" stroke="#4682B4" stroke-width="2"/>
+                    <line x1="135" y1="210" x2="135" y2="255" stroke="#4682B4" stroke-width="2"/>
+                    <line x1="110" y1="232" x2="160" y2="232" stroke="#4682B4" stroke-width="2"/>
+
+                    <!-- Guest Bedroom -->
+                    <rect x="260" y="200" width="160" height="150" fill="rgba(221,160,221,0.5)" stroke="#CC9933" stroke-width="3"/>
+                    <text x="340" y="225" text-anchor="middle" font-size="14" font-weight="700" font-family="Fredoka" fill="#8B4513">Guest Bedroom</text>
+                    <rect x="270" y="210" width="50" height="45" rx="5" fill="#87CEEB" stroke="#4682B4" stroke-width="2"/>
+                    <line x1="295" y1="210" x2="295" y2="255" stroke="#4682B4" stroke-width="2"/>
+                    <line x1="270" y1="232" x2="320" y2="232" stroke="#4682B4" stroke-width="2"/>
+
+                    <!-- Landing (center) -->
+                    <rect x="420" y="200" width="160" height="150" fill="rgba(255,218,185,0.5)" stroke="#CC9933" stroke-width="3"/>
+                    <text x="500" y="225" text-anchor="middle" font-size="14" font-weight="700" font-family="Fredoka" fill="#8B4513">Landing</text>
+                    <!-- Stairs icon -->
+                    <rect x="470" y="260" width="60" height="6" fill="rgba(139,69,19,0.6)"/>
+                    <rect x="470" y="270" width="60" height="6" fill="rgba(139,69,19,0.6)"/>
+                    <rect x="470" y="280" width="60" height="6" fill="rgba(139,69,19,0.6)"/>
+                    <rect x="470" y="290" width="60" height="6" fill="rgba(139,69,19,0.6)"/>
+
+                    <!-- Home Office -->
+                    <rect x="580" y="200" width="160" height="150" fill="rgba(173,216,230,0.5)" stroke="#CC9933" stroke-width="3"/>
+                    <text x="660" y="225" text-anchor="middle" font-size="14" font-weight="700" font-family="Fredoka" fill="#8B4513">Home Office</text>
+                    <rect x="590" y="210" width="50" height="45" rx="5" fill="#87CEEB" stroke="#4682B4" stroke-width="2"/>
+                    <line x1="615" y1="210" x2="615" y2="255" stroke="#4682B4" stroke-width="2"/>
+                    <line x1="590" y1="232" x2="640" y2="232" stroke="#4682B4" stroke-width="2"/>
+
+                    <!-- Bathroom -->
+                    <rect x="740" y="200" width="160" height="150" fill="rgba(152,251,152,0.5)" stroke="#CC9933" stroke-width="3"/>
+                    <text x="820" y="225" text-anchor="middle" font-size="14" font-weight="700" font-family="Fredoka" fill="#8B4513">Bathroom</text>
+                    <rect x="750" y="210" width="50" height="45" rx="5" fill="#87CEEB" stroke="#4682B4" stroke-width="2"/>
+                    <line x1="775" y1="210" x2="775" y2="255" stroke="#4682B4" stroke-width="2"/>
+                    <line x1="750" y1="232" x2="800" y2="232" stroke="#4682B4" stroke-width="2"/>
+
+                    <!-- GROUND FLOOR ROOMS (y: 350-600) -->
+                    <!-- Lounge (left) -->
+                    <rect x="100" y="350" width="200" height="250" fill="rgba(244,164,96,0.5)" stroke="#CC9933" stroke-width="4"/>
+                    <text x="200" y="380" text-anchor="middle" font-size="16" font-weight="700" font-family="Fredoka" fill="#8B4513">Lounge</text>
+                    <rect x="120" y="400" width="70" height="65" rx="8" fill="#87CEEB" stroke="#4682B4" stroke-width="2"/>
+                    <line x1="155" y1="400" x2="155" y2="465" stroke="#4682B4" stroke-width="2"/>
+                    <line x1="120" y1="432" x2="190" y2="432" stroke="#4682B4" stroke-width="2"/>
+
+                    <!-- Hall (center, with door) -->
+                    <rect x="300" y="350" width="240" height="250" fill="rgba(152,216,211,0.5)" stroke="#CC9933" stroke-width="4"/>
+                    <text x="420" y="380" text-anchor="middle" font-size="16" font-weight="700" font-family="Fredoka" fill="#8B4513">Hall</text>
+                    <!-- Front Door -->
+                    <rect x="380" y="510" width="80" height="90" rx="40" ry="20" fill="#8B4513" stroke="#654321" stroke-width="3"/>
+                    <circle cx="445" cy="555" r="5" fill="#FFD700"/>
+                    <rect x="405" y="525" width="30" height="35" rx="5" fill="rgba(173,216,230,0.6)"/>
+
+                    <!-- Extension (right-center) -->
+                    <rect x="540" y="350" width="180" height="250" fill="rgba(152,216,200,0.5)" stroke="#CC9933" stroke-width="4"/>
+                    <text x="630" y="380" text-anchor="middle" font-size="16" font-weight="700" font-family="Fredoka" fill="#8B4513">Extension</text>
+                    <rect x="560" y="400" width="70" height="65" rx="8" fill="#87CEEB" stroke="#4682B4" stroke-width="2"/>
+                    <line x1="595" y1="400" x2="595" y2="465" stroke="#4682B4" stroke-width="2"/>
+                    <line x1="560" y1="432" x2="630" y2="432" stroke="#4682B4" stroke-width="2"/>
+
+                    <!-- Kitchen (right) -->
+                    <rect x="720" y="350" width="180" height="250" fill="rgba(255,179,71,0.5)" stroke="#CC9933" stroke-width="4"/>
+                    <text x="810" y="380" text-anchor="middle" font-size="16" font-weight="700" font-family="Fredoka" fill="#8B4513">Kitchen</text>
+                    <rect x="740" y="400" width="70" height="65" rx="8" fill="#87CEEB" stroke="#4682B4" stroke-width="2"/>
+                    <line x1="775" y1="400" x2="775" y2="465" stroke="#4682B4" stroke-width="2"/>
+                    <line x1="740" y1="432" x2="810" y2="432" stroke="#4682B4" stroke-width="2"/>
+                </g>
+
+                <!-- Light indicators will be dynamically added here by JavaScript -->
+                <g id="light-indicators-container"></g>
+
+                <!-- Motion indicators will be dynamically added here by JavaScript -->
+                <g id="motion-indicators-container"></g>
+
+                <!-- Thermometers will be dynamically added here by JavaScript -->
+                <g id="thermometers-container"></g>
+
+                <!-- Outdoor area (OUTSIDE the house) -->
+                <g id="outdoor-area" transform="translate(30, 420)">
+                    <!-- Tree -->
+                    <rect x="10" y="70" width="20" height="90" rx="5" fill="#8B4513"/>
+                    <circle cx="20" cy="60" r="45" fill="#2ECC71" opacity="0.8"/>
+                    <circle cx="8" cy="45" r="38" fill="#27AE60" opacity="0.8"/>
+                    <circle cx="32" cy="45" r="38" fill="#27AE60" opacity="0.8"/>
+
+                    <!-- Narnia-style Lamppost -->
+                    <g id="outdoor-lamppost">
+                        <!-- Base -->
+                        <rect x="140" y="140" width="30" height="8" fill="#2C3E50" rx="2"/>
+                        <rect x="145" y="148" width="20" height="8" fill="#34495E" rx="1"/>
+
+                        <!-- Post -->
+                        <rect x="150" y="65" width="10" height="83" fill="#34495E" rx="2"/>
+                        <rect x="148" y="65" width="14" height="4" fill="#2C3E50"/>
+
+                        <!-- Ornate top piece -->
+                        <rect x="148" y="50" width="14" height="15" fill="#2C3E50" rx="1"/>
+
+                        <!-- Lamp housing (glass panels) -->
+                        <g id="lamp-housing">
+                            <!-- Top -->
+                            <polygon points="155,35 165,50 145,50" fill="#8B4513"/>
+
+                            <!-- Glass panels (will change based on on/off) -->
+                            <rect x="148" y="50" width="4" height="12" fill="#1a1a1a" opacity="0.3" id="lamp-panel-1"/>
+                            <rect x="158" y="50" width="4" height="12" fill="#1a1a1a" opacity="0.3" id="lamp-panel-2"/>
+                            <rect x="150" y="50" width="10" height="12" fill="#1a1a1a" opacity="0.2" id="lamp-panel-center"/>
+
+                            <!-- Light bulb inside (will glow when on) -->
+                            <circle cx="155" cy="56" r="6" fill="#666" id="lamp-bulb"/>
+
+                            <!-- Frame lines -->
+                            <rect x="148" y="50" width="14" height="12" fill="none" stroke="#2C3E50" stroke-width="1.5"/>
+                            <line x1="152" y1="50" x2="152" y2="62" stroke="#2C3E50" stroke-width="1"/>
+                            <line x1="158" y1="50" x2="158" y2="62" stroke="#2C3E50" stroke-width="1"/>
+                        </g>
+
+                        <!-- Decorative scrollwork -->
+                        <path d="M 155 65 Q 145 68 145 73" fill="none" stroke="#2C3E50" stroke-width="1.5"/>
+                        <path d="M 155 65 Q 165 68 165 73" fill="none" stroke="#2C3E50" stroke-width="1.5"/>
+                    </g>
+
+                    <!-- Outdoor thermometer will be added here by JavaScript -->
+                    <g id="outdoor-thermometer-container"></g>
+                </g>
+
+                <!-- Flowers in garden -->
+                <g transform="translate(150, 590)">
+                    <circle cx="0" cy="0" r="7" fill="#FF69B4"/>
+                    <circle cx="25" cy="4" r="7" fill="#FF1493"/>
+                    <circle cx="50" cy="-2" r="7" fill="#FF69B4"/>
+                    <rect x="-2" y="0" width="2.5" height="25" fill="#228B22"/>
+                    <rect x="23" y="4" width="2.5" height="20" fill="#228B22"/>
+                    <rect x="48" y="-2" width="2.5" height="27" fill="#228B22"/>
+                </g>
+
+                <g transform="translate(750, 598)">
+                    <circle cx="0" cy="0" r="7" fill="#FFD700"/>
+                    <circle cx="22" cy="2" r="7" fill="#FFA500"/>
+                    <circle cx="44" cy="-1" r="7" fill="#FFD700"/>
+                    <rect x="-2" y="0" width="2.5" height="23" fill="#228B22"/>
+                    <rect x="20" y="2" width="2.5" height="20" fill="#228B22"/>
+                    <rect x="42" y="-1" width="2.5" height="25" fill="#228B22"/>
+                </g>
+            </svg>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">🏠 Average Indoor</div>
+                <div class="stat-value" id="avg-temp">--°C</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">🔥 Warmest Room</div>
+                <div class="stat-value" id="max-temp">--°C</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">❄️ Coolest Room</div>
+                <div class="stat-value" id="min-temp">--°C</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">📊 Temp Range</div>
+                <div class="stat-value" id="range-temp">--°C</div>
+            </div>
+        </div>
+
+        <button class="refresh-btn" onclick="loadTemperatures()" id="refreshBtn">
+            🔄 Refresh Temps!
+        </button>
+
+        <!-- Temperature Graph -->
+        <div class="graph-container">
+            <h2 class="graph-title">📈 24-Hour Temperature History</h2>
+            <svg id="temp-graph" viewBox="0 0 1200 400" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="gridGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#f0f0f0;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#ffffff;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                <!-- Background -->
+                <rect width="1200" height="400" fill="url(#gridGradient)" rx="10"/>
+
+                <!-- Grid lines will be added by JavaScript -->
+                <g id="grid-lines"></g>
+
+                <!-- Graph lines will be added by JavaScript -->
+                <g id="graph-lines"></g>
+
+                <!-- Axes -->
+                <line x1="50" y1="350" x2="1150" y2="350" stroke="#ccc" stroke-width="2"/>
+                <line x1="50" y1="50" x2="50" y2="350" stroke="#ccc" stroke-width="2"/>
+
+                <!-- Labels will be added by JavaScript -->
+                <g id="axis-labels"></g>
+                <g id="legend"></g>
+            </svg>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        const BRIDGE_IP = HUE_CONFIG.BRIDGE_IP;
+        const USERNAME = HUE_CONFIG.USERNAME;
+
+        const sensorMapping = {
+            // First Floor
+            'landing': 'temp-landing',
+            'main bedroom': 'temp-main-bedroom',
+            'guest room': 'temp-guest-bedroom',
+            'Hue temperature sensor 1': 'temp-office',  // Home Office
+            'bathroom': 'temp-bathroom',
+            // Ground Floor
+            'Hall': 'temp-hall',
+            'lounge': 'temp-lounge',
+            'ExtensionDimmer': 'temp-extension',
+            'guest room': 'temp-guest-bedroom',
+            'KitchenSensor': 'temp-kitchen',
+            // Outdoor
+            'Hue outdoor temp. sensor 1': 'temp-outdoor'
+        };
+
+        const roomColors = {
+            // First Floor
+            'landing': '#FF6B9D',
+            'main bedroom': '#FFB6C1',
+            'guest room': '#DDA0DD',
+            'Hue temperature sensor 1': '#87CEEB',
+            'bathroom': '#4ECDC4',
+            // Ground Floor
+            'Hall': '#95E1D3',
+            'lounge': '#F4A460',
+            'ExtensionDimmer': '#98D8C8',
+            'KitchenSensor': '#FFB347',
+            // Outdoor
+            'Hue outdoor temp. sensor 1': '#7AE582'
+        };
+
+        const roomNames = {
+            // First Floor
+            'landing': 'Landing',
+            'main bedroom': 'Main Bedroom',
+            'guest room': 'Guest Bedroom',
+            'Hue temperature sensor 1': 'Home Office',
+            'bathroom': 'Bathroom',
+            // Ground Floor
+            'Hall': 'Hall',
+            'lounge': 'Lounge',
+            'ExtensionDimmer': 'Extension',
+            'KitchenSensor': 'Kitchen',
+            // Outdoor
+            'Hue outdoor temp. sensor 1': 'Outdoor'
+        };
+
+        // Light bulb mapping to rooms (will be populated dynamically)
+        const lightMapping = {};
+
+        // Store light states for each room
+        const roomLights = {
+            'Main Bedroom': [],
+            'Guest Bedroom': [],
+            'Landing': [],
+            'Home Office': [],
+            'Bathroom': [],
+            'Lounge': [],
+            'Hall': [],
+            'Extension': [],
+            'Kitchen': [],
+            'Outdoor': []
+        };
+
+        // Store motion sensor states
+        const motionSensors = {
+            'Outdoor': { detected: false, lastUpdated: null, previousDetected: false },
+            'Hall': { detected: false, lastUpdated: null, previousDetected: false },
+            'Landing': { detected: false, lastUpdated: null, previousDetected: false },
+            'Bathroom': { detected: false, lastUpdated: null, previousDetected: false }
+        };
+
+        // Voice announcement function
+        function announceMotion(room) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance();
+
+                // Different messages for different locations
+                const messages = {
+                    'Outdoor': 'Motion detected outside',
+                    'Hall': 'Motion detected in the hall',
+                    'Landing': 'Motion detected on the landing',
+                    'Bathroom': 'Motion detected in the bathroom'
+                };
+
+                utterance.text = messages[room] || `Motion detected in ${room}`;
+                utterance.rate = 1.1; // Slightly faster for urgency
+                utterance.pitch = 1.0;
+                utterance.volume = 1.0;
+
+                // Cancel any ongoing speech and speak
+                window.speechSynthesis.cancel();
+                window.speechSynthesis.speak(utterance);
+            } else {
+                // Fallback: play a beep sound if speech not available
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.frequency.value = 800;
+                oscillator.type = 'sine';
+
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            }
+        }
+
+        // Temperature history storage
+        let tempHistory = {};
+
+        function initTempHistory() {
+            const stored = localStorage.getItem('tempHistory');
+            if (stored) {
+                tempHistory = JSON.parse(stored);
+                // Clean old data (older than 24 hours)
+                const now = Date.now();
+                const oneDayAgo = now - (24 * 60 * 60 * 1000);
+                for (let room in tempHistory) {
+                    tempHistory[room] = tempHistory[room].filter(entry => entry.time > oneDayAgo);
+                }
+            } else {
+                for (let room in sensorMapping) {
+                    tempHistory[room] = [];
+                }
+            }
+        }
+
+        function saveTempData(room, temp) {
+            const now = Date.now();
+            if (!tempHistory[room]) {
+                tempHistory[room] = [];
+            }
+            tempHistory[room].push({ time: now, temp: parseFloat(temp) });
+
+            // Keep only last 24 hours
+            const oneDayAgo = now - (24 * 60 * 60 * 1000);
+            tempHistory[room] = tempHistory[room].filter(entry => entry.time > oneDayAgo);
+
+            localStorage.setItem('tempHistory', JSON.stringify(tempHistory));
+        }
+
+        function drawGraph() {
+            const graphLines = document.getElementById('graph-lines');
+            const gridLines = document.getElementById('grid-lines');
+            const axisLabels = document.getElementById('axis-labels');
+            const legend = document.getElementById('legend');
+
+            // Clear existing elements
+            graphLines.innerHTML = '';
+            gridLines.innerHTML = '';
+            axisLabels.innerHTML = '';
+            legend.innerHTML = '';
+
+            const now = Date.now();
+            const oneDayAgo = now - (24 * 60 * 60 * 1000);
+
+            // Graph dimensions
+            const width = 1100;
+            const height = 300;
+            const marginLeft = 50;
+            const marginBottom = 50;
+
+            // Find min/max temps across all rooms
+            let minTemp = Infinity;
+            let maxTemp = -Infinity;
+
+            for (let room in tempHistory) {
+                tempHistory[room].forEach(entry => {
+                    if (entry.temp < minTemp) minTemp = entry.temp;
+                    if (entry.temp > maxTemp) maxTemp = entry.temp;
+                });
+            }
+
+            if (minTemp === Infinity) {
+                minTemp = 0;
+                maxTemp = 30;
+            } else {
+                minTemp = Math.floor(minTemp) - 2;
+                maxTemp = Math.ceil(maxTemp) + 2;
+            }
+
+            // Draw grid lines
+            const tempRange = maxTemp - minTemp;
+            for (let i = 0; i <= 5; i++) {
+                const temp = minTemp + (tempRange * i / 5);
+                const y = 350 - (temp - minTemp) / tempRange * height;
+
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', marginLeft);
+                line.setAttribute('y1', y);
+                line.setAttribute('x2', marginLeft + width);
+                line.setAttribute('y2', y);
+                line.setAttribute('stroke', '#e0e0e0');
+                line.setAttribute('stroke-width', '1');
+                line.setAttribute('stroke-dasharray', '5,5');
+                gridLines.appendChild(line);
+
+                const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                label.setAttribute('x', marginLeft - 10);
+                label.setAttribute('y', y + 5);
+                label.setAttribute('text-anchor', 'end');
+                label.setAttribute('font-size', '12');
+                label.setAttribute('fill', '#666');
+                label.textContent = temp.toFixed(1) + '°C';
+                axisLabels.appendChild(label);
+            }
+
+            // Draw time labels (every 4 hours)
+            for (let i = 0; i <= 6; i++) {
+                const time = oneDayAgo + (24 * 60 * 60 * 1000 * i / 6);
+                const x = marginLeft + (width * i / 6);
+                const date = new Date(time);
+                const hours = date.getHours().toString().padStart(2, '0');
+
+                const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                label.setAttribute('x', x);
+                label.setAttribute('y', 370);
+                label.setAttribute('text-anchor', 'middle');
+                label.setAttribute('font-size', '12');
+                label.setAttribute('fill', '#666');
+                label.textContent = hours + ':00';
+                axisLabels.appendChild(label);
+            }
+
+            // Draw lines for each room
+            let legendY = 70;
+            for (let room in tempHistory) {
+                const data = tempHistory[room];
+                if (data.length < 2) continue;
+
+                const color = roomColors[room] || '#999';
+                const points = [];
+
+                data.forEach(entry => {
+                    const x = marginLeft + ((entry.time - oneDayAgo) / (24 * 60 * 60 * 1000)) * width;
+                    const y = 350 - ((entry.temp - minTemp) / tempRange) * height;
+                    points.push(`${x},${y}`);
+                });
+
+                const pathData = 'M' + points.join(' L');
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.setAttribute('d', pathData);
+                path.setAttribute('class', 'graph-line');
+                path.setAttribute('stroke', color);
+
+                // Calculate path length for animation
+                const pathLength = path.getTotalLength();
+                path.style.strokeDasharray = pathLength;
+                path.style.strokeDashoffset = pathLength;
+                path.style.animation = `draw-line 2s ease-out forwards`;
+
+                graphLines.appendChild(path);
+
+                // Draw points
+                data.forEach(entry => {
+                    const x = marginLeft + ((entry.time - oneDayAgo) / (24 * 60 * 60 * 1000)) * width;
+                    const y = 350 - ((entry.temp - minTemp) / tempRange) * height;
+
+                    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    circle.setAttribute('cx', x);
+                    circle.setAttribute('cy', y);
+                    circle.setAttribute('r', 4);
+                    circle.setAttribute('fill', color);
+                    circle.setAttribute('class', 'graph-point');
+                    circle.style.opacity = 0;
+                    circle.style.animation = `fade-in 0.5s ease-out ${2 + (x / width) * 0.5}s forwards`;
+
+                    const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+                    const date = new Date(entry.time);
+                    title.textContent = `${roomNames[room]}: ${entry.temp}°C at ${date.toLocaleTimeString()}`;
+                    circle.appendChild(title);
+
+                    graphLines.appendChild(circle);
+                });
+
+                // Legend
+                const legendRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                legendRect.setAttribute('x', 900);
+                legendRect.setAttribute('y', legendY - 10);
+                legendRect.setAttribute('width', 20);
+                legendRect.setAttribute('height', 4);
+                legendRect.setAttribute('fill', color);
+                legend.appendChild(legendRect);
+
+                const legendText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                legendText.setAttribute('x', 930);
+                legendText.setAttribute('y', legendY);
+                legendText.setAttribute('font-size', '14');
+                legendText.setAttribute('font-weight', '600');
+                legendText.setAttribute('fill', '#333');
+                legendText.setAttribute('font-family', 'Fredoka');
+                legendText.textContent = roomNames[room];
+                legend.appendChild(legendText);
+
+                legendY += 25;
+            }
+
+            // Add fade-in animation for points
+            if (!document.getElementById('fade-in-style')) {
+                const style = document.createElement('style');
+                style.id = 'fade-in-style';
+                style.textContent = `
+                    @keyframes fade-in {
+                        to { opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        }
+
+        // Room positions for thermometers (centered in each room)
+        const roomPositions = {
+            // First Floor (y: 200-350)
+            'temp-main-bedroom': { x: 180, y: 275 },
+            'temp-guest-bedroom': { x: 340, y: 275 },
+            'temp-landing': { x: 500, y: 275 },
+            'temp-office': { x: 660, y: 275 },
+            'temp-bathroom': { x: 820, y: 275 },
+            // Ground Floor (y: 350-600)
+            'temp-lounge': { x: 200, y: 475 },
+            'temp-hall': { x: 420, y: 475 },
+            'temp-extension': { x: 630, y: 475 },
+            'temp-kitchen': { x: 810, y: 475 },
+            // Outdoor (relative to outdoor-area transform)
+            'temp-outdoor': { x: 60, y: 10, isOutdoor: true }
+        };
+
+        function getTemperatureColor(temp) {
+            if (temp < 10) return '#4169E1';  // Royal Blue - Cold
+            if (temp < 15) return '#00CED1';  // Dark Turquoise - Cool
+            if (temp < 20) return '#32CD32';  // Lime Green - Comfortable
+            if (temp < 25) return '#FFA500';  // Orange - Warm
+            return '#FF4500';  // Orange Red - Hot
+        }
+
+        function createThermometer(elementId, temp, roomName) {
+            const position = roomPositions[elementId];
+            if (!position) return null;
+
+            const ns = 'http://www.w3.org/2000/svg';
+            const group = document.createElementNS(ns, 'g');
+            group.setAttribute('class', 'thermometer');
+            group.setAttribute('data-room', elementId);
+
+            // Thermometer dimensions
+            const tubeWidth = 24;
+            const tubeHeight = 80;
+            const bulbRadius = 16;
+
+            // Background (glass tube)
+            const tube = document.createElementNS(ns, 'rect');
+            tube.setAttribute('x', 0);
+            tube.setAttribute('y', 0);
+            tube.setAttribute('width', tubeWidth);
+            tube.setAttribute('height', tubeHeight);
+            tube.setAttribute('rx', 12);
+            tube.setAttribute('fill', 'rgba(255, 255, 255, 0.9)');
+            tube.setAttribute('stroke', '#666');
+            tube.setAttribute('stroke-width', '2');
+            tube.setAttribute('filter', 'url(#shadow)');
+            group.appendChild(tube);
+
+            // Bulb
+            const bulb = document.createElementNS(ns, 'circle');
+            bulb.setAttribute('cx', tubeWidth / 2);
+            bulb.setAttribute('cy', tubeHeight + bulbRadius - 4);
+            bulb.setAttribute('r', bulbRadius);
+            bulb.setAttribute('fill', 'rgba(255, 255, 255, 0.9)');
+            bulb.setAttribute('stroke', '#666');
+            bulb.setAttribute('stroke-width', '2');
+            bulb.setAttribute('filter', 'url(#shadow)');
+            group.appendChild(bulb);
+
+            // Mercury level (0-30°C range for visualization)
+            const tempRange = { min: 0, max: 30 };
+            const percentage = Math.max(0, Math.min(1, (temp - tempRange.min) / (tempRange.max - tempRange.min)));
+            const mercuryHeight = (tubeHeight - 10) * percentage + bulbRadius * 2 - 4;
+
+            const mercuryColor = getTemperatureColor(temp);
+
+            // Mercury in bulb
+            const mercuryBulb = document.createElementNS(ns, 'circle');
+            mercuryBulb.setAttribute('cx', tubeWidth / 2);
+            mercuryBulb.setAttribute('cy', tubeHeight + bulbRadius - 4);
+            mercuryBulb.setAttribute('r', bulbRadius - 4);
+            mercuryBulb.setAttribute('fill', mercuryColor);
+            mercuryBulb.setAttribute('class', 'mercury-fill');
+            group.appendChild(mercuryBulb);
+
+            // Mercury in tube
+            const mercuryTube = document.createElementNS(ns, 'rect');
+            mercuryTube.setAttribute('x', tubeWidth / 2 - 4);
+            mercuryTube.setAttribute('y', tubeHeight - mercuryHeight + bulbRadius);
+            mercuryTube.setAttribute('width', 8);
+            mercuryTube.setAttribute('height', mercuryHeight - bulbRadius);
+            mercuryTube.setAttribute('rx', 4);
+            mercuryTube.setAttribute('fill', mercuryColor);
+            mercuryTube.setAttribute('class', 'mercury-fill');
+            group.appendChild(mercuryTube);
+
+            // Scale markings
+            for (let i = 0; i <= 4; i++) {
+                const y = tubeHeight - (tubeHeight - 10) * (i / 4) + 5;
+                const mark = document.createElementNS(ns, 'line');
+                mark.setAttribute('x1', tubeWidth);
+                mark.setAttribute('y1', y);
+                mark.setAttribute('x2', tubeWidth + 5);
+                mark.setAttribute('y2', y);
+                mark.setAttribute('stroke', '#666');
+                mark.setAttribute('stroke-width', '1');
+                group.appendChild(mark);
+            }
+
+            // Temperature text
+            const tempText = document.createElementNS(ns, 'text');
+            tempText.setAttribute('x', tubeWidth / 2);
+            tempText.setAttribute('y', tubeHeight + bulbRadius * 2 + 20);
+            tempText.setAttribute('text-anchor', 'middle');
+            tempText.setAttribute('font-size', '14');
+            tempText.setAttribute('font-weight', '700');
+            tempText.setAttribute('font-family', 'Baloo 2');
+            tempText.setAttribute('fill', mercuryColor);
+            tempText.setAttribute('id', elementId);
+            tempText.textContent = temp.toFixed(1) + '°C';
+            group.appendChild(tempText);
+
+            // Room label
+            const label = document.createElementNS(ns, 'text');
+            label.setAttribute('x', tubeWidth / 2);
+            label.setAttribute('y', -8);
+            label.setAttribute('text-anchor', 'middle');
+            label.setAttribute('font-size', '11');
+            label.setAttribute('font-weight', '600');
+            label.setAttribute('font-family', 'Fredoka');
+            label.setAttribute('fill', '#333');
+            label.textContent = roomName;
+            group.appendChild(label);
+
+            // Position the thermometer
+            if (position.isOutdoor) {
+                group.setAttribute('transform', `translate(${position.x}, ${position.y})`);
+                document.getElementById('outdoor-thermometer-container').appendChild(group);
+            } else {
+                group.setAttribute('transform', `translate(${position.x}, ${position.y})`);
+                document.getElementById('thermometers-container').appendChild(group);
+            }
+
+            return tempText;
+        }
+
+        function createSparkles(element) {
+            const rect = element.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+
+            const sparkleEmojis = ['✨', '⭐', '🌟', '💫', '✨', '⭐'];
+            const numSparkles = 8;
+
+            for (let i = 0; i < numSparkles; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle-star';
+                sparkle.textContent = sparkleEmojis[Math.floor(Math.random() * sparkleEmojis.length)];
+
+                const angle = (Math.PI * 2 * i) / numSparkles;
+                const distance = 50 + Math.random() * 30;
+                const tx = Math.cos(angle) * distance;
+                const ty = Math.sin(angle) * distance;
+
+                sparkle.style.left = centerX + 'px';
+                sparkle.style.top = centerY + 'px';
+                sparkle.style.setProperty('--tx', tx + 'px');
+                sparkle.style.setProperty('--ty', ty + 'px');
+
+                document.body.appendChild(sparkle);
+
+                setTimeout(() => sparkle.remove(), 1000);
+            }
+        }
+
+        function mapLightToRoom(lightName) {
+            const nameLower = lightName.toLowerCase();
+
+            if (nameLower.includes('outdoor') || nameLower.includes('outside') || nameLower.includes('garden')) return 'Outdoor';
+            if (nameLower.includes('main bedroom') || nameLower.includes('mainbedroom')) return 'Main Bedroom';
+            if (nameLower.includes('guest') && (nameLower.includes('bedroom') || nameLower.includes('room'))) return 'Guest Bedroom';
+            if (nameLower.includes('landing')) return 'Landing';
+            if (nameLower.includes('office')) return 'Home Office';
+            if (nameLower.includes('bathroom') || nameLower.includes('bath')) return 'Bathroom';
+            if (nameLower.includes('lounge')) return 'Lounge';
+            if (nameLower.includes('hall')) return 'Hall';
+            if (nameLower.includes('extension')) return 'Extension';
+            if (nameLower.includes('kitchen')) return 'Kitchen';
+
+            return null;
+        }
+
+        function updateOutdoorLamppost(isOn) {
+            const bulb = document.getElementById('lamp-bulb');
+            const panel1 = document.getElementById('lamp-panel-1');
+            const panel2 = document.getElementById('lamp-panel-2');
+            const panelCenter = document.getElementById('lamp-panel-center');
+
+            if (!bulb) return;
+
+            if (isOn) {
+                // Light is ON - glow effect
+                bulb.setAttribute('fill', '#FFD700');
+                bulb.setAttribute('filter', 'url(#glow)');
+                panel1.setAttribute('fill', '#FFF4CC');
+                panel1.setAttribute('opacity', '0.9');
+                panel2.setAttribute('fill', '#FFF4CC');
+                panel2.setAttribute('opacity', '0.9');
+                panelCenter.setAttribute('fill', '#FFEB99');
+                panelCenter.setAttribute('opacity', '0.8');
+
+                // Add light rays
+                let rays = document.getElementById('lamp-rays');
+                if (!rays) {
+                    const ns = 'http://www.w3.org/2000/svg';
+                    rays = document.createElementNS(ns, 'g');
+                    rays.setAttribute('id', 'lamp-rays');
+                    rays.setAttribute('opacity', '0.4');
+
+                    // Create radiating light
+                    for (let i = 0; i < 8; i++) {
+                        const angle = (i * 45) * Math.PI / 180;
+                        const x1 = 155, y1 = 56;
+                        const x2 = 155 + Math.cos(angle) * 30;
+                        const y2 = 56 + Math.sin(angle) * 30;
+
+                        const ray = document.createElementNS(ns, 'line');
+                        ray.setAttribute('x1', x1);
+                        ray.setAttribute('y1', y1);
+                        ray.setAttribute('x2', x2);
+                        ray.setAttribute('y2', y2);
+                        ray.setAttribute('stroke', '#FFD700');
+                        ray.setAttribute('stroke-width', '2');
+                        ray.setAttribute('stroke-linecap', 'round');
+
+                        rays.appendChild(ray);
+                    }
+
+                    document.getElementById('lamp-housing').appendChild(rays);
+                }
+                rays.style.display = 'block';
+            } else {
+                // Light is OFF - dark
+                bulb.setAttribute('fill', '#666');
+                bulb.removeAttribute('filter');
+                panel1.setAttribute('fill', '#1a1a1a');
+                panel1.setAttribute('opacity', '0.3');
+                panel2.setAttribute('fill', '#1a1a1a');
+                panel2.setAttribute('opacity', '0.3');
+                panelCenter.setAttribute('fill', '#1a1a1a');
+                panelCenter.setAttribute('opacity', '0.2');
+
+                const rays = document.getElementById('lamp-rays');
+                if (rays) rays.style.display = 'none';
+            }
+        }
+
+        async function loadLights() {
+            try {
+                const response = await fetch(`http://${BRIDGE_IP}/api/${USERNAME}/lights`);
+                if (!response.ok) return;
+
+                const lights = await response.json();
+
+                // Clear previous light data
+                for (let room in roomLights) {
+                    roomLights[room] = [];
+                }
+
+                // Map lights to rooms
+                for (const [lightId, lightInfo] of Object.entries(lights)) {
+                    const room = mapLightToRoom(lightInfo.name);
+                    if (room && roomLights[room]) {
+                        roomLights[room].push({
+                            id: lightId,
+                            name: lightInfo.name,
+                            on: lightInfo.state.on,
+                            reachable: lightInfo.state.reachable
+                        });
+                    }
+                }
+
+                // Update light indicators in UI
+                updateLightIndicators();
+
+                // Update outdoor lamppost if there are outdoor lights
+                if (roomLights['Outdoor'].length > 0) {
+                    const outdoorLightOn = roomLights['Outdoor'].some(light => light.on);
+                    updateOutdoorLamppost(outdoorLightOn);
+                } else {
+                    // If no outdoor light detected, turn it off
+                    updateOutdoorLamppost(false);
+                }
+
+            } catch (error) {
+                console.error('Error loading lights:', error);
+            }
+        }
+
+        function mapMotionSensorToRoom(sensorName) {
+            const nameLower = sensorName.toLowerCase();
+
+            if (nameLower.includes('outdoor') || nameLower.includes('outside') || nameLower.includes('garden')) return 'Outdoor';
+            if (nameLower.includes('hall') || nameLower.includes('frontdoor') || nameLower.includes('front door')) return 'Hall';
+            if (nameLower.includes('landing')) return 'Landing';
+            if (nameLower.includes('bathroom') || nameLower.includes('bath')) return 'Bathroom';
+
+            return null;
+        }
+
+        async function loadMotionSensors() {
+            try {
+                const response = await fetch(`http://${BRIDGE_IP}/api/${USERNAME}/sensors`);
+                if (!response.ok) return;
+
+                const sensors = await response.json();
+
+                // Debug: log all motion sensors found
+                console.log('=== Motion Sensors Scan ===');
+
+                // Process motion sensors
+                for (const [sensorId, sensorInfo] of Object.entries(sensors)) {
+                    if (sensorInfo.type === 'ZLLPresence') {
+                        const room = mapMotionSensorToRoom(sensorInfo.name);
+
+                        // Debug logging
+                        console.log(`Sensor: "${sensorInfo.name}" | Presence: ${sensorInfo.state.presence} | Mapped to: ${room || 'UNMAPPED'}`);
+
+                        if (room && motionSensors[room]) {
+                            // Store previous state
+                            motionSensors[room].previousDetected = motionSensors[room].detected;
+
+                            // Update current state
+                            motionSensors[room].detected = sensorInfo.state.presence;
+                            motionSensors[room].lastUpdated = sensorInfo.state.lastupdated;
+
+                            // Check if motion just started (changed from false to true)
+                            if (motionSensors[room].detected && !motionSensors[room].previousDetected) {
+                                console.log(`🔊 ANNOUNCING: Motion in ${room}`);
+                                announceMotion(room);
+                            }
+                        }
+                    }
+                }
+
+                // Update motion indicators in UI
+                updateMotionIndicators();
+
+            } catch (error) {
+                console.error('Error loading motion sensors:', error);
+            }
+        }
+
+        function updateMotionIndicators() {
+            const positions = {
+                'Outdoor': { x: 155, y: 100, isOutdoor: true },
+                'Hall': { x: 380, y: 420 },
+                'Landing': { x: 470, y: 250 },
+                'Bathroom': { x: 820, y: 250 }
+            };
+
+            const container = document.getElementById('motion-indicators-container');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            const ns = 'http://www.w3.org/2000/svg';
+
+            for (const [room, motion] of Object.entries(motionSensors)) {
+                if (!motion.detected) continue; // Only show when motion detected
+
+                const pos = positions[room];
+                if (!pos) continue;
+
+                // Create motion indicator group
+                const group = document.createElementNS(ns, 'g');
+
+                if (pos.isOutdoor) {
+                    // Position relative to outdoor area
+                    group.setAttribute('transform', `translate(${pos.x}, ${pos.y})`);
+                } else {
+                    group.setAttribute('transform', `translate(${pos.x}, ${pos.y})`);
+                }
+
+                // Person icon
+                const personGroup = document.createElementNS(ns, 'g');
+                personGroup.setAttribute('class', 'motion-person');
+
+                // Head
+                const head = document.createElementNS(ns, 'circle');
+                head.setAttribute('cx', '0');
+                head.setAttribute('cy', '-12');
+                head.setAttribute('r', '5');
+                head.setAttribute('fill', '#FF6B6B');
+                head.setAttribute('stroke', '#C92A2A');
+                head.setAttribute('stroke-width', '1.5');
+                personGroup.appendChild(head);
+
+                // Body
+                const body = document.createElementNS(ns, 'line');
+                body.setAttribute('x1', '0');
+                body.setAttribute('y1', '-7');
+                body.setAttribute('x2', '0');
+                body.setAttribute('y2', '5');
+                body.setAttribute('stroke', '#FF6B6B');
+                body.setAttribute('stroke-width', '2.5');
+                body.setAttribute('stroke-linecap', 'round');
+                personGroup.appendChild(body);
+
+                // Arms
+                const arms = document.createElementNS(ns, 'line');
+                arms.setAttribute('x1', '-6');
+                arms.setAttribute('y1', '-2');
+                arms.setAttribute('x2', '6');
+                arms.setAttribute('y2', '-2');
+                arms.setAttribute('stroke', '#FF6B6B');
+                arms.setAttribute('stroke-width', '2.5');
+                arms.setAttribute('stroke-linecap', 'round');
+                personGroup.appendChild(arms);
+
+                // Legs
+                const leg1 = document.createElementNS(ns, 'line');
+                leg1.setAttribute('x1', '0');
+                leg1.setAttribute('y1', '5');
+                leg1.setAttribute('x2', '-4');
+                leg1.setAttribute('y2', '12');
+                leg1.setAttribute('stroke', '#FF6B6B');
+                leg1.setAttribute('stroke-width', '2.5');
+                leg1.setAttribute('stroke-linecap', 'round');
+                personGroup.appendChild(leg1);
+
+                const leg2 = document.createElementNS(ns, 'line');
+                leg2.setAttribute('x1', '0');
+                leg2.setAttribute('y1', '5');
+                leg2.setAttribute('x2', '4');
+                leg2.setAttribute('y2', '12');
+                leg2.setAttribute('stroke', '#FF6B6B');
+                leg2.setAttribute('stroke-width', '2.5');
+                leg2.setAttribute('stroke-linecap', 'round');
+                personGroup.appendChild(leg2);
+
+                group.appendChild(personGroup);
+
+                // Pulsing circle around person
+                const pulseCircle = document.createElementNS(ns, 'circle');
+                pulseCircle.setAttribute('cx', '0');
+                pulseCircle.setAttribute('cy', '0');
+                pulseCircle.setAttribute('r', '15');
+                pulseCircle.setAttribute('fill', 'none');
+                pulseCircle.setAttribute('stroke', '#FF6B6B');
+                pulseCircle.setAttribute('stroke-width', '2');
+                pulseCircle.setAttribute('opacity', '0.6');
+                pulseCircle.setAttribute('class', 'motion-pulse');
+                group.appendChild(pulseCircle);
+
+                // Motion text label
+                const label = document.createElementNS(ns, 'text');
+                label.setAttribute('x', '0');
+                label.setAttribute('y', '25');
+                label.setAttribute('text-anchor', 'middle');
+                label.setAttribute('font-size', '11');
+                label.setAttribute('font-weight', '700');
+                label.setAttribute('font-family', 'Fredoka');
+                label.setAttribute('fill', '#C92A2A');
+                label.textContent = 'MOTION';
+                group.appendChild(label);
+
+                if (pos.isOutdoor) {
+                    document.querySelector('#outdoor-area').appendChild(group);
+                } else {
+                    container.appendChild(group);
+                }
+            }
+        }
+
+        function updateLightIndicators() {
+            const roomPositionsForLights = {
+                'Main Bedroom': { x: 180, y: 240 },
+                'Guest Bedroom': { x: 340, y: 240 },
+                'Landing': { x: 500, y: 240 },
+                'Home Office': { x: 660, y: 240 },
+                'Bathroom': { x: 820, y: 240 },
+                'Lounge': { x: 200, y: 405 },
+                'Hall': { x: 420, y: 405 },
+                'Extension': { x: 630, y: 405 },
+                'Kitchen': { x: 810, y: 405 }
+            };
+
+            const container = document.getElementById('light-indicators-container');
+            if (!container) return;
+
+            container.innerHTML = '';
+
+            const ns = 'http://www.w3.org/2000/svg';
+
+            for (const [room, lights] of Object.entries(roomLights)) {
+                if (lights.length === 0) continue;
+
+                const pos = roomPositionsForLights[room];
+                if (!pos) continue;
+
+                // Create a group for this room's lights
+                const group = document.createElementNS(ns, 'g');
+
+                lights.forEach((light, index) => {
+                    const offsetX = (index - (lights.length - 1) / 2) * 20;
+
+                    // Light bulb icon
+                    const bulb = document.createElementNS(ns, 'circle');
+                    bulb.setAttribute('cx', pos.x + offsetX);
+                    bulb.setAttribute('cy', pos.y);
+                    bulb.setAttribute('r', 6);
+                    bulb.setAttribute('fill', light.on ? '#FFD700' : '#666');
+                    bulb.setAttribute('stroke', light.on ? '#FFA500' : '#333');
+                    bulb.setAttribute('stroke-width', '1.5');
+                    bulb.setAttribute('class', 'light-indicator');
+
+                    if (light.on) {
+                        bulb.setAttribute('filter', 'url(#glow)');
+                    }
+
+                    // Tooltip
+                    const title = document.createElementNS(ns, 'title');
+                    title.textContent = `${light.name}: ${light.on ? 'ON' : 'OFF'}`;
+                    bulb.appendChild(title);
+
+                    group.appendChild(bulb);
+                });
+
+                container.appendChild(group);
+            }
+        }
+
+        async function loadTemperatures(showSparkles = true) {
+            const btn = document.getElementById('refreshBtn');
+            if (showSparkles) btn.classList.add('loading');
+
+            try {
+                const response = await fetch(`http://${BRIDGE_IP}/api/${USERNAME}/sensors`);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const sensors = await response.json();
+                const temps = [];
+
+                // Clear existing thermometers
+                document.getElementById('thermometers-container').innerHTML = '';
+                document.getElementById('outdoor-thermometer-container').innerHTML = '';
+
+                for (const [sensorId, sensorInfo] of Object.entries(sensors)) {
+                    if (sensorInfo.type === 'ZLLTemperature') {
+                        const name = sensorInfo.name;
+                        const elementId = sensorMapping[name];
+
+                        if (elementId) {
+                            const temp = sensorInfo.state.temperature;
+
+                            if (temp !== null && temp !== undefined) {
+                                const tempC = (temp / 100.0).toFixed(1);
+                                const roomName = roomNames[name] || name;
+
+                                // Create thermometer for this room
+                                const tempElement = createThermometer(elementId, parseFloat(tempC), roomName);
+
+                                // Save temperature data for graphing
+                                saveTempData(name, tempC);
+
+                                // Create sparkles on update!
+                                if (tempElement && showSparkles) {
+                                    setTimeout(() => createSparkles(tempElement), 100);
+                                }
+
+                                // Only add to stats if not outdoor
+                                if (name !== 'Hue outdoor temp. sensor 1') {
+                                    temps.push(parseFloat(tempC));
+                                }
+                            }
+                            // If temp is null/undefined, we simply don't create a thermometer (nothing displayed)
+                        }
+                    }
+                }
+
+                // Calculate statistics
+                if (temps.length > 0) {
+                    const avg = (temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(1);
+                    const max = Math.max(...temps).toFixed(1);
+                    const min = Math.min(...temps).toFixed(1);
+                    const range = (max - min).toFixed(1);
+
+                    const avgEl = document.getElementById('avg-temp');
+                    const maxEl = document.getElementById('max-temp');
+                    const minEl = document.getElementById('min-temp');
+                    const rangeEl = document.getElementById('range-temp');
+
+                    avgEl.textContent = avg + '°C';
+                    maxEl.textContent = max + '°C';
+                    minEl.textContent = min + '°C';
+                    rangeEl.textContent = range + '°C';
+
+                    // Add sparkles to stats cards
+                    if (showSparkles) {
+                        setTimeout(() => createSparkles(avgEl), 100);
+                        setTimeout(() => createSparkles(maxEl), 200);
+                        setTimeout(() => createSparkles(minEl), 300);
+                        setTimeout(() => createSparkles(rangeEl), 400);
+                    }
+                }
+
+                const now = new Date();
+                document.getElementById('lastUpdate').textContent =
+                    `Last updated: ${now.toLocaleString()} ✨`;
+
+                // Redraw graph with new data
+                drawGraph();
+
+            } catch (error) {
+                console.error('Error loading temperatures:', error);
+                document.getElementById('lastUpdate').textContent =
+                    `⚠️ Oops! ${error.message}`;
+            } finally {
+                if (showSparkles) btn.classList.remove('loading');
+            }
+        }
+
+        // Diagnostic: Show all sensors
+        async function showAllSensors() {
+            try {
+                const response = await fetch(`http://${BRIDGE_IP}/api/${USERNAME}/sensors`);
+                const sensors = await response.json();
+
+                console.log('\n');
+                console.log('═══════════════════════════════════════════════════════════');
+                console.log('                    ALL HUE SENSORS                        ');
+                console.log('═══════════════════════════════════════════════════════════');
+                console.log('\n');
+
+                for (const [id, sensor] of Object.entries(sensors)) {
+                    console.log(`┌─ Sensor ID: ${id} ─────────────────────────────────────`);
+                    console.log(`│ Name: "${sensor.name}"`);
+                    console.log(`│ Type: ${sensor.type}`);
+                    console.log(`│ Model: ${sensor.modelid || 'N/A'}`);
+                    console.log(`│ Manufacturer: ${sensor.manufacturername || 'N/A'}`);
+
+                    if (sensor.state) {
+                        console.log(`│ State:`);
+                        for (const [key, value] of Object.entries(sensor.state)) {
+                            console.log(`│   - ${key}: ${value}`);
+                        }
+                    }
+
+                    console.log('└────────────────────────────────────────────────────────');
+                    console.log('\n');
+                }
+
+                console.log('═══════════════════════════════════════════════════════════');
+                console.log(`Total sensors found: ${Object.keys(sensors).length}`);
+                console.log('═══════════════════════════════════════════════════════════');
+                console.log('\n');
+
+            } catch (error) {
+                console.error('Error fetching sensors:', error);
+            }
+        }
+
+        // Initialize temperature history
+        initTempHistory();
+
+        // Show all sensors for debugging
+        showAllSensors();
+
+        // Load all data on page load
+        loadTemperatures();
+        loadLights();
+        loadMotionSensors();
+
+        // Real-time polling with different intervals for different data types
+        // Motion sensors: every 3 seconds (critical for real-time detection)
+        setInterval(loadMotionSensors, 3000);
+
+        // Lights: every 10 seconds (change frequently)
+        setInterval(loadLights, 10000);
+
+        // Temperatures: every 60 seconds (change slowly, without sparkles to reduce visual noise)
+        setInterval(() => loadTemperatures(false), 60000);
+    </script>
+</body>
+</html>
