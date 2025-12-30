@@ -1,6 +1,10 @@
 # Sensitive configuration - DO NOT COMMIT
 config.js
 
+# Hue automation backups (not needed in repo)
+behaviors.json
+all_behaviors.json
+
 # Python cache
 __pycache__/
 *.pyc
