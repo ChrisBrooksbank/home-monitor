@@ -415,6 +415,29 @@
             animation: motion-bounce 0.6s ease-in-out infinite alternate;
         }
 
+        /* Monkey shake animation */
+        .monkey-shake {
+            animation: monkey-shake 2s ease-in-out infinite;
+            transform-origin: center;
+        }
+
+        @keyframes monkey-shake {
+            0%, 100% { transform: rotate(-3deg) translateX(-1px); }
+            25% { transform: rotate(3deg) translateX(1px); }
+            50% { transform: rotate(-3deg) translateX(-1px); }
+            75% { transform: rotate(2deg) translateX(0.5px); }
+        }
+
+        /* Fade out animation */
+        .monkey-fadeout {
+            animation: fadeout 2s ease-out forwards;
+        }
+
+        @keyframes fadeout {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
         @keyframes motion-bounce {
             0% {
                 transform: translateY(0);
@@ -1961,64 +1984,107 @@
                     group.setAttribute('transform', `translate(${pos.x}, ${pos.y})`);
                 }
 
-                // Person icon
-                const personGroup = document.createElementNS(ns, 'g');
-                personGroup.setAttribute('class', 'motion-person');
+                // Monkey face icon
+                const monkeyGroup = document.createElementNS(ns, 'g');
+                monkeyGroup.setAttribute('class', 'monkey-shake');
 
-                // Head
+                // Monkey head (brown circle)
                 const head = document.createElementNS(ns, 'circle');
                 head.setAttribute('cx', '0');
-                head.setAttribute('cy', '-12');
-                head.setAttribute('r', '5');
-                head.setAttribute('fill', '#FF6B6B');
-                head.setAttribute('stroke', '#C92A2A');
-                head.setAttribute('stroke-width', '1.5');
-                personGroup.appendChild(head);
+                head.setAttribute('cy', '0');
+                head.setAttribute('r', '18');
+                head.setAttribute('fill', '#8B4513');
+                head.setAttribute('stroke', '#5D2E0F');
+                head.setAttribute('stroke-width', '2');
+                monkeyGroup.appendChild(head);
 
-                // Body
-                const body = document.createElementNS(ns, 'line');
-                body.setAttribute('x1', '0');
-                body.setAttribute('y1', '-7');
-                body.setAttribute('x2', '0');
-                body.setAttribute('y2', '5');
-                body.setAttribute('stroke', '#FF6B6B');
-                body.setAttribute('stroke-width', '2.5');
-                body.setAttribute('stroke-linecap', 'round');
-                personGroup.appendChild(body);
+                // Face area (lighter brown)
+                const face = document.createElementNS(ns, 'ellipse');
+                face.setAttribute('cx', '0');
+                face.setAttribute('cy', '3');
+                face.setAttribute('rx', '12');
+                face.setAttribute('ry', '10');
+                face.setAttribute('fill', '#D2691E');
+                monkeyGroup.appendChild(face);
 
-                // Arms
-                const arms = document.createElementNS(ns, 'line');
-                arms.setAttribute('x1', '-6');
-                arms.setAttribute('y1', '-2');
-                arms.setAttribute('x2', '6');
-                arms.setAttribute('y2', '-2');
-                arms.setAttribute('stroke', '#FF6B6B');
-                arms.setAttribute('stroke-width', '2.5');
-                arms.setAttribute('stroke-linecap', 'round');
-                personGroup.appendChild(arms);
+                // Left ear
+                const leftEar = document.createElementNS(ns, 'circle');
+                leftEar.setAttribute('cx', '-15');
+                leftEar.setAttribute('cy', '-8');
+                leftEar.setAttribute('r', '6');
+                leftEar.setAttribute('fill', '#8B4513');
+                leftEar.setAttribute('stroke', '#5D2E0F');
+                leftEar.setAttribute('stroke-width', '1.5');
+                monkeyGroup.appendChild(leftEar);
 
-                // Legs
-                const leg1 = document.createElementNS(ns, 'line');
-                leg1.setAttribute('x1', '0');
-                leg1.setAttribute('y1', '5');
-                leg1.setAttribute('x2', '-4');
-                leg1.setAttribute('y2', '12');
-                leg1.setAttribute('stroke', '#FF6B6B');
-                leg1.setAttribute('stroke-width', '2.5');
-                leg1.setAttribute('stroke-linecap', 'round');
-                personGroup.appendChild(leg1);
+                // Right ear
+                const rightEar = document.createElementNS(ns, 'circle');
+                rightEar.setAttribute('cx', '15');
+                rightEar.setAttribute('cy', '-8');
+                rightEar.setAttribute('r', '6');
+                rightEar.setAttribute('fill', '#8B4513');
+                rightEar.setAttribute('stroke', '#5D2E0F');
+                rightEar.setAttribute('stroke-width', '1.5');
+                monkeyGroup.appendChild(rightEar);
 
-                const leg2 = document.createElementNS(ns, 'line');
-                leg2.setAttribute('x1', '0');
-                leg2.setAttribute('y1', '5');
-                leg2.setAttribute('x2', '4');
-                leg2.setAttribute('y2', '12');
-                leg2.setAttribute('stroke', '#FF6B6B');
-                leg2.setAttribute('stroke-width', '2.5');
-                leg2.setAttribute('stroke-linecap', 'round');
-                personGroup.appendChild(leg2);
+                // Left eye
+                const leftEye = document.createElementNS(ns, 'circle');
+                leftEye.setAttribute('cx', '-6');
+                leftEye.setAttribute('cy', '-2');
+                leftEye.setAttribute('r', '3');
+                leftEye.setAttribute('fill', 'white');
+                monkeyGroup.appendChild(leftEye);
 
-                group.appendChild(personGroup);
+                const leftPupil = document.createElementNS(ns, 'circle');
+                leftPupil.setAttribute('cx', '-5');
+                leftPupil.setAttribute('cy', '-1');
+                leftPupil.setAttribute('r', '2');
+                leftPupil.setAttribute('fill', 'black');
+                monkeyGroup.appendChild(leftPupil);
+
+                // Right eye
+                const rightEye = document.createElementNS(ns, 'circle');
+                rightEye.setAttribute('cx', '6');
+                rightEye.setAttribute('cy', '-2');
+                rightEye.setAttribute('r', '3');
+                rightEye.setAttribute('fill', 'white');
+                monkeyGroup.appendChild(rightEye);
+
+                const rightPupil = document.createElementNS(ns, 'circle');
+                rightPupil.setAttribute('cx', '7');
+                rightPupil.setAttribute('cy', '-1');
+                rightPupil.setAttribute('r', '2');
+                rightPupil.setAttribute('fill', 'black');
+                monkeyGroup.appendChild(rightPupil);
+
+                // Nose
+                const nose = document.createElementNS(ns, 'ellipse');
+                nose.setAttribute('cx', '0');
+                nose.setAttribute('cy', '5');
+                nose.setAttribute('rx', '3');
+                nose.setAttribute('ry', '2');
+                nose.setAttribute('fill', '#5D2E0F');
+                monkeyGroup.appendChild(nose);
+
+                // Mouth (smile)
+                const mouth = document.createElementNS(ns, 'path');
+                mouth.setAttribute('d', 'M -5 8 Q 0 12 5 8');
+                mouth.setAttribute('stroke', '#5D2E0F');
+                mouth.setAttribute('stroke-width', '1.5');
+                mouth.setAttribute('fill', 'none');
+                mouth.setAttribute('stroke-linecap', 'round');
+                monkeyGroup.appendChild(mouth);
+
+                group.appendChild(monkeyGroup);
+
+                // Schedule fade-out after 30 seconds
+                setTimeout(() => {
+                    monkeyGroup.setAttribute('class', 'monkey-shake monkey-fadeout');
+                    // Remove the element after fade completes
+                    setTimeout(() => {
+                        group.remove();
+                    }, 2000);
+                }, 30000);
 
                 // Pulsing circle around person
                 const pulseCircle = document.createElementNS(ns, 'circle');
@@ -2035,13 +2101,13 @@
                 // Motion text label
                 const label = document.createElementNS(ns, 'text');
                 label.setAttribute('x', '0');
-                label.setAttribute('y', '25');
+                label.setAttribute('y', '35');
                 label.setAttribute('text-anchor', 'middle');
-                label.setAttribute('font-size', '11');
+                label.setAttribute('font-size', '12');
                 label.setAttribute('font-weight', '700');
                 label.setAttribute('font-family', 'Fredoka');
-                label.setAttribute('fill', '#C92A2A');
-                label.textContent = 'MOTION';
+                label.setAttribute('fill', '#5D2E0F');
+                label.textContent = 'OOH OOH!';
                 group.appendChild(label);
 
                 if (pos.isOutdoor) {
