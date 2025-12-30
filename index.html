@@ -210,24 +210,17 @@
         }
 
         .temp-badge, .thermometer {
-            cursor: pointer;
+            cursor: move;
+            transition: opacity 0.2s ease;
         }
 
-        .temp-badge:hover, .thermometer:hover {
-            animation: massive-shake 0.5s ease-in-out infinite;
+        .thermometer:hover {
+            animation: thermometer-pulse 1.5s ease-in-out infinite;
         }
 
-        @keyframes massive-shake {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            10% { transform: translate(-10px, -10px) rotate(-8deg); }
-            20% { transform: translate(10px, -8px) rotate(8deg); }
-            30% { transform: translate(-8px, 10px) rotate(-6deg); }
-            40% { transform: translate(12px, 5px) rotate(10deg); }
-            50% { transform: translate(-12px, -5px) rotate(-10deg); }
-            60% { transform: translate(8px, 8px) rotate(6deg); }
-            70% { transform: translate(-10px, 10px) rotate(-8deg); }
-            80% { transform: translate(10px, -10px) rotate(8deg); }
-            90% { transform: translate(-8px, -8px) rotate(-6deg); }
+        @keyframes thermometer-pulse {
+            0%, 100% { transform: scale(1) translateY(0); }
+            50% { transform: scale(1.05) translateY(-2px); filter: brightness(1.1); }
         }
 
         .temp-display {
@@ -784,14 +777,14 @@
                     <text x="800" y="380" text-anchor="middle" font-size="16" font-weight="700" font-family="Fredoka" fill="#8B4513">Extension</text>
                 </g>
 
+                <!-- Thermometers will be dynamically added here by JavaScript -->
+                <g id="thermometers-container"></g>
+
                 <!-- Light indicators will be dynamically added here by JavaScript -->
                 <g id="light-indicators-container"></g>
 
                 <!-- Motion indicators will be dynamically added here by JavaScript -->
                 <g id="motion-indicators-container"></g>
-
-                <!-- Thermometers will be dynamically added here by JavaScript -->
-                <g id="thermometers-container"></g>
 
                 <!-- Outdoor area (OUTSIDE the house) -->
                 <g id="outdoor-area" transform="translate(30, 420)">
@@ -902,6 +895,9 @@
             </button>
             <button class="refresh-btn" onclick="sunsetMode()" id="sunsetBtn" style="background: linear-gradient(135deg, #FF6B35 0%, #FF8E53 100%);">
                 🌅 Sunset
+            </button>
+            <button class="refresh-btn" onclick="resetThermometerPositions()" id="resetBtn" style="background: linear-gradient(135deg, #6C757D 0%, #495057 100%);">
+                🔄 Reset Thermometers
             </button>
         </div>
 
@@ -1431,13 +1427,23 @@
             'temp-bathroom': { x: 660, y: 220 },
             'temp-guest-bedroom': { x: 820, y: 220 },
             // Ground Floor (y: 350-600) - bulbs in middle/lower section
-            'temp-hall': { x: 200, y: 420 },
-            'temp-lounge': { x: 400, y: 420 },
-            'temp-kitchen': { x: 600, y: 420 },
-            'temp-extension': { x: 800, y: 420 },
+            'temp-hall': { x: 200, y: 460 },
+            'temp-lounge': { x: 400, y: 460 },
+            'temp-kitchen': { x: 600, y: 460 },
+            'temp-extension': { x: 800, y: 460 },
             // Outdoor (relative to outdoor-area transform)
             'temp-outdoor': { x: 60, y: 10, isOutdoor: true }
         };
+
+        // Load custom thermometer positions from localStorage
+        let customThermometerPositions = JSON.parse(
+            localStorage.getItem('thermometerPositions') || '{}'
+        );
+
+        // Get position with custom override support
+        function getThermometerPosition(elementId) {
+            return customThermometerPositions[elementId] || roomPositions[elementId];
+        }
 
         function getTemperatureColor(temp) {
             if (temp < 10) return '#4169E1';  // Royal Blue - Cold
@@ -1448,7 +1454,7 @@
         }
 
         function createThermometer(elementId, temp, roomName) {
-            const position = roomPositions[elementId];
+            const position = getThermometerPosition(elementId);
             if (!position) return null;
 
             const ns = 'http://www.w3.org/2000/svg';
@@ -1490,7 +1496,7 @@
             const percentage = Math.max(0, Math.min(1, (temp - tempRange.min) / (tempRange.max - tempRange.min)));
             const mercuryHeight = (tubeHeight - 10) * percentage + bulbRadius * 2 - 4;
 
-            const mercuryColor = getTemperatureColor(temp);
+            const mercuryColor = position.isOutdoor ? '#00CED1' : getTemperatureColor(temp);
 
             // Mercury in bulb
             const mercuryBulb = document.createElementNS(ns, 'circle');
@@ -1530,10 +1536,13 @@
             tempText.setAttribute('x', tubeWidth / 2);
             tempText.setAttribute('y', tubeHeight + bulbRadius * 2 + 20);
             tempText.setAttribute('text-anchor', 'middle');
-            tempText.setAttribute('font-size', '14');
+            tempText.setAttribute('font-size', '18');
             tempText.setAttribute('font-weight', '700');
             tempText.setAttribute('font-family', 'Baloo 2');
-            tempText.setAttribute('fill', mercuryColor);
+            tempText.setAttribute('fill', 'white');
+            tempText.setAttribute('stroke', '#333');
+            tempText.setAttribute('stroke-width', '3');
+            tempText.setAttribute('paint-order', 'stroke fill');
             tempText.setAttribute('id', elementId);
             tempText.textContent = temp.toFixed(1) + '°C';
             group.appendChild(tempText);
@@ -1543,10 +1552,10 @@
             label.setAttribute('x', tubeWidth / 2);
             label.setAttribute('y', -8);
             label.setAttribute('text-anchor', 'middle');
-            label.setAttribute('font-size', '11');
-            label.setAttribute('font-weight', '600');
+            label.setAttribute('font-size', position.isOutdoor ? '12' : '11');
+            label.setAttribute('font-weight', position.isOutdoor ? '700' : '600');
             label.setAttribute('font-family', 'Fredoka');
-            label.setAttribute('fill', '#333');
+            label.setAttribute('fill', position.isOutdoor ? '#0066CC' : '#333');
             label.textContent = roomName;
             group.appendChild(label);
 
@@ -1559,7 +1568,74 @@
                 document.getElementById('thermometers-container').appendChild(group);
             }
 
+            // Make thermometer draggable
+            makeDraggable(group, elementId, position);
+
             return tempText;
+        }
+
+        function makeDraggable(group, elementId, position) {
+            let isDragging = false;
+            let startX, startY, currentTransform;
+
+            group.style.cursor = 'move';
+
+            group.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                startX = e.clientX;
+                startY = e.clientY;
+
+                const transform = group.getAttribute('transform');
+                const match = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
+                currentTransform = {
+                    x: parseFloat(match[1]),
+                    y: parseFloat(match[2])
+                };
+
+                group.style.opacity = '0.7';
+                e.preventDefault();
+                e.stopPropagation();
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                const newX = currentTransform.x + dx;
+                const newY = currentTransform.y + dy;
+
+                group.setAttribute('transform', `translate(${newX}, ${newY})`);
+            });
+
+            document.addEventListener('mouseup', (e) => {
+                if (!isDragging) return;
+                isDragging = false;
+
+                group.style.opacity = '1';
+
+                // Save position to localStorage
+                const transform = group.getAttribute('transform');
+                const match = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
+
+                customThermometerPositions[elementId] = {
+                    x: parseFloat(match[1]),
+                    y: parseFloat(match[2]),
+                    isOutdoor: position.isOutdoor
+                };
+
+                localStorage.setItem(
+                    'thermometerPositions',
+                    JSON.stringify(customThermometerPositions)
+                );
+            });
+        }
+
+        function resetThermometerPositions() {
+            if (confirm('Reset all thermometer positions to defaults?')) {
+                localStorage.removeItem('thermometerPositions');
+                location.reload();
+            }
         }
 
         function createSparkles(element) {
