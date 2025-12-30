@@ -1,6 +1,6 @@
 # 🏠 Funky Home Temperature Monitor
 
-A real-time, interactive dashboard for monitoring Philips Hue sensors throughout your home.
+A real-time, interactive dashboard for monitoring Philips Hue sensors throughout your home. Now available as a Progressive Web App (PWA) - install it on your phone or desktop!
 
 ## Features
 
@@ -34,6 +34,12 @@ A real-time, interactive dashboard for monitoring Philips Hue sensors throughout
 - Sparkle effects on temperature updates
 - Massive shake animation on hover
 
+📱 **Progressive Web App (PWA)**
+- Install on any device (mobile, tablet, desktop)
+- Offline support with service worker caching
+- App-like experience in standalone mode
+- Custom themed app icon with house design
+
 ## Setup
 
 1. **Copy the example config:**
@@ -49,6 +55,42 @@ A real-time, interactive dashboard for monitoring Philips Hue sensors throughout
    ```
    index.html
    ```
+
+## Hosting as a PWA
+
+To enable PWA features (offline support, installation), you need to serve the app over HTTP/HTTPS:
+
+### Option 1: Using Node.js (Recommended)
+```bash
+# Install http-server globally (one-time)
+npm install -g http-server
+
+# Start the server
+http-server -p 8080
+```
+
+### Option 2: Using Python
+```bash
+# Python 3
+python -m http.server 8080
+
+# Python 2
+python -m SimpleHTTPServer 8080
+```
+
+### Option 3: Using PHP
+```bash
+php -S localhost:8080
+```
+
+### Installing the PWA
+
+1. Open `http://localhost:8080` in Chrome, Edge, or Safari
+2. Look for the install button (⊕ or download icon) in the address bar
+3. Click install to add the app to your device
+4. The app will work offline once installed
+
+**Note:** The service worker requires a web server to function. Opening `index.html` directly from the filesystem will not enable PWA features.
 
 ## Room Layout
 
@@ -81,6 +123,8 @@ A real-time, interactive dashboard for monitoring Philips Hue sensors throughout
 - Web Speech API (voice announcements)
 - Philips Hue Bridge API
 - LocalStorage for 24-hour history
+- Service Workers (offline support)
+- Web App Manifest (PWA installation)
 
 ## Generated with
 
