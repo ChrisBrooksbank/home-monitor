@@ -550,6 +550,56 @@
                     <circle cx="880" cy="100" r="40" fill="#FFA500"/>
                 </g>
 
+                <!-- Moon (hidden during day) -->
+                <g id="moon" style="display: none;">
+                    <circle cx="850" cy="120" r="45" fill="#F0F0F0" filter="url(#glow)"/>
+                    <circle cx="860" cy="115" r="40" fill="#E8E8E8"/>
+                    <!-- Craters -->
+                    <circle cx="845" cy="110" r="8" fill="#D0D0D0" opacity="0.6"/>
+                    <circle cx="870" cy="125" r="6" fill="#D0D0D0" opacity="0.5"/>
+                    <circle cx="855" cy="135" r="5" fill="#D0D0D0" opacity="0.7"/>
+                </g>
+
+                <!-- Stars (hidden during day) -->
+                <g id="stars" style="display: none;">
+                    <circle cx="100" cy="50" r="2" fill="white" opacity="0.9">
+                        <animate attributeName="opacity" values="0.9;0.3;0.9" dur="3s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle cx="200" cy="80" r="1.5" fill="white" opacity="0.8">
+                        <animate attributeName="opacity" values="0.8;0.4;0.8" dur="2.5s" repeatCount="indefinite" begin="0.5s"/>
+                    </circle>
+                    <circle cx="350" cy="40" r="2" fill="white" opacity="0.9">
+                        <animate attributeName="opacity" values="0.9;0.2;0.9" dur="4s" repeatCount="indefinite" begin="1s"/>
+                    </circle>
+                    <circle cx="500" cy="70" r="1.5" fill="white" opacity="0.7">
+                        <animate attributeName="opacity" values="0.7;0.3;0.7" dur="3.5s" repeatCount="indefinite" begin="1.5s"/>
+                    </circle>
+                    <circle cx="650" cy="45" r="2" fill="white" opacity="0.9">
+                        <animate attributeName="opacity" values="0.9;0.4;0.9" dur="3s" repeatCount="indefinite" begin="0.8s"/>
+                    </circle>
+                    <circle cx="750" cy="90" r="1.5" fill="white" opacity="0.8">
+                        <animate attributeName="opacity" values="0.8;0.3;0.8" dur="2.8s" repeatCount="indefinite" begin="2s"/>
+                    </circle>
+                    <circle cx="150" cy="120" r="1" fill="white" opacity="0.7">
+                        <animate attributeName="opacity" values="0.7;0.2;0.7" dur="3.2s" repeatCount="indefinite" begin="0.3s"/>
+                    </circle>
+                    <circle cx="300" cy="110" r="1.5" fill="white" opacity="0.8">
+                        <animate attributeName="opacity" values="0.8;0.4;0.8" dur="3.8s" repeatCount="indefinite" begin="1.2s"/>
+                    </circle>
+                    <circle cx="450" cy="130" r="1" fill="white" opacity="0.7">
+                        <animate attributeName="opacity" values="0.7;0.3;0.7" dur="2.7s" repeatCount="indefinite" begin="1.8s"/>
+                    </circle>
+                    <circle cx="600" cy="100" r="1.5" fill="white" opacity="0.9">
+                        <animate attributeName="opacity" values="0.9;0.3;0.9" dur="3.3s" repeatCount="indefinite" begin="0.6s"/>
+                    </circle>
+                    <circle cx="800" cy="55" r="2" fill="white" opacity="0.8">
+                        <animate attributeName="opacity" values="0.8;0.2;0.8" dur="4.2s" repeatCount="indefinite" begin="2.5s"/>
+                    </circle>
+                    <circle cx="920" cy="75" r="1.5" fill="white" opacity="0.9">
+                        <animate attributeName="opacity" values="0.9;0.4;0.9" dur="3.6s" repeatCount="indefinite" begin="1.3s"/>
+                    </circle>
+                </g>
+
                 <!-- Grass -->
                 <ellipse cx="500" cy="620" rx="600" ry="80" fill="url(#grassGradient)"/>
                 <ellipse cx="300" cy="595" rx="200" ry="35" fill="#69B578" opacity="0.6"/>
@@ -885,18 +935,6 @@
         const BRIDGE_IP = HUE_CONFIG.BRIDGE_IP;
         const USERNAME = HUE_CONFIG.USERNAME;
 
-        // IFTTT Configuration - loaded from config.js (not committed to git)
-        const IFTTT_CONFIG = HUE_CONFIG.IFTTT || {
-            enabled: false,
-            webhookKey: '',
-            events: {
-                'Outdoor': 'motion_outdoor',
-                'Hall': 'motion_hall',
-                'Landing': 'motion_landing',
-                'Bathroom': 'motion_bathroom'
-            }
-        };
-
         const sensorMapping = {
             // First Floor
             'landing': 'temp-landing',
@@ -962,6 +1000,9 @@
             'Kitchen': [],
             'Outdoor': []
         };
+
+        // Track previous light states for announcements
+        const previousLightStates = {};
 
         // Store motion sensor states
         const motionSensors = {
@@ -1082,42 +1123,9 @@
             logContainer.scrollTop = 0;
         }
 
-        // IFTTT Webhook trigger function
-        async function triggerIFTTT(room) {
-            if (!IFTTT_CONFIG.enabled) return;
-
-            const eventName = IFTTT_CONFIG.events[room];
-            if (!eventName) return;
-
-            // Use GET request to avoid CORS preflight issues
-            // Pass data as query parameters
-            const params = new URLSearchParams({
-                value1: room,
-                value2: new Date().toLocaleTimeString(),
-                value3: 'Motion detected'
-            });
-            const url = `https://maker.ifttt.com/trigger/${eventName}/with/key/${IFTTT_CONFIG.webhookKey}?${params}`;
-
-            try {
-                // Use fetch with no-cors mode OR use an image beacon as fallback
-                // Method 1: Try fetch (may not work in all browsers from file://)
-                await fetch(url, { method: 'GET', mode: 'no-cors' });
-                console.log(`✅ IFTTT notification sent for ${room}`);
-            } catch (error) {
-                // Method 2: Fallback to image beacon (always works, no CORS issues)
-                console.log(`📡 Using image beacon fallback for ${room}`);
-                const img = new Image();
-                img.src = url;
-                img.onerror = () => console.log(`✅ IFTTT notification sent for ${room} (via beacon)`);
-            }
-        }
-
-        // Voice announcement function
+        // Voice announcement function for motion
         function announceMotion(room) {
-            // Trigger IFTTT webhook (Google Home broadcast)
-            triggerIFTTT(room);
-
-            // Also do local Web Speech API announcement
+            // Use Web Speech API for local voice announcement
             if ('speechSynthesis' in window) {
                 const utterance = new SpeechSynthesisUtterance();
 
@@ -1154,6 +1162,26 @@
 
                 oscillator.start(audioContext.currentTime);
                 oscillator.stop(audioContext.currentTime + 0.5);
+            }
+        }
+
+        // Voice announcement function for lights
+        function announceLight(room, isOn) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance();
+
+                const action = isOn ? 'on' : 'off';
+                const roomName = room.toLowerCase();
+
+                utterance.text = `${room} light turned ${action}`;
+                utterance.rate = 1.0;
+                utterance.pitch = 1.0;
+                utterance.volume = 0.8;
+
+                // Don't cancel ongoing speech, queue it instead
+                window.speechSynthesis.speak(utterance);
+
+                console.log(`💡 Announced: ${room} light ${action}`);
             }
         }
 
@@ -1658,14 +1686,27 @@
                     roomLights[room] = [];
                 }
 
-                // Map lights to rooms
+                // Map lights to rooms and detect changes
                 for (const [lightId, lightInfo] of Object.entries(lights)) {
                     const room = mapLightToRoom(lightInfo.name);
                     if (room && roomLights[room]) {
+                        const currentState = lightInfo.state.on;
+
+                        // Check if this light's state changed
+                        if (previousLightStates[lightId] !== undefined &&
+                            previousLightStates[lightId] !== currentState &&
+                            lightInfo.state.reachable) {
+                            // Light state changed - announce it
+                            announceLight(room, currentState);
+                        }
+
+                        // Update previous state
+                        previousLightStates[lightId] = currentState;
+
                         roomLights[room].push({
                             id: lightId,
                             name: lightInfo.name,
-                            on: lightInfo.state.on,
+                            on: currentState,
                             reachable: lightInfo.state.reachable
                         });
                     }
@@ -2260,6 +2301,116 @@
             }
         }
 
+        // Chelmsford, Essex, UK coordinates
+        const CHELMSFORD_LAT = 51.7356;
+        const CHELMSFORD_LNG = 0.4685;
+
+        // Store sunrise/sunset times
+        let sunriseTime = null;
+        let sunsetTime = null;
+
+        // Fetch sunrise/sunset times for Chelmsford
+        async function fetchSunTimes() {
+            try {
+                const response = await fetch(`https://api.sunrise-sunset.org/json?lat=${CHELMSFORD_LAT}&lng=${CHELMSFORD_LNG}&formatted=0`);
+                const data = await response.json();
+
+                if (data.status === 'OK') {
+                    sunriseTime = new Date(data.results.sunrise);
+                    sunsetTime = new Date(data.results.sunset);
+
+                    console.log(`🌅 Sunrise today: ${sunriseTime.toLocaleTimeString()}`);
+                    console.log(`🌇 Sunset today: ${sunsetTime.toLocaleTimeString()}`);
+
+                    // Update sky immediately with new times
+                    updateSky();
+                }
+            } catch (error) {
+                console.error('Error fetching sun times:', error);
+                // Fallback to default times if API fails
+                const now = new Date();
+                sunriseTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 7, 0);
+                sunsetTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 17, 0);
+            }
+        }
+
+        // Update sky based on time of day (using actual sunrise/sunset)
+        function updateSky() {
+            const now = new Date();
+
+            const skyGradient = document.getElementById('skyGradient');
+            const sun = document.getElementById('sun');
+            const moon = document.getElementById('moon');
+            const stars = document.getElementById('stars');
+
+            if (!skyGradient) return;
+
+            // If we don't have sun times yet, use defaults
+            if (!sunriseTime || !sunsetTime) {
+                sunriseTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 7, 0);
+                sunsetTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 17, 0);
+            }
+
+            // Calculate time periods based on actual sunrise/sunset
+            const dawnStart = new Date(sunriseTime.getTime() - 60 * 60 * 1000); // 1 hour before sunrise
+            const dawnEnd = sunriseTime;
+            const duskStart = sunsetTime;
+            const duskEnd = new Date(sunsetTime.getTime() + 90 * 60 * 1000); // 1.5 hours after sunset
+
+            let skyConfig;
+
+            // Determine sky configuration based on actual sun times
+            if (now >= dawnStart && now < dawnEnd) {
+                // Dawn (1 hour before sunrise)
+                skyConfig = {
+                    color1: '#FF6B6B', // Pink
+                    color2: '#FFD93D', // Golden yellow
+                    showSun: true,
+                    showMoon: false,
+                    showStars: false
+                };
+            } else if (now >= dawnEnd && now < duskStart) {
+                // Day (sunrise to sunset)
+                skyConfig = {
+                    color1: '#87CEEB', // Sky blue
+                    color2: '#E0F6FF', // Very light blue
+                    showSun: true,
+                    showMoon: false,
+                    showStars: false
+                };
+            } else if (now >= duskStart && now < duskEnd) {
+                // Dusk (sunset to 1.5 hours after)
+                skyConfig = {
+                    color1: '#FF6B35', // Orange
+                    color2: '#6A4C93', // Purple
+                    showSun: true,
+                    showMoon: false,
+                    showStars: true
+                };
+            } else {
+                // Night (rest of the time)
+                skyConfig = {
+                    color1: '#0B1026', // Dark blue/black
+                    color2: '#1E3A5F', // Deep blue
+                    showSun: false,
+                    showMoon: true,
+                    showStars: true
+                };
+            }
+
+            // Update sky gradient
+            const stops = skyGradient.getElementsByTagName('stop');
+            if (stops.length >= 2) {
+                stops[0].setAttribute('style', `stop-color:${skyConfig.color1};stop-opacity:1`);
+                stops[1].setAttribute('style', `stop-color:${skyConfig.color2};stop-opacity:1`);
+            }
+
+            // Show/hide sun, moon, and stars
+            if (sun) sun.style.display = skyConfig.showSun ? 'block' : 'none';
+            if (moon) moon.style.display = skyConfig.showMoon ? 'block' : 'none';
+            if (stars) stars.style.display = skyConfig.showStars ? 'block' : 'none';
+        }
+
         // Setup outdoor lamppost double-click handler
         function setupLampostClickHandler() {
             const lampHousing = document.getElementById('lamp-housing');
@@ -2277,6 +2428,9 @@
         // Show all sensors and lights for debugging
         showAllSensors();
         showAllLights();
+
+        // Fetch sunrise/sunset times for Chelmsford and update sky
+        fetchSunTimes();
 
         // Load all data on page load
         loadTemperatures();
@@ -2302,6 +2456,12 @@
 
         // Update motion log display every minute to refresh "time ago"
         setInterval(updateMotionLogDisplay, 60000);
+
+        // Update sky every minute to check for time of day changes
+        setInterval(updateSky, 60000);
+
+        // Refresh sunrise/sunset times once per day (every 24 hours)
+        setInterval(fetchSunTimes, 24 * 60 * 60 * 1000);
 
         // ============================================================================
         // FUN LIGHT EFFECTS

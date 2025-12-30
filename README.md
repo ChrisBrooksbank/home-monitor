@@ -12,7 +12,6 @@ A real-time, interactive dashboard for monitoring Philips Hue sensors throughout
 🚶 **Motion Detection**
 - Visual indicators when motion is detected
 - Voice announcements for key areas (Outdoor, Hall, Landing, Bathroom)
-- Google Home broadcast support via IFTTT webhooks (see IFTTT_SETUP.md)
 - 48-hour motion event log with timestamps
 - Real-time updates every 3 seconds
 
@@ -48,12 +47,8 @@ A real-time, interactive dashboard for monitoring Philips Hue sensors throughout
 
 3. **Open the page:**
    ```
-   celcius.html.html
+   index.html
    ```
-
-4. **(Optional) Setup Google Home broadcasts:**
-   - See [IFTTT_SETUP.md](IFTTT_SETUP.md) for detailed instructions
-   - Enables motion alerts on Google Home speakers via IFTTT webhooks
 
 ## Room Layout
 
