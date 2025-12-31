@@ -772,6 +772,103 @@
                     </circle>
                 </g>
 
+                <!-- Weather Effects -->
+                <!-- Rain (hidden by default) -->
+                <g id="rain" style="display: none;">
+                    <line x1="50" y1="0" x2="48" y2="80" stroke="#A0C8E0" stroke-width="2" opacity="0.6">
+                        <animate attributeName="y1" values="0;600" dur="1s" repeatCount="indefinite"/>
+                        <animate attributeName="y2" values="80;680" dur="1s" repeatCount="indefinite"/>
+                    </line>
+                    <line x1="150" y1="0" x2="148" y2="80" stroke="#A0C8E0" stroke-width="2" opacity="0.6">
+                        <animate attributeName="y1" values="-50;550" dur="1s" repeatCount="indefinite"/>
+                        <animate attributeName="y2" values="30;630" dur="1s" repeatCount="indefinite"/>
+                    </line>
+                    <line x1="250" y1="0" x2="248" y2="80" stroke="#A0C8E0" stroke-width="2" opacity="0.6">
+                        <animate attributeName="y1" values="0;600" dur="0.9s" repeatCount="indefinite"/>
+                        <animate attributeName="y2" values="80;680" dur="0.9s" repeatCount="indefinite"/>
+                    </line>
+                    <line x1="350" y1="0" x2="348" y2="80" stroke="#A0C8E0" stroke-width="2" opacity="0.6">
+                        <animate attributeName="y1" values="-30;570" dur="1.1s" repeatCount="indefinite"/>
+                        <animate attributeName="y2" values="50;650" dur="1.1s" repeatCount="indefinite"/>
+                    </line>
+                    <line x1="450" y1="0" x2="448" y2="80" stroke="#A0C8E0" stroke-width="2" opacity="0.6">
+                        <animate attributeName="y1" values="0;600" dur="1s" repeatCount="indefinite"/>
+                        <animate attributeName="y2" values="80;680" dur="1s" repeatCount="indefinite"/>
+                    </line>
+                    <line x1="550" y1="0" x2="548" y2="80" stroke="#A0C8E0" stroke-width="2" opacity="0.6">
+                        <animate attributeName="y1" values="-40;560" dur="0.95s" repeatCount="indefinite"/>
+                        <animate attributeName="y2" values="40;640" dur="0.95s" repeatCount="indefinite"/>
+                    </line>
+                    <line x1="650" y1="0" x2="648" y2="80" stroke="#A0C8E0" stroke-width="2" opacity="0.6">
+                        <animate attributeName="y1" values="0;600" dur="1.05s" repeatCount="indefinite"/>
+                        <animate attributeName="y2" values="80;680" dur="1.05s" repeatCount="indefinite"/>
+                    </line>
+                    <line x1="750" y1="0" x2="748" y2="80" stroke="#A0C8E0" stroke-width="2" opacity="0.6">
+                        <animate attributeName="y1" values="-20;580" dur="1s" repeatCount="indefinite"/>
+                        <animate attributeName="y2" values="60;660" dur="1s" repeatCount="indefinite"/>
+                    </line>
+                    <line x1="850" y1="0" x2="848" y2="80" stroke="#A0C8E0" stroke-width="2" opacity="0.6">
+                        <animate attributeName="y1" values="0;600" dur="0.92s" repeatCount="indefinite"/>
+                        <animate attributeName="y2" values="80;680" dur="0.92s" repeatCount="indefinite"/>
+                    </line>
+                    <line x1="950" y1="0" x2="948" y2="80" stroke="#A0C8E0" stroke-width="2" opacity="0.6">
+                        <animate attributeName="y1" values="-35;565" dur="1.08s" repeatCount="indefinite"/>
+                        <animate attributeName="y2" values="45;645" dur="1.08s" repeatCount="indefinite"/>
+                    </line>
+                </g>
+
+                <!-- Snow (hidden by default) -->
+                <g id="snow" style="display: none;">
+                    <circle cx="80" cy="0" r="3" fill="white" opacity="0.9">
+                        <animate attributeName="cy" values="0;650" dur="8s" repeatCount="indefinite"/>
+                        <animate attributeName="cx" values="80;90;75;85;80" dur="8s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle cx="200" cy="0" r="4" fill="white" opacity="0.85">
+                        <animate attributeName="cy" values="-50;600" dur="10s" repeatCount="indefinite"/>
+                        <animate attributeName="cx" values="200;210;195;205;200" dur="10s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle cx="320" cy="0" r="3.5" fill="white" opacity="0.9">
+                        <animate attributeName="cy" values="0;650" dur="9s" repeatCount="indefinite"/>
+                        <animate attributeName="cx" values="320;330;315;325;320" dur="9s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle cx="450" cy="0" r="3" fill="white" opacity="0.88">
+                        <animate attributeName="cy" values="-80;570" dur="11s" repeatCount="indefinite"/>
+                        <animate attributeName="cx" values="450;460;445;455;450" dur="11s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle cx="570" cy="0" r="4" fill="white" opacity="0.9">
+                        <animate attributeName="cy" values="0;650" dur="8.5s" repeatCount="indefinite"/>
+                        <animate attributeName="cx" values="570;580;565;575;570" dur="8.5s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle cx="690" cy="0" r="3.5" fill="white" opacity="0.87">
+                        <animate attributeName="cy" values="-100;550" dur="10.5s" repeatCount="indefinite"/>
+                        <animate attributeName="cx" values="690;700;685;695;690" dur="10.5s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle cx="810" cy="0" r="3" fill="white" opacity="0.9">
+                        <animate attributeName="cy" values="0;650" dur="9.5s" repeatCount="indefinite"/>
+                        <animate attributeName="cx" values="810;820;805;815;810" dur="9.5s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle cx="920" cy="0" r="4" fill="white" opacity="0.86">
+                        <animate attributeName="cy" values="-60;590" dur="11.5s" repeatCount="indefinite"/>
+                        <animate attributeName="cx" values="920;930;915;925;920" dur="11.5s" repeatCount="indefinite"/>
+                    </circle>
+                </g>
+
+                <!-- Fog/Mist (hidden by default) -->
+                <g id="fog" style="display: none;">
+                    <ellipse cx="200" cy="500" rx="300" ry="80" fill="white" opacity="0.3">
+                        <animate attributeName="opacity" values="0.3;0.5;0.3" dur="6s" repeatCount="indefinite"/>
+                    </ellipse>
+                    <ellipse cx="600" cy="480" rx="350" ry="90" fill="white" opacity="0.25">
+                        <animate attributeName="opacity" values="0.25;0.45;0.25" dur="7s" repeatCount="indefinite" begin="1s"/>
+                    </ellipse>
+                    <ellipse cx="400" cy="520" rx="280" ry="70" fill="white" opacity="0.35">
+                        <animate attributeName="opacity" values="0.35;0.55;0.35" dur="5.5s" repeatCount="indefinite" begin="2s"/>
+                    </ellipse>
+                    <ellipse cx="800" cy="510" rx="320" ry="85" fill="white" opacity="0.28">
+                        <animate attributeName="opacity" values="0.28;0.48;0.28" dur="6.5s" repeatCount="indefinite" begin="0.5s"/>
+                    </ellipse>
+                </g>
+
                 <!-- Grass -->
                 <ellipse cx="500" cy="620" rx="600" ry="80" fill="url(#grassGradient)"/>
                 <ellipse cx="300" cy="595" rx="200" ry="35" fill="#69B578" opacity="0.6"/>
@@ -2738,6 +2835,90 @@
             if (weatherUvEl) weatherUvEl.textContent = `☀️ UV ${weatherData.uv}`;
 
             console.log(`🌤️ Weather updated: ${weatherData.temp.toFixed(1)}°C, ${weatherData.condition}`);
+
+            // Update visual effects based on weather
+            updateWeatherVisuals(weatherData);
+        }
+
+        // Update visual effects based on weather conditions
+        function updateWeatherVisuals(weatherData) {
+            if (!weatherData) return;
+
+            const rainEl = document.getElementById('rain');
+            const snowEl = document.getElementById('snow');
+            const fogEl = document.getElementById('fog');
+            const skyGradient = document.getElementById('skyGradient');
+
+            // Hide all weather effects by default
+            if (rainEl) rainEl.style.display = 'none';
+            if (snowEl) snowEl.style.display = 'none';
+            if (fogEl) fogEl.style.display = 'none';
+
+            const condition = weatherData.condition.toLowerCase();
+            const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            // Determine weather effects and sky colors
+            let skyColor1, skyColor2;
+
+            if (condition.includes('rain') || condition.includes('drizzle') || condition.includes('shower')) {
+                // Show rain
+                if (rainEl) rainEl.style.display = 'block';
+                skyColor1 = '#6B7F8F';
+                skyColor2 = '#8B9DAF';
+                console.log('🌧️ Rain effect activated');
+            } else if (condition.includes('snow') || condition.includes('sleet') || condition.includes('blizzard')) {
+                // Show snow
+                if (snowEl) snowEl.style.display = 'block';
+                skyColor1 = '#D0D8E0';
+                skyColor2 = '#E8EEF5';
+                console.log('❄️ Snow effect activated');
+            } else if (condition.includes('fog') || condition.includes('mist') || condition.includes('haze')) {
+                // Show fog
+                if (fogEl) fogEl.style.display = 'block';
+                skyColor1 = '#B0B8C0';
+                skyColor2 = '#D0D8E0';
+                console.log('🌫️ Fog effect activated');
+            } else if (condition.includes('thunder') || condition.includes('storm')) {
+                // Stormy - darker sky, show rain
+                if (rainEl) rainEl.style.display = 'block';
+                skyColor1 = '#4A5568';
+                skyColor2 = '#6B7F8F';
+                console.log('⛈️ Storm effect activated');
+            } else if (condition.includes('cloud') || condition.includes('overcast')) {
+                // Cloudy
+                skyColor1 = '#A0AEC0';
+                skyColor2 = '#C0CED8';
+                console.log('☁️ Cloudy sky');
+            } else if (condition.includes('clear') || condition.includes('sunny')) {
+                // Clear/Sunny - use default bright colors
+                skyColor1 = '#87CEEB';
+                skyColor2 = '#E0F6FF';
+                console.log('☀️ Clear sky');
+            } else {
+                // Partly cloudy or other
+                skyColor1 = '#98C8E8';
+                skyColor2 = '#D0E8F8';
+            }
+
+            // Don't override sky colors in dark mode
+            if (!isDarkMode && skyGradient) {
+                const stops = skyGradient.getElementsByTagName('stop');
+                if (stops.length >= 2) {
+                    stops[0].setAttribute('style', `stop-color:${skyColor1};stop-opacity:0.3`);
+                    stops[1].setAttribute('style', `stop-color:${skyColor2};stop-opacity:0.1`);
+                }
+            }
+
+            // Adjust cloud opacity based on weather
+            const cloudOpacity = condition.includes('cloud') || condition.includes('overcast') ? 0.9 : 0.7;
+            const cloudColor = condition.includes('rain') || condition.includes('storm') ? '#808080' :
+                              (condition.includes('fog') || condition.includes('mist') ? '#B0B0B0' : 'white');
+
+            // Update CSS variable for clouds if not in dark mode
+            if (!isDarkMode) {
+                document.documentElement.style.setProperty('--cloud-color', cloudColor);
+                document.documentElement.style.setProperty('--cloud-opacity', cloudOpacity);
+            }
         }
 
         // Update sky based on time of day (using actual sunrise/sunset)
