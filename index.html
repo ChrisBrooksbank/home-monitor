@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>🏠 28 Barn Green - Home Monitor</title>
 
     <!-- PWA Meta Tags -->
@@ -18,6 +18,58 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Baloo+2:wght@400;700&display=swap');
 
+        :root {
+            /* Light mode colors (default) */
+            --bg-gradient: linear-gradient(180deg, #87CEEB 0%, #98D8E8 30%, #F0E68C 70%, #90EE90 100%);
+            --bg-container: rgba(255, 255, 255, 0.95);
+            --bg-card: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --bg-button: linear-gradient(135deg, #FF6B9D 0%, #FFA07A 100%);
+            --bg-graph: rgba(255, 255, 255, 0.9);
+
+            --text-primary: #333;
+            --text-secondary: #666;
+            --text-light: #999;
+            --text-heading: linear-gradient(135deg, #FF6B9D 0%, #FFA07A 50%, #FFD700 100%);
+
+            --shadow-primary: 0 10px 30px rgba(0, 0, 0, 0.2);
+            --shadow-button: 0 10px 30px rgba(255, 107, 157, 0.4);
+            --shadow-card: 0 10px 30px rgba(102, 126, 234, 0.3);
+
+            --border-color: rgba(255, 255, 255, 0.3);
+
+            /* SVG colors */
+            --cloud-color: white;
+            --cloud-opacity: 0.7;
+            --bird-color: #333;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                /* Dark mode colors */
+                --bg-gradient: linear-gradient(180deg, #0B1026 0%, #1A1A2E 30%, #16213E 70%, #0F3460 100%);
+                --bg-container: rgba(20, 20, 30, 0.95);
+                --bg-card: linear-gradient(135deg, #3A4A6B 0%, #2D3A5C 100%);
+                --bg-button: linear-gradient(135deg, #C84B6D 0%, #9A5F7A 100%);
+                --bg-graph: rgba(25, 25, 35, 0.9);
+
+                --text-primary: #E0E0E0;
+                --text-secondary: #A0A0A0;
+                --text-light: #707070;
+                --text-heading: linear-gradient(135deg, #FF8FB1 0%, #C89FAA 50%, #FFD700 100%);
+
+                --shadow-primary: 0 10px 30px rgba(0, 0, 0, 0.6);
+                --shadow-button: 0 10px 30px rgba(200, 75, 109, 0.4);
+                --shadow-card: 0 10px 30px rgba(58, 74, 107, 0.5);
+
+                --border-color: rgba(255, 255, 255, 0.1);
+
+                /* SVG night theme colors */
+                --cloud-color: #4A5568;
+                --cloud-opacity: 0.4;
+                --bird-color: #718096;
+            }
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -26,7 +78,7 @@
 
         body {
             font-family: 'Fredoka', sans-serif;
-            background: linear-gradient(180deg, #87CEEB 0%, #98D8E8 30%, #F0E68C 70%, #90EE90 100%);
+            background: var(--bg-gradient);
             height: 100vh;
             display: flex;
             align-items: center;
@@ -39,9 +91,9 @@
         /* Floating clouds */
         .cloud {
             position: absolute;
-            background: white;
+            background: var(--cloud-color);
             border-radius: 100px;
-            opacity: 0.7;
+            opacity: var(--cloud-opacity);
             animation: float-cloud 30s infinite linear;
         }
 
@@ -49,7 +101,7 @@
         .cloud::after {
             content: '';
             position: absolute;
-            background: white;
+            background: var(--cloud-color);
             border-radius: 100px;
         }
 
@@ -108,6 +160,7 @@
             font-size: 24px;
             animation: fly 20s infinite ease-in-out;
             opacity: 0.6;
+            color: var(--bird-color);
         }
 
         .bird1 {
@@ -129,17 +182,17 @@
         }
 
         .container {
-            background: rgba(255, 255, 255, 0.95);
+            background: var(--bg-container);
             backdrop-filter: blur(15px);
             border-radius: 30px;
             padding: 20px;
-            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.2);
+            box-shadow: var(--shadow-primary);
             max-width: 1400px;
             max-height: 95vh;
             width: 100%;
             position: relative;
             z-index: 1;
-            border: 4px solid rgba(255, 255, 255, 0.8);
+            border: 4px solid var(--border-color);
             overflow-y: auto;
             overflow-x: hidden;
         }
@@ -223,6 +276,46 @@
             50% { transform: scale(1.05) translateY(-2px); filter: brightness(1.1); }
         }
 
+        /* Touch-friendly improvements */
+        @media (hover: none) and (pointer: coarse) {
+            /* Remove hover effects on touch devices */
+            .thermometer:hover {
+                animation: none;
+            }
+
+            .refresh-btn:hover {
+                transform: none;
+                box-shadow: 0 10px 30px rgba(255, 107, 157, 0.4);
+            }
+
+            .stat-card:hover {
+                transform: none;
+            }
+
+            /* Increase tap targets */
+            .refresh-btn {
+                padding: 15px 35px;
+                font-size: 16px;
+            }
+
+            .thermometer {
+                cursor: grab;
+            }
+
+            .thermometer:active {
+                cursor: grabbing;
+            }
+        }
+
+        /* Prevent text selection during drag */
+        .thermometer {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+        }
+
         .temp-display {
             font-family: 'Baloo 2', cursive;
             font-size: 28px;
@@ -243,14 +336,14 @@
         }
 
         .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--bg-card);
             padding: 15px;
             border-radius: 20px;
             color: white;
             text-align: center;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            box-shadow: var(--shadow-card);
             transition: all 0.3s ease;
-            border: 3px solid rgba(255, 255, 255, 0.3);
+            border: 3px solid var(--border-color);
         }
 
         .stat-card:hover {
@@ -274,7 +367,7 @@
             display: block;
             margin: 15px auto 0;
             padding: 10px 30px;
-            background: linear-gradient(135deg, #FF6B9D 0%, #FFA07A 100%);
+            background: var(--bg-button);
             color: white;
             border: none;
             border-radius: 50px;
@@ -282,9 +375,9 @@
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 10px 30px rgba(255, 107, 157, 0.4);
+            box-shadow: var(--shadow-button);
             font-family: 'Fredoka', sans-serif;
-            border: 3px solid rgba(255, 255, 255, 0.5);
+            border: 3px solid var(--border-color);
         }
 
         .refresh-btn:hover {
@@ -350,15 +443,16 @@
         /* Graph styles */
         .graph-container {
             margin-top: 20px;
-            background: rgba(255, 255, 255, 0.9);
+            background: var(--bg-graph);
             border-radius: 20px;
             padding: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--shadow-primary);
+            border: 3px solid var(--border-color);
         }
 
         .graph-title {
             text-align: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--text-heading);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -1085,11 +1179,16 @@
 
             if (!logContainer) return;
 
+            // Get colors from CSS variables
+            const styles = getComputedStyle(document.documentElement);
+            const textLight = styles.getPropertyValue('--text-light').trim();
+            const textPrimary = styles.getPropertyValue('--text-primary').trim();
+
             // Count display
             countDisplay.textContent = motionHistory.length;
 
             if (motionHistory.length === 0) {
-                logContainer.innerHTML = '<div style="text-align: center; color: #999; padding: 20px;">No motion events recorded yet</div>';
+                logContainer.innerHTML = `<div style="text-align: center; color: ${textLight}; padding: 20px;">No motion events recorded yet</div>`;
                 return;
             }
 
@@ -1111,7 +1210,7 @@
             let html = '';
             for (const [dateKey, events] of Object.entries(groupedByDate)) {
                 html += `<div style="margin-bottom: 15px;">`;
-                html += `<div style="font-weight: bold; color: #667eea; margin-bottom: 8px; font-family: 'Fredoka', sans-serif;">📅 ${dateKey}</div>`;
+                html += `<div style="font-weight: bold; color: ${textPrimary}; margin-bottom: 8px; font-family: 'Fredoka', sans-serif;">📅 ${dateKey}</div>`;
 
                 events.forEach(entry => {
                     const date = new Date(entry.time);
@@ -1138,9 +1237,9 @@
                         ago = 'just now';
                     }
 
-                    html += `<div style="padding: 6px 10px; margin: 4px 0; background: white; border-radius: 6px; border-left: 3px solid #667eea; display: flex; justify-content: space-between; align-items: center;">`;
-                    html += `<span>${emoji} <strong>${entry.room}</strong> - ${timeStr}</span>`;
-                    html += `<span style="color: #999; font-size: 11px;">${ago}</span>`;
+                    html += `<div style="padding: 6px 10px; margin: 4px 0; background: ${styles.getPropertyValue('--bg-graph').trim()}; border-radius: 6px; border-left: 3px solid ${textPrimary}; display: flex; justify-content: space-between; align-items: center;">`;
+                    html += `<span style="color: ${textPrimary};">${emoji} <strong>${entry.room}</strong> - ${timeStr}</span>`;
+                    html += `<span style="color: ${textLight}; font-size: 11px;">${ago}</span>`;
                     html += `</div>`;
                 });
 
@@ -1580,10 +1679,16 @@
 
             group.style.cursor = 'move';
 
-            group.addEventListener('mousedown', (e) => {
+            // Unified start handler for both mouse and touch
+            function handleStart(e) {
                 isDragging = true;
-                startX = e.clientX;
-                startY = e.clientY;
+
+                // Get coordinates from either mouse or touch event
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+                startX = clientX;
+                startY = clientY;
 
                 const transform = group.getAttribute('transform');
                 const match = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
@@ -1595,20 +1700,25 @@
                 group.style.opacity = '0.7';
                 e.preventDefault();
                 e.stopPropagation();
-            });
+            }
 
-            document.addEventListener('mousemove', (e) => {
+            // Unified move handler
+            function handleMove(e) {
                 if (!isDragging) return;
 
-                const dx = e.clientX - startX;
-                const dy = e.clientY - startY;
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+                const dx = clientX - startX;
+                const dy = clientY - startY;
                 const newX = currentTransform.x + dx;
                 const newY = currentTransform.y + dy;
 
                 group.setAttribute('transform', `translate(${newX}, ${newY})`);
-            });
+            }
 
-            document.addEventListener('mouseup', (e) => {
+            // Unified end handler
+            function handleEnd(e) {
                 if (!isDragging) return;
                 isDragging = false;
 
@@ -1628,7 +1738,17 @@
                     'thermometerPositions',
                     JSON.stringify(customThermometerPositions)
                 );
-            });
+            }
+
+            // Add both mouse and touch event listeners
+            group.addEventListener('mousedown', handleStart);
+            group.addEventListener('touchstart', handleStart, { passive: false });
+
+            document.addEventListener('mousemove', handleMove);
+            document.addEventListener('touchmove', handleMove, { passive: false });
+
+            document.addEventListener('mouseup', handleEnd);
+            document.addEventListener('touchend', handleEnd);
         }
 
         function resetThermometerPositions() {
@@ -2497,6 +2617,33 @@
             const stars = document.getElementById('stars');
 
             if (!skyGradient) return;
+
+            // Check for dark mode - override time-based sky if dark mode is active
+            const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+            if (isDarkMode) {
+                // Force night theme in dark mode
+                const skyConfig = {
+                    color1: '#0B1026', // Dark blue/black
+                    color2: '#1E3A5F', // Deep blue
+                    showSun: false,
+                    showMoon: true,
+                    showStars: true
+                };
+
+                // Update sky gradient
+                const stops = skyGradient.getElementsByTagName('stop');
+                if (stops.length >= 2) {
+                    stops[0].setAttribute('style', `stop-color:${skyConfig.color1};stop-opacity:1`);
+                    stops[1].setAttribute('style', `stop-color:${skyConfig.color2};stop-opacity:1`);
+                }
+
+                // Show/hide sun, moon, and stars
+                if (sun) sun.style.display = 'none';
+                if (moon) moon.style.display = 'block';
+                if (stars) stars.style.display = 'block';
+                return;
+            }
 
             // If we don't have sun times yet, use defaults
             if (!sunriseTime || !sunsetTime) {
