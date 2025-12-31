@@ -1364,6 +1364,11 @@
 
         // Voice announcement function for lights
         function announceLight(room, isOn) {
+            // Don't announce during light effects to avoid spam
+            if (effectInProgress) {
+                return;
+            }
+
             if ('speechSynthesis' in window) {
                 const utterance = new SpeechSynthesisUtterance();
 
@@ -2963,8 +2968,23 @@
             });
         }
 
+        // Helper: Confirm light effect with time-based warning
+        function confirmEffect(effectName) {
+            const hour = new Date().getHours();
+            const isNightTime = hour >= 22 || hour < 7; // 10pm to 7am
+
+            let message = `Run ${effectName} effect?\n\nThis will change all lights in your home.`;
+
+            if (isNightTime) {
+                message += `\n\n⚠️ WARNING: It's currently ${hour}:00 - people may be sleeping!`;
+            }
+
+            return confirm(message);
+        }
+
         // 🚨 RED ALERT - Flash all lights red
         async function redAlert() {
+            if (!confirmEffect('Red Alert')) return;
             if (effectInProgress) return;
             effectInProgress = true;
             disableEffectButtons(true);
@@ -3013,6 +3033,7 @@
 
         // 🎉 PARTY MODE - Cycle through rainbow colors
         async function partyMode() {
+            if (!confirmEffect('Party Mode')) return;
             if (effectInProgress) return;
             effectInProgress = true;
             disableEffectButtons(true);
@@ -3065,6 +3086,7 @@
 
         // 🕺 DISCO - Random flashing colors
         async function discoMode() {
+            if (!confirmEffect('Disco')) return;
             if (effectInProgress) return;
             effectInProgress = true;
             disableEffectButtons(true);
@@ -3111,6 +3133,7 @@
 
         // 🌊 WAVE - Lights turn on in sequence
         async function waveEffect() {
+            if (!confirmEffect('Wave')) return;
             if (effectInProgress) return;
             effectInProgress = true;
             disableEffectButtons(true);
@@ -3166,6 +3189,7 @@
 
         // 🌅 SUNSET - Gradual warm orange glow then fade
         async function sunsetMode() {
+            if (!confirmEffect('Sunset')) return;
             if (effectInProgress) return;
             effectInProgress = true;
             disableEffectButtons(true);
