@@ -28,6 +28,13 @@ A real-time, interactive dashboard for monitoring Philips Hue sensors throughout
 - Color-coded battery warnings
 - Ambient light detection (daylight/dim/dark)
 
+🌤️ **Weather Integration**
+- Live outdoor weather from WeatherAPI.com
+- Current temperature, conditions, and weather icon
+- Feels-like temperature, humidity, and UV index
+- Auto-updates every 15 minutes
+- Compare indoor vs outdoor temperatures
+
 🎨 **Beautiful UI**
 - Pixel art UK semi-detached house design
 - Animated smoke, clouds, and birds
@@ -51,7 +58,13 @@ A real-time, interactive dashboard for monitoring Philips Hue sensors throughout
    - Find your Bridge IP address
    - Generate an API username (see Philips Hue API documentation)
 
-3. **Open the page:**
+3. **Add weather API key (optional but recommended):**
+   - Sign up for a free API key at [weatherapi.com/signup.aspx](https://www.weatherapi.com/signup.aspx)
+   - Add your API key to `WEATHER_CONFIG.API_KEY` in config.js
+   - Update `LOCATION` with your postcode/location
+   - Free tier allows 1 million calls per month (plenty for 15-minute updates)
+
+4. **Open the page:**
    ```
    index.html
    ```
@@ -115,6 +128,7 @@ php -S localhost:8080
 - **Motion Sensors:** 3 seconds (real-time detection)
 - **Lights:** 10 seconds (frequent updates)
 - **Temperatures:** 60 seconds (slow changes)
+- **Weather:** 15 minutes (API rate limit friendly)
 
 ## Technologies
 
@@ -122,6 +136,7 @@ php -S localhost:8080
 - SVG graphics
 - Web Speech API (voice announcements)
 - Philips Hue Bridge API
+- WeatherAPI.com (outdoor weather data)
 - LocalStorage for 24-hour history
 - Service Workers (offline support)
 - Web App Manifest (PWA installation)

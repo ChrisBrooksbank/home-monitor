@@ -363,6 +363,57 @@
             font-family: 'Baloo 2', cursive;
         }
 
+        /* Weather widget styles */
+        .weather-card {
+            grid-column: span 2;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .weather-main {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .weather-icon {
+            width: 50px;
+            height: 50px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+        }
+
+        .weather-temp-container {
+            text-align: left;
+        }
+
+        .weather-condition {
+            font-size: 0.8em;
+            opacity: 0.9;
+            margin-top: -5px;
+        }
+
+        .weather-details {
+            font-size: 0.85em;
+            opacity: 0.95;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .weather-extra {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        @media (max-width: 768px) {
+            .weather-card {
+                grid-column: span 1;
+            }
+        }
+
         .refresh-btn {
             display: block;
             margin: 15px auto 0;
@@ -966,6 +1017,23 @@
             <div class="stat-card">
                 <div class="stat-label">📊 Temp Range</div>
                 <div class="stat-value" id="range-temp">--°C</div>
+            </div>
+            <div class="stat-card weather-card">
+                <div class="stat-label">🌤️ Outdoor Weather</div>
+                <div class="weather-main">
+                    <img id="weather-icon" src="" alt="" class="weather-icon">
+                    <div class="weather-temp-container">
+                        <div class="stat-value" id="weather-temp">--°C</div>
+                        <div class="weather-condition" id="weather-condition">Loading...</div>
+                    </div>
+                </div>
+                <div class="weather-details">
+                    <div id="weather-feels">Feels like --°C</div>
+                    <div class="weather-extra">
+                        <span id="weather-humidity">💧 --%</span>
+                        <span id="weather-uv">☀️ UV -</span>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -2607,6 +2675,66 @@
             }
         }
 
+        // Fetch weather data from WeatherAPI.com
+        async function fetchWeather() {
+            if (!WEATHER_CONFIG?.API_KEY || WEATHER_CONFIG.API_KEY === 'YOUR-WEATHERAPI-KEY-HERE') {
+                console.warn('⚠️ Weather API key not configured');
+                return null;
+            }
+
+            try {
+                const response = await fetch(
+                    `https://api.weatherapi.com/v1/current.json?key=${WEATHER_CONFIG.API_KEY}&q=${WEATHER_CONFIG.LOCATION}`
+                );
+
+                if (!response.ok) {
+                    throw new Error(`Weather API error: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                return {
+                    temp: data.current.temp_c,
+                    condition: data.current.condition.text,
+                    icon: data.current.condition.icon,
+                    humidity: data.current.humidity,
+                    feelsLike: data.current.feelslike_c,
+                    uv: data.current.uv,
+                    wind: data.current.wind_kph,
+                    windDir: data.current.wind_dir
+                };
+            } catch (error) {
+                console.error('Error fetching weather:', error);
+                return null;
+            }
+        }
+
+        // Update weather display
+        async function updateWeatherDisplay() {
+            const weatherData = await fetchWeather();
+
+            if (!weatherData) {
+                return;
+            }
+
+            // Update weather stat card
+            const weatherTempEl = document.getElementById('weather-temp');
+            const weatherConditionEl = document.getElementById('weather-condition');
+            const weatherIconEl = document.getElementById('weather-icon');
+            const weatherFeelsEl = document.getElementById('weather-feels');
+            const weatherHumidityEl = document.getElementById('weather-humidity');
+            const weatherUvEl = document.getElementById('weather-uv');
+
+            if (weatherTempEl) weatherTempEl.textContent = `${weatherData.temp.toFixed(1)}°C`;
+            if (weatherConditionEl) weatherConditionEl.textContent = weatherData.condition;
+            if (weatherIconEl) weatherIconEl.src = `https:${weatherData.icon}`;
+            if (weatherFeelsEl) weatherFeelsEl.textContent = `Feels like ${weatherData.feelsLike.toFixed(1)}°C`;
+            if (weatherHumidityEl) weatherHumidityEl.textContent = `💧 ${weatherData.humidity}%`;
+            if (weatherUvEl) weatherUvEl.textContent = `☀️ UV ${weatherData.uv}`;
+
+            console.log(`🌤️ Weather updated: ${weatherData.temp.toFixed(1)}°C, ${weatherData.condition}`);
+        }
+
         // Update sky based on time of day (using actual sunrise/sunset)
         function updateSky() {
             const now = new Date();
@@ -2740,6 +2868,7 @@
         });
         loadMotionSensors();
         loadSensorDetails();
+        updateWeatherDisplay();
 
         // Real-time polling with different intervals for different data types
         // Motion sensors: every 3 seconds (critical for real-time detection)
@@ -2762,6 +2891,9 @@
 
         // Refresh sunrise/sunset times once per day (every 24 hours)
         setInterval(fetchSunTimes, 24 * 60 * 60 * 1000);
+
+        // Weather: every 15 minutes (API rate limit friendly)
+        setInterval(updateWeatherDisplay, (WEATHER_CONFIG?.UPDATE_INTERVAL || 15) * 60 * 1000);
 
         // ============================================================================
         // FUN LIGHT EFFECTS
