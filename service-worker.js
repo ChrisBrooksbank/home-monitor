@@ -1,4 +1,4 @@
-const CACHE_NAME = 'home-monitor-v1';
+const CACHE_NAME = 'home-monitor-v2';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -16,6 +16,21 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+
+  // Don't cache API requests (Hue Bridge, Weather API, IFTTT)
+  const isDynamicAPI = url.hostname.includes('192.168.') ||
+                       url.hostname.includes('10.5.') ||
+                       url.hostname.includes('api.weatherapi.com') ||
+                       url.hostname.includes('maker.ifttt.com');
+
+  if (isDynamicAPI) {
+    // Always fetch fresh data for API requests
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
+  // Cache static resources only
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
