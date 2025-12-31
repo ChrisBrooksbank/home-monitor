@@ -780,6 +780,13 @@
                         <stop offset="100%" style="stop-color:#4CAF50;stop-opacity:1" />
                     </linearGradient>
 
+                    <!-- Nest Thermostat metallic gradient (Polished Silver) -->
+                    <radialGradient id="nestMetalGradient" cx="30%" cy="30%">
+                        <stop offset="0%" style="stop-color:#F5F5F5;stop-opacity:1" />
+                        <stop offset="50%" style="stop-color:#D3D3D3;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#A8A8A8;stop-opacity:1" />
+                    </radialGradient>
+
                     <!-- Room gradients - temperature based -->
                     <linearGradient id="coldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
                         <stop offset="0%" style="stop-color:#A8DADC;stop-opacity:0.9" />
@@ -1117,6 +1124,34 @@
                     <!-- Lounge -->
                     <rect x="300" y="350" width="200" height="250" fill="rgba(244,164,96,0.5)" stroke="#CC9933" stroke-width="4"/>
                     <text x="400" y="380" text-anchor="middle" font-size="16" font-weight="700" font-family="Fredoka" fill="#8B4513">Lounge</text>
+
+                    <!-- Nest Thermostat on Lounge Wall -->
+                    <g id="nest-thermostat-display" transform="translate(380, 470)">
+                        <!-- Outer ring (metallic finish) -->
+                        <circle cx="0" cy="0" r="45" fill="url(#nestMetalGradient)" stroke="#B8B8B8" stroke-width="2"/>
+
+                        <!-- Inner display background -->
+                        <circle id="nest-display-bg" cx="0" cy="0" r="38" fill="#000000"/>
+
+                        <!-- Current temperature (large center) -->
+                        <text id="nest-current-temp" x="0" y="8" text-anchor="middle"
+                              font-size="28" font-weight="700" font-family="Arial, sans-serif"
+                              fill="#FFFFFF">--</text>
+
+                        <!-- Target temperature indicator (small, top) -->
+                        <text id="nest-target-temp" x="0" y="-20" text-anchor="middle"
+                              font-size="10" font-family="Arial, sans-serif"
+                              fill="#888888">--</text>
+
+                        <!-- Status text (bottom) -->
+                        <text id="nest-status-text" x="0" y="28" text-anchor="middle"
+                              font-size="8" font-family="Arial, sans-serif"
+                              fill="#666666">OFF</text>
+
+                        <!-- Heating/cooling indicator ring -->
+                        <circle id="nest-status-ring" cx="0" cy="0" r="40"
+                                fill="none" stroke="transparent" stroke-width="3" opacity="0.6"/>
+                    </g>
 
                     <!-- Kitchen -->
                     <rect x="500" y="350" width="200" height="250" fill="rgba(255,179,71,0.5)" stroke="#CC9933" stroke-width="4"/>
@@ -4278,6 +4313,59 @@
             }
         }
 
+        async function setNestTemperature(targetTempC) {
+            if (nestDevices.length === 0) {
+                console.error('No Nest devices found');
+                return false;
+            }
+
+            // Check if token needs refresh
+            if (Date.now() > (nestTokenExpiry - 5 * 60 * 1000)) {
+                const refreshed = await refreshNestToken();
+                if (!refreshed) return false;
+            }
+
+            const device = nestDevices[0]; // First device
+            const deviceName = device.name; // Full device resource name
+
+            console.log(`🌡️  Setting Nest temperature to ${targetTempC}°C...`);
+
+            try {
+                const response = await fetch(
+                    `https://smartdevicemanagement.googleapis.com/v1/${deviceName}:executeCommand`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${nestAccessToken}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            command: 'sdm.devices.commands.ThermostatTemperatureSetpoint.SetHeat',
+                            params: {
+                                heatCelsius: targetTempC
+                            }
+                        })
+                    }
+                );
+
+                if (!response.ok) {
+                    const error = await response.text();
+                    console.error('✗ Failed to set temperature:', error);
+                    return false;
+                }
+
+                console.log(`✓ Temperature set to ${targetTempC}°C`);
+
+                // Update display immediately
+                setTimeout(updateNestDisplay, 2000);
+
+                return true;
+            } catch (error) {
+                console.error('✗ Error setting temperature:', error);
+                return false;
+            }
+        }
+
         async function updateNestDisplay() {
             const devices = await fetchNestDevices();
 
@@ -4319,16 +4407,74 @@
             }
 
             let targetTemp = '';
+            let targetTempValue = null;
+            let status = 'OFF';
+            let statusColor = 'transparent';
+
             if (thermostatTrait?.heatCelsius) {
                 targetTemp = ` → ${thermostatTrait.heatCelsius.toFixed(1)}°C`;
+                targetTempValue = thermostatTrait.heatCelsius;
+                // Check if heating
+                if (tempC < thermostatTrait.heatCelsius - 0.5) {
+                    status = 'HEATING';
+                    statusColor = '#FF6B35'; // Orange
+                }
             } else if (thermostatTrait?.coolCelsius) {
                 targetTemp = ` → ${thermostatTrait.coolCelsius.toFixed(1)}°C`;
+                targetTempValue = thermostatTrait.coolCelsius;
+                // Check if cooling
+                if (tempC > thermostatTrait.coolCelsius + 0.5) {
+                    status = 'COOLING';
+                    statusColor = '#4ECDC4'; // Blue
+                }
             }
 
             nestCard.innerHTML = `
                 <div class="stat-label">🌡️  ${name} (Nest)</div>
                 <div class="stat-value">${tempC.toFixed(1)}°C${targetTemp}</div>
             `;
+
+            // Update the visual Nest thermostat display in the lounge
+            updateNestVisualDisplay(tempC, targetTempValue, status, statusColor);
+        }
+
+        function updateNestVisualDisplay(currentTemp, targetTemp, status, statusColor) {
+            const currentTempEl = document.getElementById('nest-current-temp');
+            const targetTempEl = document.getElementById('nest-target-temp');
+            const statusTextEl = document.getElementById('nest-status-text');
+            const statusRingEl = document.getElementById('nest-status-ring');
+            const displayBgEl = document.getElementById('nest-display-bg');
+
+            if (!currentTempEl) return; // Display not ready yet
+
+            // Update current temperature (large center number)
+            currentTempEl.textContent = currentTemp.toFixed(1) + '°';
+
+            // Update target temperature (small top number)
+            if (targetTemp) {
+                targetTempEl.textContent = '→ ' + targetTemp.toFixed(1) + '°';
+                targetTempEl.setAttribute('fill', '#888888');
+            } else {
+                targetTempEl.textContent = '';
+            }
+
+            // Update status text
+            statusTextEl.textContent = status;
+
+            // Update status ring color (heating/cooling indicator)
+            statusRingEl.setAttribute('stroke', statusColor);
+
+            // Update display background with subtle glow
+            if (status === 'HEATING') {
+                displayBgEl.setAttribute('fill', '#1a0f00'); // Slight orange glow
+                currentTempEl.setAttribute('fill', '#FFB84D'); // Orange text
+            } else if (status === 'COOLING') {
+                displayBgEl.setAttribute('fill', '#001a1a'); // Slight blue glow
+                currentTempEl.setAttribute('fill', '#66D9EF'); // Blue text
+            } else {
+                displayBgEl.setAttribute('fill', '#000000'); // Pure black
+                currentTempEl.setAttribute('fill', '#FFFFFF'); // White text
+            }
         }
 
         function initNestIntegration() {
@@ -4339,6 +4485,12 @@
 
             console.log('🌡️  Nest integration initialized');
 
+            // Make Nest thermostat draggable
+            const nestDisplay = document.getElementById('nest-thermostat-display');
+            if (nestDisplay) {
+                makeNestDraggable(nestDisplay);
+            }
+
             // Initial fetch
             updateNestDisplay();
 
@@ -4346,8 +4498,99 @@
             setInterval(updateNestDisplay, 5 * 60 * 1000);
         }
 
+        function makeNestDraggable(group) {
+            let isDragging = false;
+            let startX, startY, currentTransform;
+
+            group.style.cursor = 'move';
+
+            // Load saved position from localStorage
+            const savedPosition = localStorage.getItem('nestThermostatPosition');
+            if (savedPosition) {
+                const pos = JSON.parse(savedPosition);
+                group.setAttribute('transform', `translate(${pos.x}, ${pos.y})`);
+            }
+
+            // Unified start handler for both mouse and touch
+            function handleStart(e) {
+                isDragging = true;
+
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+                startX = clientX;
+                startY = clientY;
+
+                const transform = group.getAttribute('transform');
+                const match = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
+                currentTransform = {
+                    x: parseFloat(match[1]),
+                    y: parseFloat(match[2])
+                };
+
+                group.style.opacity = '0.7';
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            // Unified move handler
+            function handleMove(e) {
+                if (!isDragging) return;
+
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+                const dx = clientX - startX;
+                const dy = clientY - startY;
+                const newX = currentTransform.x + dx;
+                const newY = currentTransform.y + dy;
+
+                group.setAttribute('transform', `translate(${newX}, ${newY})`);
+            }
+
+            // Unified end handler
+            function handleEnd(e) {
+                if (!isDragging) return;
+                isDragging = false;
+
+                group.style.opacity = '1';
+
+                // Save position to localStorage
+                const transform = group.getAttribute('transform');
+                const match = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
+
+                const position = {
+                    x: parseFloat(match[1]),
+                    y: parseFloat(match[2])
+                };
+
+                localStorage.setItem('nestThermostatPosition', JSON.stringify(position));
+                console.log('🌡️  Nest position saved:', position);
+            }
+
+            // Add both mouse and touch event listeners
+            group.addEventListener('mousedown', handleStart);
+            group.addEventListener('touchstart', handleStart, { passive: false });
+
+            document.addEventListener('mousemove', handleMove);
+            document.addEventListener('touchmove', handleMove, { passive: false });
+
+            document.addEventListener('mouseup', handleEnd);
+            document.addEventListener('touchend', handleEnd);
+        }
+
         // Initialize Nest integration
         initNestIntegration();
+
+        // Expose Nest control function globally for console access
+        window.setNestTemp = setNestTemperature;
+
+        // Set temperature to 24°C as requested
+        setTimeout(() => {
+            if (nestDevices.length > 0) {
+                setNestTemperature(24);
+            }
+        }, 10000); // Wait 10 seconds for initial data fetch
     </script>
 
     <!-- Service Worker Registration -->
