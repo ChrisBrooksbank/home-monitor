@@ -1,5 +1,8 @@
 # Sensitive configuration - DO NOT COMMIT
 config.js
+nest-config.js
+nest-config.json
+test-hue-connection.js
 
 # Hue automation backups (not needed in repo)
 behaviors.json
