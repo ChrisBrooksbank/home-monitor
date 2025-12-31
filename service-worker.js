@@ -18,11 +18,10 @@ self.addEventListener('install', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Don't cache API requests (Hue Bridge, Weather API, IFTTT)
+  // Don't cache API requests (Hue Bridge, Weather API)
   const isDynamicAPI = url.hostname.includes('192.168.') ||
                        url.hostname.includes('10.5.') ||
-                       url.hostname.includes('api.weatherapi.com') ||
-                       url.hostname.includes('maker.ifttt.com');
+                       url.hostname.includes('api.weatherapi.com');
 
   if (isDynamicAPI) {
     // Always fetch fresh data for API requests
