@@ -4500,9 +4500,11 @@
 
         function makeNestDraggable(group) {
             let isDragging = false;
+            let isAdjustingTemp = false;
             let startX, startY, currentTransform;
+            let startTemp, currentAdjustedTemp;
 
-            group.style.cursor = 'move';
+            group.style.cursor = 'pointer';
 
             // Load saved position from localStorage
             const savedPosition = localStorage.getItem('nestThermostatPosition');
@@ -4511,61 +4513,118 @@
                 group.setAttribute('transform', `translate(${pos.x}, ${pos.y})`);
             }
 
+            // Get current target temperature from device
+            function getCurrentTargetTemp() {
+                if (nestDevices.length === 0) return 21; // Default
+                const device = nestDevices[0];
+                const thermostatTrait = device.traits['sdm.devices.traits.ThermostatTemperatureSetpoint'];
+                return thermostatTrait?.heatCelsius || thermostatTrait?.coolCelsius || 21;
+            }
+
             // Unified start handler for both mouse and touch
             function handleStart(e) {
-                isDragging = true;
-
                 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
                 const clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
                 startX = clientX;
                 startY = clientY;
 
-                const transform = group.getAttribute('transform');
-                const match = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
-                currentTransform = {
-                    x: parseFloat(match[1]),
-                    y: parseFloat(match[2])
-                };
+                // Check if Shift key is pressed for position dragging
+                if (e.shiftKey) {
+                    isDragging = true;
+                    const transform = group.getAttribute('transform');
+                    const match = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
+                    currentTransform = {
+                        x: parseFloat(match[1]),
+                        y: parseFloat(match[2])
+                    };
+                    group.style.cursor = 'move';
+                    group.style.opacity = '0.7';
+                } else {
+                    // Temperature adjustment mode (default)
+                    isAdjustingTemp = true;
+                    startTemp = getCurrentTargetTemp();
+                    currentAdjustedTemp = startTemp;
 
-                group.style.opacity = '0.7';
+                    // Visual feedback
+                    const statusRing = document.getElementById('nest-status-ring');
+                    if (statusRing) {
+                        statusRing.setAttribute('stroke', '#4A90E2');
+                        statusRing.setAttribute('opacity', '0.8');
+                    }
+                }
+
                 e.preventDefault();
                 e.stopPropagation();
             }
 
             // Unified move handler
             function handleMove(e) {
-                if (!isDragging) return;
-
                 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
                 const clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
-                const dx = clientX - startX;
-                const dy = clientY - startY;
-                const newX = currentTransform.x + dx;
-                const newY = currentTransform.y + dy;
+                if (isDragging) {
+                    // Position dragging (Shift+drag)
+                    const dx = clientX - startX;
+                    const dy = clientY - startY;
+                    const newX = currentTransform.x + dx;
+                    const newY = currentTransform.y + dy;
+                    group.setAttribute('transform', `translate(${newX}, ${newY})`);
+                } else if (isAdjustingTemp) {
+                    // Temperature adjustment (normal drag)
+                    const dy = startY - clientY; // Inverted: drag up = increase
 
-                group.setAttribute('transform', `translate(${newX}, ${newY})`);
+                    // Each 10 pixels of drag = 0.5°C change
+                    const tempChange = Math.round(dy / 10) * 0.5;
+                    currentAdjustedTemp = Math.max(10, Math.min(30, startTemp + tempChange));
+
+                    // Update display in real-time
+                    const targetTempEl = document.getElementById('nest-target-temp');
+                    const currentTempEl = document.getElementById('nest-current-temp');
+                    if (targetTempEl && currentTempEl) {
+                        targetTempEl.textContent = `SET: ${currentAdjustedTemp.toFixed(1)}°C`;
+                        targetTempEl.setAttribute('fill', '#4A90E2');
+                        targetTempEl.setAttribute('font-size', '12');
+                        currentTempEl.setAttribute('font-size', '24'); // Make current temp smaller
+                    }
+                }
             }
 
             // Unified end handler
-            function handleEnd(e) {
-                if (!isDragging) return;
-                isDragging = false;
+            async function handleEnd(e) {
+                if (isDragging) {
+                    // Save position
+                    isDragging = false;
+                    group.style.opacity = '1';
+                    group.style.cursor = 'pointer';
 
-                group.style.opacity = '1';
+                    const transform = group.getAttribute('transform');
+                    const match = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
+                    const position = {
+                        x: parseFloat(match[1]),
+                        y: parseFloat(match[2])
+                    };
+                    localStorage.setItem('nestThermostatPosition', JSON.stringify(position));
+                    console.log('🌡️  Nest position saved:', position);
+                } else if (isAdjustingTemp) {
+                    // Apply temperature change
+                    isAdjustingTemp = false;
 
-                // Save position to localStorage
-                const transform = group.getAttribute('transform');
-                const match = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
+                    // Reset visual feedback
+                    const statusRing = document.getElementById('nest-status-ring');
+                    if (statusRing) {
+                        statusRing.setAttribute('opacity', '0.6');
+                    }
 
-                const position = {
-                    x: parseFloat(match[1]),
-                    y: parseFloat(match[2])
-                };
-
-                localStorage.setItem('nestThermostatPosition', JSON.stringify(position));
-                console.log('🌡️  Nest position saved:', position);
+                    // Only send command if temperature actually changed
+                    if (Math.abs(currentAdjustedTemp - startTemp) >= 0.5) {
+                        console.log(`🌡️  Setting Nest temperature to ${currentAdjustedTemp}°C`);
+                        await setNestTemperature(currentAdjustedTemp);
+                    } else {
+                        // No change, restore display
+                        updateNestDisplay();
+                    }
+                }
             }
 
             // Add both mouse and touch event listeners
@@ -4584,13 +4643,6 @@
 
         // Expose Nest control function globally for console access
         window.setNestTemp = setNestTemperature;
-
-        // Set temperature to 24°C as requested
-        setTimeout(() => {
-            if (nestDevices.length > 0) {
-                setNestTemperature(24);
-            }
-        }, 10000); // Wait 10 seconds for initial data fetch
     </script>
 
     <!-- Service Worker Registration -->
