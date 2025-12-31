@@ -4643,6 +4643,131 @@
 
         // Expose Nest control function globally for console access
         window.setNestTemp = setNestTemperature;
+
+        // ==============================================
+        // SONOS SPEAKER INTEGRATION
+        // ==============================================
+
+        const SONOS_SPEAKERS = [
+            { ip: '192.168.68.61', room: 'Bedroom', coords: {x: 680, y: 400} },
+            { ip: '192.168.68.64', room: 'Lounge', coords: {x: 380, y: 400} },
+            { ip: '192.168.68.60', room: 'Lounge', coords: {x: 420, y: 400} } // Beam (only show one in lounge)
+        ];
+
+        let sonosStates = {};
+
+        async function fetchSonosState(speaker) {
+            try {
+                const response = await fetch(`/sonos/${speaker.ip}/state`);
+                const data = await response.json();
+                return data;
+            } catch (err) {
+                // Silently fail - just return no playback
+                return { state: 'STOPPED', track: null };
+            }
+        }
+
+        async function updateSonosDisplay() {
+            for (const speaker of SONOS_SPEAKERS) {
+                const state = await fetchSonosState(speaker);
+                sonosStates[speaker.room] = state;
+
+                // Update music note indicator in the room
+                updateMusicIndicator(speaker.room, state.state === 'PLAYING', speaker.coords);
+            }
+
+            // Update stats card
+            displaySonosInStats();
+        }
+
+        function updateMusicIndicator(room, isPlaying, coords) {
+            const indicatorId = `music-indicator-${room}`;
+            let indicator = document.getElementById(indicatorId);
+
+            if (isPlaying) {
+                if (!indicator) {
+                    // Create music note indicator
+                    const container = document.getElementById('light-indicators-container');
+                    indicator = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                    indicator.id = indicatorId;
+                    indicator.setAttribute('transform', `translate(${coords.x}, ${coords.y})`);
+
+                    // Animated music notes
+                    indicator.innerHTML = `
+                        <text class="music-note" x="0" y="0" font-size="24" fill="#FF1493" opacity="0.9">🎵</text>
+                        <text class="music-note" x="15" y="-10" font-size="18" fill="#FF69B4" opacity="0.7" style="animation: float-note 2s ease-in-out infinite;">🎶</text>
+                    `;
+
+                    container.appendChild(indicator);
+                }
+            } else {
+                // Remove indicator if exists
+                if (indicator) {
+                    indicator.remove();
+                }
+            }
+        }
+
+        function displaySonosInStats() {
+            let sonosCard = document.getElementById('sonos-stat-card');
+
+            if (!sonosCard) {
+                const statsGrid = document.querySelector('.stats-grid');
+                sonosCard = document.createElement('div');
+                sonosCard.id = 'sonos-stat-card';
+                sonosCard.className = 'stat-card';
+                statsGrid.appendChild(sonosCard);
+            }
+
+            // Find what's currently playing
+            let nowPlaying = '';
+            for (const [room, state] of Object.entries(sonosStates)) {
+                if (state.state === 'PLAYING' && state.track) {
+                    nowPlaying = `${state.track}`;
+                    break; // Just show one
+                }
+            }
+
+            if (!nowPlaying) {
+                nowPlaying = 'Nothing playing';
+            }
+
+            sonosCard.innerHTML = `
+                <div class="stat-label">🎵 Sonos</div>
+                <div class="stat-value" style="font-size: 14px;">${nowPlaying}</div>
+            `;
+        }
+
+        // Note: This is a placeholder - actual implementation would need a backend proxy
+        // to handle Sonos SOAP API calls (can't be done directly from browser due to CORS)
+        // For now, we'll just show the speakers exist
+        function initSonosIntegration() {
+            console.log('🎵 Sonos integration initialized');
+            console.log(`Found ${SONOS_SPEAKERS.length} speakers`);
+
+            // Show Sonos card with speaker info
+            displaySonosInStats();
+
+            // Note: Real-time updates would require backend support
+            // For now, just show static info
+            let sonosCard = document.getElementById('sonos-stat-card');
+            if (sonosCard) {
+                sonosCard.innerHTML = `
+                    <div class="stat-label">🎵 Sonos</div>
+                    <div class="stat-value" style="font-size: 14px;">${SONOS_SPEAKERS.length} speakers found</div>
+                `;
+            }
+        }
+
+        // Initialize Sonos integration
+        initSonosIntegration();
+
+        // Expose Sonos broadcast function
+        window.broadcastToSonos = async function(message) {
+            console.log(`🔊 Broadcasting: "${message}"`);
+            // This would need backend support to actually work
+            alert('Sonos broadcast requires backend support. Use sonos-broadcast.js script instead.');
+        };
     </script>
 
     <!-- Service Worker Registration -->
