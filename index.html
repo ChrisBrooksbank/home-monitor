@@ -469,6 +469,29 @@
             filter: brightness(0.9);
         }
 
+        /* Jukebox Buttons */
+        .jukebox-button {
+            transition: all 0.3s ease;
+            transform-origin: center center;
+            transform-box: fill-box;
+        }
+
+        .jukebox-button:hover {
+            transform: scale(1.15);
+        }
+
+        .jukebox-button:hover circle {
+            filter: brightness(1.3) drop-shadow(0 0 8px currentColor);
+        }
+
+        .jukebox-button:active {
+            transform: scale(0.95);
+        }
+
+        .jukebox-button:active circle {
+            filter: brightness(0.8);
+        }
+
         /* Sparkle animation */
         .sparkle {
             position: absolute;
@@ -851,6 +874,32 @@
 
                 <!-- Sky background -->
                 <rect width="1000" height="600" fill="url(#skyGradient)"/>
+
+                <!-- Weather Info Panel (Top Right) -->
+                <g id="weather-info-panel" transform="translate(800, 30)">
+                    <!-- Semi-transparent background -->
+                    <rect x="0" y="0" width="180" height="110" rx="15" fill="rgba(255, 255, 255, 0.85)" stroke="rgba(100, 100, 100, 0.3)" stroke-width="2"/>
+
+                    <!-- Weather Icon -->
+                    <image id="weather-icon-svg" x="10" y="10" width="50" height="50" href=""/>
+
+                    <!-- Temperature -->
+                    <text id="weather-temp-svg" x="70" y="35" font-size="28" font-weight="bold" fill="#333" font-family="Arial">--°</text>
+
+                    <!-- Condition -->
+                    <text id="weather-condition-svg" x="70" y="52" font-size="11" fill="#666" font-family="Arial">Loading...</text>
+
+                    <!-- Feels Like -->
+                    <text id="weather-feels-svg" x="10" y="75" font-size="10" fill="#555" font-family="Arial">Feels: --°</text>
+
+                    <!-- Humidity & UV -->
+                    <text id="weather-humidity-svg" x="10" y="90" font-size="9" fill="#555" font-family="Arial">💧 --%</text>
+                    <text id="weather-uv-svg" x="10" y="103" font-size="9" fill="#555" font-family="Arial">☀️ UV -</text>
+
+                    <!-- Wind -->
+                    <text id="weather-wind-svg" x="100" y="75" font-size="9" fill="#555" font-family="Arial">🌬️ -- km/h</text>
+                    <text id="weather-wind-dir-svg" x="100" y="88" font-size="9" fill="#555" font-family="Arial">--</text>
+                </g>
 
                 <!-- Sun -->
                 <g id="sun" style="animation: spin 30s linear infinite; transform-origin: 880px 100px;">
@@ -1263,6 +1312,69 @@
                     <text id="sonos-office-volume-label" x="0" y="16" text-anchor="middle" fill="#ECF0F1" font-size="6">Vol: --</text>
                 </g>
 
+                <!-- Light Effects Jukebox - Extension Room -->
+                <g id="jukebox" transform="translate(800, 500)">
+                    <!-- Jukebox Body -->
+                    <defs>
+                        <linearGradient id="jukeboxGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+                            <stop offset="50%" style="stop-color:#FFA500;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#FF8C00;stop-opacity:1" />
+                        </linearGradient>
+                        <radialGradient id="screenGlow" cx="50%" cy="50%">
+                            <stop offset="0%" style="stop-color:#00FFFF;stop-opacity:0.8" />
+                            <stop offset="100%" style="stop-color:#0080FF;stop-opacity:1" />
+                        </radialGradient>
+                    </defs>
+
+                    <!-- Main body -->
+                    <rect x="-50" y="-70" width="100" height="120" rx="10" fill="url(#jukeboxGradient)" stroke="#8B4513" stroke-width="3"/>
+
+                    <!-- Screen -->
+                    <rect x="-40" y="-60" width="80" height="35" rx="5" fill="url(#screenGlow)" stroke="#000" stroke-width="2"/>
+                    <text x="0" y="-40" text-anchor="middle" fill="#FFF" font-size="8" font-weight="bold">LIGHT EFFECTS</text>
+                    <text x="0" y="-30" text-anchor="middle" fill="#FFD700" font-size="6">▲ ▼ Select Effect</text>
+
+                    <!-- Effect Buttons -->
+                    <g id="jukebox-btn-1" class="jukebox-button" transform="translate(-30, -10)" style="cursor: pointer;">
+                        <circle r="8" fill="#FF0000" stroke="#8B0000" stroke-width="1.5"/>
+                        <text x="0" y="3" text-anchor="middle" fill="#FFF" font-size="10">🚨</text>
+                        <text x="0" y="15" text-anchor="middle" fill="#333" font-size="5">Red Alert</text>
+                    </g>
+
+                    <g id="jukebox-btn-2" class="jukebox-button" transform="translate(0, -10)" style="cursor: pointer;">
+                        <circle r="8" fill="#FF00FF" stroke="#8B008B" stroke-width="1.5"/>
+                        <text x="0" y="3" text-anchor="middle" fill="#FFF" font-size="10">🎉</text>
+                        <text x="0" y="15" text-anchor="middle" fill="#333" font-size="5">Party</text>
+                    </g>
+
+                    <g id="jukebox-btn-3" class="jukebox-button" transform="translate(30, -10)" style="cursor: pointer;">
+                        <circle r="8" fill="#FFD700" stroke="#B8860B" stroke-width="1.5"/>
+                        <text x="0" y="3" text-anchor="middle" fill="#FFF" font-size="10">🕺</text>
+                        <text x="0" y="15" text-anchor="middle" fill="#333" font-size="5">Disco</text>
+                    </g>
+
+                    <g id="jukebox-btn-4" class="jukebox-button" transform="translate(-15, 15)" style="cursor: pointer;">
+                        <circle r="8" fill="#4169E1" stroke="#191970" stroke-width="1.5"/>
+                        <text x="0" y="3" text-anchor="middle" fill="#FFF" font-size="10">🌊</text>
+                        <text x="0" y="15" text-anchor="middle" fill="#333" font-size="5">Wave</text>
+                    </g>
+
+                    <g id="jukebox-btn-5" class="jukebox-button" transform="translate(15, 15)" style="cursor: pointer;">
+                        <circle r="8" fill="#FF6B35" stroke="#8B3A1E" stroke-width="1.5"/>
+                        <text x="0" y="3" text-anchor="middle" fill="#FFF" font-size="10">🌅</text>
+                        <text x="0" y="15" text-anchor="middle" fill="#333" font-size="5">Sunset</text>
+                    </g>
+
+                    <!-- Decorative lights -->
+                    <circle cx="-35" cy="-70" r="3" fill="#FF0000" opacity="0.8">
+                        <animate attributeName="opacity" values="0.8;0.3;0.8" dur="1s" repeatCount="indefinite"/>
+                    </circle>
+                    <circle cx="35" cy="-70" r="3" fill="#00FF00" opacity="0.8">
+                        <animate attributeName="opacity" values="0.3;0.8;0.3" dur="1s" repeatCount="indefinite"/>
+                    </circle>
+                </g>
+
                 <!-- Sonos Controls - Lounge -->
                 <g id="sonos-lounge-controls" transform="translate(400, 520)">
                     <!-- Control Panel Background -->
@@ -1377,65 +1489,7 @@
         </div>
 
         <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-label">🏠 Average Indoor</div>
-                <div class="stat-value" id="avg-temp">--°C</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">🔥 Warmest Room</div>
-                <div class="stat-value" id="max-temp">--°C</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">❄️ Coolest Room</div>
-                <div class="stat-value" id="min-temp">--°C</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">📊 Temp Range</div>
-                <div class="stat-value" id="range-temp">--°C</div>
-            </div>
-            <div class="stat-card weather-card">
-                <div class="stat-label">🌤️ Outdoor Weather</div>
-                <div class="weather-main">
-                    <img id="weather-icon" src="" alt="" class="weather-icon">
-                    <div class="weather-temp-container">
-                        <div class="stat-value" id="weather-temp">--°C</div>
-                        <div class="weather-condition" id="weather-condition">Loading...</div>
-                    </div>
-                </div>
-                <div class="weather-details">
-                    <div id="weather-feels">Feels like --°C</div>
-                    <div class="weather-extra">
-                        <span id="weather-humidity">💧 --%</span>
-                        <span id="weather-uv">☀️ UV -</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <button class="refresh-btn" onclick="loadTemperatures()" id="refreshBtn">
-            🔄 Refresh Temps!
-        </button>
-
-        <!-- Fun Action Buttons -->
-        <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px; flex-wrap: wrap;">
-            <button class="refresh-btn" onclick="redAlert()" id="redAlertBtn" style="background: linear-gradient(135deg, #FF0000 0%, #8B0000 100%);">
-                🚨 Red Alert
-            </button>
-            <button class="refresh-btn" onclick="partyMode()" id="partyBtn" style="background: linear-gradient(135deg, #FF00FF 0%, #00FFFF 100%);">
-                🎉 Party Mode
-            </button>
-            <button class="refresh-btn" onclick="discoMode()" id="discoBtn" style="background: linear-gradient(135deg, #FFD700 0%, #FF1493 100%);">
-                🕺 Disco
-            </button>
-            <button class="refresh-btn" onclick="waveEffect()" id="waveBtn" style="background: linear-gradient(135deg, #4169E1 0%, #1E90FF 100%);">
-                🌊 Wave
-            </button>
-            <button class="refresh-btn" onclick="sunsetMode()" id="sunsetBtn" style="background: linear-gradient(135deg, #FF6B35 0%, #FF8E53 100%);">
-                🌅 Sunset
-            </button>
-            <button class="refresh-btn" onclick="resetThermometerPositions()" id="resetBtn" style="background: linear-gradient(135deg, #6C757D 0%, #495057 100%);">
-                🔄 Reset Thermometers
-            </button>
+            <!-- Weather now displayed in sky SVG -->
         </div>
 
         <!-- Sensor Details Panel -->
@@ -1451,15 +1505,15 @@
             </div>
         </div>
 
-        <!-- Motion Detection Log -->
+        <!-- Activity Log -->
         <div class="graph-container" style="margin-top: 20px;">
             <h2 class="graph-title section-header" onclick="toggleSection('motion-log-content', 'motion-arrow')">
                 <span class="section-arrow collapsed" id="motion-arrow">▼</span>
-                🚶 48-Hour Motion Detection Log
+                📋 48-Hour Activity Log
             </h2>
             <div id="motion-log-content" class="collapsible-content collapsed">
                 <div id="motion-log" style="max-height: 300px; overflow-y: auto; padding: 15px; background: #f9f9f9; border-radius: 10px; font-family: 'Courier New', monospace; font-size: 13px;">
-                    <div style="text-align: center; color: #999; padding: 20px;">Loading motion history...</div>
+                    <div style="text-align: center; color: #999; padding: 20px;">Loading activity history...</div>
                 </div>
                 <div style="text-align: center; margin-top: 10px; font-size: 12px; color: #666;">
                     <span id="motion-log-count">0</span> events in last 48 hours
@@ -1467,34 +1521,6 @@
             </div>
         </div>
 
-        <!-- Temperature Graph -->
-        <div class="graph-container">
-            <h2 class="graph-title">📈 24-Hour Temperature History</h2>
-            <svg id="temp-graph" viewBox="0 0 1200 400" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <linearGradient id="gridGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" style="stop-color:#f0f0f0;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#ffffff;stop-opacity:1" />
-                    </linearGradient>
-                </defs>
-                <!-- Background -->
-                <rect width="1200" height="400" fill="url(#gridGradient)" rx="10"/>
-
-                <!-- Grid lines will be added by JavaScript -->
-                <g id="grid-lines"></g>
-
-                <!-- Graph lines will be added by JavaScript -->
-                <g id="graph-lines"></g>
-
-                <!-- Axes -->
-                <line x1="50" y1="350" x2="1150" y2="350" stroke="#ccc" stroke-width="2"/>
-                <line x1="50" y1="50" x2="50" y2="350" stroke="#ccc" stroke-width="2"/>
-
-                <!-- Labels will be added by JavaScript -->
-                <g id="axis-labels"></g>
-                <g id="legend"></g>
-            </svg>
-        </div>
     </div>
 
     <script src="config.js"></script>
@@ -1599,10 +1625,28 @@
 
         // Log a motion detection event
         function logMotionEvent(room) {
+            logActivityEvent('motion', room, null);
+        }
+
+        // Log a light on/off event
+        function logLightEvent(lightName, isOn) {
+            logActivityEvent('light', lightName, isOn ? 'on' : 'off');
+        }
+
+        // Log a thermostat temperature change
+        function logThermostatEvent(targetTemp) {
+            logActivityEvent('thermostat', 'Main Bedroom', `${targetTemp}°C`);
+        }
+
+        // General activity logging function
+        function logActivityEvent(type, location, detail) {
             const now = Date.now();
             motionHistory.push({
+                type: type,           // 'motion', 'light', 'thermostat'
+                location: location,   // room name or light name
+                detail: detail,       // additional info (e.g., 'on', 'off', '21°C')
                 time: now,
-                room: room
+                room: location        // Keep for backwards compatibility with old motion entries
             });
 
             // Keep only last 48 hours
@@ -1659,13 +1703,34 @@
                 events.forEach(entry => {
                     const date = new Date(entry.time);
                     const timeStr = date.toLocaleTimeString();
-                    const roomEmoji = {
-                        'Outdoor': '🌳',
-                        'Hall': '🚪',
-                        'Landing': '🪜',
-                        'Bathroom': '🚿'
-                    };
-                    const emoji = roomEmoji[entry.room] || '🚶';
+
+                    // Determine event type (backwards compatible with old motion-only entries)
+                    const eventType = entry.type || 'motion';
+                    let emoji, description, borderColor;
+
+                    if (eventType === 'motion') {
+                        const roomEmoji = {
+                            'Outdoor': '🌳',
+                            'Hall': '🚪',
+                            'Landing': '🪜',
+                            'Bathroom': '🚿'
+                        };
+                        emoji = roomEmoji[entry.room || entry.location] || '🚶';
+                        description = `<strong>${entry.room || entry.location}</strong> motion`;
+                        borderColor = '#FF6B35';
+                    } else if (eventType === 'light') {
+                        emoji = entry.detail === 'on' ? '💡' : '🌙';
+                        description = `<strong>${entry.location}</strong> turned ${entry.detail}`;
+                        borderColor = entry.detail === 'on' ? '#FFD700' : '#4A5568';
+                    } else if (eventType === 'thermostat') {
+                        emoji = '🌡️';
+                        description = `<strong>${entry.location}</strong> set to ${entry.detail}`;
+                        borderColor = '#FF6B6B';
+                    } else {
+                        emoji = '📝';
+                        description = `${entry.location}`;
+                        borderColor = textPrimary;
+                    }
 
                     // Calculate how long ago
                     const now = Date.now();
@@ -1681,8 +1746,8 @@
                         ago = 'just now';
                     }
 
-                    html += `<div style="padding: 6px 10px; margin: 4px 0; background: ${styles.getPropertyValue('--bg-graph').trim()}; border-radius: 6px; border-left: 3px solid ${textPrimary}; display: flex; justify-content: space-between; align-items: center;">`;
-                    html += `<span style="color: ${textPrimary};">${emoji} <strong>${entry.room}</strong> - ${timeStr}</span>`;
+                    html += `<div style="padding: 6px 10px; margin: 4px 0; background: ${styles.getPropertyValue('--bg-graph').trim()}; border-radius: 6px; border-left: 3px solid ${borderColor}; display: flex; justify-content: space-between; align-items: center;">`;
+                    html += `<span style="color: ${textPrimary};">${emoji} ${description} - ${timeStr}</span>`;
                     html += `<span style="color: ${textLight}; font-size: 11px;">${ago}</span>`;
                     html += `</div>`;
                 });
@@ -2343,6 +2408,20 @@
 
                 if (response.ok) {
                     console.log(`Light ${lightId} toggled to ${newState ? 'ON' : 'OFF'}`);
+
+                    // Get light name for logging
+                    try {
+                        const lightsResponse = await fetch(`http://${BRIDGE_IP}/api/${USERNAME}/lights/${lightId}`);
+                        if (lightsResponse.ok) {
+                            const lightData = await lightsResponse.json();
+                            const lightName = lightData.name || `Light ${lightId}`;
+                            logLightEvent(lightName, newState);
+                        }
+                    } catch (e) {
+                        // If we can't get the name, log with ID
+                        logLightEvent(`Light ${lightId}`, newState);
+                    }
+
                     // Refresh lights after a short delay
                     setTimeout(loadLights, 500);
                 } else {
@@ -2419,6 +2498,245 @@
             return null;
         }
 
+        async function buildThermostatPanel() {
+            try {
+                // Get Nest device data
+                let currentTemp = null;
+                let targetTemp = null;
+                let status = 'OFF';
+                let statusColor = '#999';
+                let mode = 'Unknown';
+                let deviceName = 'Nest Thermostat';
+                let humidity = null;
+
+                // Fetch fresh Nest data
+                const devices = typeof fetchNestDevices === 'function' ? await fetchNestDevices() : null;
+
+                if (devices && devices.length > 0) {
+                    const device = devices[0];
+                    const tempTrait = device.traits['sdm.devices.traits.Temperature'];
+                    const thermostatTrait = device.traits['sdm.devices.traits.ThermostatTemperatureSetpoint'];
+                    const humidityTrait = device.traits['sdm.devices.traits.Humidity'];
+                    const infoTrait = device.traits['sdm.devices.traits.Info'];
+                    const modeTrait = device.traits['sdm.devices.traits.ThermostatMode'];
+
+                    if (tempTrait) {
+                        currentTemp = tempTrait.ambientTemperatureCelsius.toFixed(1);
+                    }
+
+                    if (humidityTrait) {
+                        humidity = humidityTrait.ambientHumidityPercent;
+                    }
+
+                    if (infoTrait?.customName) {
+                        deviceName = infoTrait.customName;
+                    }
+
+                    if (modeTrait?.mode) {
+                        mode = modeTrait.mode.toUpperCase();
+                    }
+
+                    if (thermostatTrait?.heatCelsius) {
+                        targetTemp = thermostatTrait.heatCelsius.toFixed(1);
+                        mode = 'HEAT';
+                        // Check if actively heating
+                        if (currentTemp && parseFloat(currentTemp) < thermostatTrait.heatCelsius - 0.5) {
+                            status = 'HEATING';
+                            statusColor = '#FF6B35';
+                        } else {
+                            status = 'IDLE';
+                            statusColor = '#4CAF50';
+                        }
+                    } else if (thermostatTrait?.coolCelsius) {
+                        targetTemp = thermostatTrait.coolCelsius.toFixed(1);
+                        mode = 'COOL';
+                        // Check if actively cooling
+                        if (currentTemp && parseFloat(currentTemp) > thermostatTrait.coolCelsius + 0.5) {
+                            status = 'COOLING';
+                            statusColor = '#4ECDC4';
+                        } else {
+                            status = 'IDLE';
+                            statusColor = '#4CAF50';
+                        }
+                    }
+
+                    // IMPORTANT: Also update the visual display in the house with this data
+                    if (currentTemp && typeof updateNestVisualDisplay === 'function') {
+                        console.log('🔄 Updating visual thermostat from sensor panel data');
+                        updateNestVisualDisplay(
+                            parseFloat(currentTemp),
+                            targetTemp ? parseFloat(targetTemp) : null,
+                            status,
+                            statusColor
+                        );
+                    }
+                }
+
+                const tempColor = currentTemp ? getTemperatureColor(parseFloat(currentTemp)) : '#999';
+
+                let html = `<div style="background: linear-gradient(135deg, #FF6B6B 0%, #FF8E8E 100%); padding: 15px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 2px solid #FF5252;">`;
+                html += `<div style="font-weight: 700; font-size: 16px; margin-bottom: 12px; color: white; font-family: 'Fredoka', sans-serif;">🌡️ ${deviceName}</div>`;
+
+                // Current Temperature
+                if (currentTemp) {
+                    html += `<div style="display: flex; align-items: center; margin-bottom: 8px; padding: 6px; background: rgba(255,255,255,0.9); border-radius: 8px;">`;
+                    html += `<span style="font-size: 20px; margin-right: 8px;">🌡️</span>`;
+                    html += `<span style="flex: 1; font-weight: 600;">Current Temp</span>`;
+                    html += `<span style="font-weight: 700; color: ${tempColor}; font-size: 18px;">${currentTemp}°C</span>`;
+                    html += `</div>`;
+                }
+
+                // Target Temperature
+                if (targetTemp) {
+                    html += `<div style="display: flex; align-items: center; margin-bottom: 8px; padding: 6px; background: rgba(255,255,255,0.9); border-radius: 8px;">`;
+                    html += `<span style="font-size: 20px; margin-right: 8px;">🎯</span>`;
+                    html += `<span style="flex: 1; font-weight: 600;">Target Temp</span>`;
+                    html += `<span style="font-weight: 700; color: #FF6B35; font-size: 18px;">${targetTemp}°C</span>`;
+                    html += `</div>`;
+                }
+
+                // Status
+                html += `<div style="display: flex; align-items: center; margin-bottom: 8px; padding: 6px; background: rgba(255,255,255,0.9); border-radius: 8px;">`;
+                html += `<span style="flex: 1; font-weight: 600;">Status</span>`;
+                html += `<span style="font-weight: 700; color: ${statusColor};">${status}</span>`;
+                html += `</div>`;
+
+                // Mode
+                html += `<div style="display: flex; align-items: center; margin-bottom: 8px; padding: 6px; background: rgba(255,255,255,0.9); border-radius: 8px;">`;
+                html += `<span style="flex: 1; font-weight: 600;">Mode</span>`;
+                html += `<span style="font-weight: 700; color: #666;">${mode}</span>`;
+                html += `</div>`;
+
+                // Humidity
+                if (humidity !== null) {
+                    const humidityColor = humidity > 60 ? '#4ECDC4' : humidity < 30 ? '#FF9800' : '#4CAF50';
+                    html += `<div style="display: flex; align-items: center; margin-bottom: 8px; padding: 6px; background: rgba(255,255,255,0.9); border-radius: 8px;">`;
+                    html += `<span style="font-size: 20px; margin-right: 8px;">💧</span>`;
+                    html += `<span style="flex: 1; font-weight: 600;">Humidity</span>`;
+                    html += `<span style="font-weight: 700; color: ${humidityColor};">${humidity}%</span>`;
+                    html += `</div>`;
+                }
+
+                // Location
+                html += `<div style="display: flex; align-items: center; padding: 6px; background: rgba(255,255,255,0.9); border-radius: 8px;">`;
+                html += `<span style="flex: 1; font-weight: 600; font-size: 12px;">Location</span>`;
+                html += `<span style="font-weight: 700; color: #666; font-size: 11px;">Main Bedroom</span>`;
+                html += `</div>`;
+
+                html += `</div>`;
+                return html;
+            } catch (error) {
+                console.error('Error building thermostat panel:', error);
+                return '';
+            }
+        }
+
+        async function buildSpeakerPanel(name, ip) {
+            try {
+                // Query speaker status
+                const volumeInfo = await getSonosVolume(ip);
+                const transportInfo = await getSonosTransportInfo(ip);
+
+                const isPlaying = transportInfo === 'PLAYING';
+                const statusColor = isPlaying ? '#4CAF50' : '#999';
+                const statusText = isPlaying ? '▶️ Playing' : '⏸️ Paused';
+
+                let html = `<div style="background: linear-gradient(135deg, #2C3E50 0%, #34495E 100%); padding: 15px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 2px solid #1A252F;">`;
+                html += `<div style="font-weight: 700; font-size: 16px; margin-bottom: 12px; color: white; font-family: 'Fredoka', sans-serif;">🔊 Sonos ${name}</div>`;
+
+                // Status
+                html += `<div style="display: flex; align-items: center; margin-bottom: 8px; padding: 6px; background: rgba(255,255,255,0.9); border-radius: 8px;">`;
+                html += `<span style="flex: 1; font-weight: 600;">Status</span>`;
+                html += `<span style="font-weight: 700; color: ${statusColor};">${statusText}</span>`;
+                html += `</div>`;
+
+                // Volume
+                if (volumeInfo !== null) {
+                    const volumeColor = volumeInfo > 70 ? '#f44336' : volumeInfo > 40 ? '#FFA500' : '#4CAF50';
+                    html += `<div style="display: flex; align-items: center; margin-bottom: 8px; padding: 6px; background: rgba(255,255,255,0.9); border-radius: 8px;">`;
+                    html += `<span style="font-size: 20px; margin-right: 8px;">🔉</span>`;
+                    html += `<span style="flex: 1; font-weight: 600;">Volume</span>`;
+                    html += `<span style="font-weight: 700; color: ${volumeColor};">${volumeInfo}%</span>`;
+                    html += `</div>`;
+                }
+
+                // IP Address
+                html += `<div style="display: flex; align-items: center; padding: 6px; background: rgba(255,255,255,0.9); border-radius: 8px;">`;
+                html += `<span style="flex: 1; font-weight: 600; font-size: 12px;">IP</span>`;
+                html += `<span style="font-weight: 700; color: #666; font-size: 11px;">${ip}</span>`;
+                html += `</div>`;
+
+                html += `</div>`;
+                return html;
+            } catch (error) {
+                console.error(`Error building speaker panel for ${name}:`, error);
+                return '';
+            }
+        }
+
+        async function getSonosVolume(ip) {
+            try {
+                const soapBody = `<?xml version="1.0" encoding="utf-8"?>
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+  <s:Body>
+    <u:GetVolume xmlns:u="urn:schemas-upnp-org:service:RenderingControl:1">
+      <InstanceID>0</InstanceID>
+      <Channel>Master</Channel>
+    </u:GetVolume>
+  </s:Body>
+</s:Envelope>`;
+
+                const response = await fetch('http://localhost:3000/MediaRenderer/RenderingControl/Control', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/xml; charset="utf-8"',
+                        'SOAPAction': '"urn:schemas-upnp-org:service:RenderingControl:1#GetVolume"',
+                        'X-Sonos-IP': ip
+                    },
+                    body: soapBody
+                });
+
+                if (!response.ok) return null;
+
+                const text = await response.text();
+                const match = text.match(/<CurrentVolume>(\d+)<\/CurrentVolume>/);
+                return match ? parseInt(match[1]) : null;
+            } catch (error) {
+                return null;
+            }
+        }
+
+        async function getSonosTransportInfo(ip) {
+            try {
+                const soapBody = `<?xml version="1.0" encoding="utf-8"?>
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+  <s:Body>
+    <u:GetTransportInfo xmlns:u="urn:schemas-upnp-org:service:AVTransport:1">
+      <InstanceID>0</InstanceID>
+    </u:GetTransportInfo>
+  </s:Body>
+</s:Envelope>`;
+
+                const response = await fetch('http://localhost:3000/MediaRenderer/AVTransport/Control', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/xml; charset="utf-8"',
+                        'SOAPAction': '"urn:schemas-upnp-org:service:AVTransport:1#GetTransportInfo"',
+                        'X-Sonos-IP': ip
+                    },
+                    body: soapBody
+                });
+
+                if (!response.ok) return 'STOPPED';
+
+                const text = await response.text();
+                const match = text.match(/<CurrentTransportState>(.*?)<\/CurrentTransportState>/);
+                return match ? match[1] : 'STOPPED';
+            } catch (error) {
+                return 'STOPPED';
+            }
+        }
+
         async function loadSensorDetails() {
             try {
                 const response = await fetch(`http://${BRIDGE_IP}/api/${USERNAME}/sensors`);
@@ -2427,6 +2745,17 @@
                 const sensors = await response.json();
                 const container = document.getElementById('sensor-details');
                 if (!container) return;
+
+                // Start building HTML with custom panels for thermostat and speakers
+                let html = '';
+
+                // Add Thermostat Panel
+                html += await buildThermostatPanel();
+
+                // Add Speaker Panels
+                html += await buildSpeakerPanel('Bedroom', '192.168.68.61');
+                html += await buildSpeakerPanel('Office', '192.168.68.75');
+                html += await buildSpeakerPanel('Lounge', '192.168.68.64');
 
                 // Group sensors by their physical device (based on uniqueid prefix)
                 const sensorGroups = {};
@@ -2468,8 +2797,7 @@
                     }
                 }
 
-                // Build HTML for sensor cards
-                let html = '';
+                // Build HTML for sensor cards (append to existing html with thermostat and speakers)
                 for (const [key, sensor] of Object.entries(sensorGroups)) {
                     // Only show sensors that have at least one data point
                     if (!sensor.temperature && sensor.lightLevel === null && sensor.motion === null && sensor.battery === null) {
@@ -2840,7 +3168,7 @@
 
         async function loadTemperatures(showSparkles = true) {
             const btn = document.getElementById('refreshBtn');
-            if (showSparkles) btn.classList.add('loading');
+            if (showSparkles && btn) btn.classList.add('loading');
 
             try {
                 const response = await fetch(`http://${BRIDGE_IP}/api/${USERNAME}/sensors`);
@@ -2901,33 +3229,40 @@
                     const minEl = document.getElementById('min-temp');
                     const rangeEl = document.getElementById('range-temp');
 
-                    avgEl.textContent = avg + '°C';
-                    maxEl.textContent = max + '°C';
-                    minEl.textContent = min + '°C';
-                    rangeEl.textContent = range + '°C';
+                    // Only update if elements exist (they were removed from UI)
+                    if (avgEl) avgEl.textContent = avg + '°C';
+                    if (maxEl) maxEl.textContent = max + '°C';
+                    if (minEl) minEl.textContent = min + '°C';
+                    if (rangeEl) rangeEl.textContent = range + '°C';
 
                     // Add sparkles to stats cards
                     if (showSparkles) {
-                        setTimeout(() => createSparkles(avgEl), 100);
-                        setTimeout(() => createSparkles(maxEl), 200);
-                        setTimeout(() => createSparkles(minEl), 300);
-                        setTimeout(() => createSparkles(rangeEl), 400);
+                        if (avgEl) setTimeout(() => createSparkles(avgEl), 100);
+                        if (maxEl) setTimeout(() => createSparkles(maxEl), 200);
+                        if (minEl) setTimeout(() => createSparkles(minEl), 300);
+                        if (rangeEl) setTimeout(() => createSparkles(rangeEl), 400);
                     }
                 }
 
                 const now = new Date();
-                document.getElementById('lastUpdate').textContent =
-                    `Last updated: ${now.toLocaleString()} ✨`;
+                const lastUpdateEl = document.getElementById('lastUpdate');
+                if (lastUpdateEl) {
+                    lastUpdateEl.textContent = `Last updated: ${now.toLocaleString()} ✨`;
+                }
 
-                // Redraw graph with new data
-                drawGraph();
+                // Redraw graph with new data (only if graph exists)
+                if (typeof drawGraph === 'function') {
+                    drawGraph();
+                }
 
             } catch (error) {
                 console.error('Error loading temperatures:', error);
-                document.getElementById('lastUpdate').textContent =
-                    `⚠️ Oops! ${error.message}`;
+                const lastUpdateEl = document.getElementById('lastUpdate');
+                if (lastUpdateEl) {
+                    lastUpdateEl.textContent = `⚠️ Oops! ${error.message}`;
+                }
             } finally {
-                if (showSparkles) btn.classList.remove('loading');
+                if (showSparkles && btn) btn.classList.remove('loading');
             }
         }
 
@@ -3098,7 +3433,7 @@
                 return;
             }
 
-            // Update weather stat card
+            // Update weather stat card (if it exists)
             const weatherTempEl = document.getElementById('weather-temp');
             const weatherConditionEl = document.getElementById('weather-condition');
             const weatherIconEl = document.getElementById('weather-icon');
@@ -3112,6 +3447,25 @@
             if (weatherFeelsEl) weatherFeelsEl.textContent = `Feels like ${weatherData.feelsLike.toFixed(1)}°C`;
             if (weatherHumidityEl) weatherHumidityEl.textContent = `💧 ${weatherData.humidity}%`;
             if (weatherUvEl) weatherUvEl.textContent = `☀️ UV ${weatherData.uv}`;
+
+            // Update SVG weather panel in sky
+            const weatherTempSvgEl = document.getElementById('weather-temp-svg');
+            const weatherConditionSvgEl = document.getElementById('weather-condition-svg');
+            const weatherIconSvgEl = document.getElementById('weather-icon-svg');
+            const weatherFeelsSvgEl = document.getElementById('weather-feels-svg');
+            const weatherHumiditySvgEl = document.getElementById('weather-humidity-svg');
+            const weatherUvSvgEl = document.getElementById('weather-uv-svg');
+            const weatherWindSvgEl = document.getElementById('weather-wind-svg');
+            const weatherWindDirSvgEl = document.getElementById('weather-wind-dir-svg');
+
+            if (weatherTempSvgEl) weatherTempSvgEl.textContent = `${Math.round(weatherData.temp)}°`;
+            if (weatherConditionSvgEl) weatherConditionSvgEl.textContent = weatherData.condition;
+            if (weatherIconSvgEl) weatherIconSvgEl.setAttribute('href', `https:${weatherData.icon}`);
+            if (weatherFeelsSvgEl) weatherFeelsSvgEl.textContent = `Feels: ${Math.round(weatherData.feelsLike)}°`;
+            if (weatherHumiditySvgEl) weatherHumiditySvgEl.textContent = `💧 ${weatherData.humidity}%`;
+            if (weatherUvSvgEl) weatherUvSvgEl.textContent = `☀️ UV ${weatherData.uv}`;
+            if (weatherWindSvgEl) weatherWindSvgEl.textContent = `🌬️ ${Math.round(weatherData.wind)} km/h`;
+            if (weatherWindDirSvgEl) weatherWindDirSvgEl.textContent = weatherData.windDir;
 
             console.log(`🌤️ Weather updated: ${weatherData.temp.toFixed(1)}°C, ${weatherData.condition}`);
 
@@ -4488,6 +4842,9 @@
 
                 console.log(`✓ Temperature set to ${targetTempC}°C`);
 
+                // Log the temperature change
+                logThermostatEvent(targetTempC);
+
                 // Update display immediately
                 setTimeout(updateNestDisplay, 2000);
 
@@ -4526,45 +4883,38 @@
         }
 
         function displayNestInStats(name, tempC, thermostatTrait) {
-            // Check if we already have a Nest stats card
-            let nestCard = document.getElementById('nest-stat-card');
+            // Nest data now shown in Sensor Details panel, not in stat card
+            // But we still need to update the visual thermostat display in the house
 
-            if (!nestCard) {
-                // Create a new stats card for Nest
-                const statsGrid = document.querySelector('.stats-grid');
-                nestCard = document.createElement('div');
-                nestCard.id = 'nest-stat-card';
-                nestCard.className = 'stat-card';
-                statsGrid.appendChild(nestCard);
-            }
+            console.log(`🌡️ displayNestInStats called: ${name}, ${tempC}°C`);
 
-            let targetTemp = '';
             let targetTempValue = null;
             let status = 'OFF';
             let statusColor = 'transparent';
 
             if (thermostatTrait?.heatCelsius) {
-                targetTemp = ` → ${thermostatTrait.heatCelsius.toFixed(1)}°C`;
                 targetTempValue = thermostatTrait.heatCelsius;
                 // Check if heating
                 if (tempC < thermostatTrait.heatCelsius - 0.5) {
                     status = 'HEATING';
                     statusColor = '#FF6B35'; // Orange
+                } else {
+                    status = 'IDLE';
+                    statusColor = '#4CAF50'; // Green
                 }
             } else if (thermostatTrait?.coolCelsius) {
-                targetTemp = ` → ${thermostatTrait.coolCelsius.toFixed(1)}°C`;
                 targetTempValue = thermostatTrait.coolCelsius;
                 // Check if cooling
                 if (tempC > thermostatTrait.coolCelsius + 0.5) {
                     status = 'COOLING';
                     statusColor = '#4ECDC4'; // Blue
+                } else {
+                    status = 'IDLE';
+                    statusColor = '#4CAF50'; // Green
                 }
             }
 
-            nestCard.innerHTML = `
-                <div class="stat-label">🌡️  ${name} (Nest)</div>
-                <div class="stat-value">${tempC.toFixed(1)}°C${targetTemp}</div>
-            `;
+            console.log(`🌡️ Updating visual display: temp=${tempC}, target=${targetTempValue}, status=${status}`);
 
             // Update the visual Nest thermostat display in the lounge
             updateNestVisualDisplay(tempC, targetTempValue, status, statusColor);
@@ -4577,7 +4927,12 @@
             const statusRingEl = document.getElementById('nest-status-ring');
             const displayBgEl = document.getElementById('nest-display-bg');
 
-            if (!currentTempEl) return; // Display not ready yet
+            if (!currentTempEl) {
+                console.warn('⚠️ Nest visual display elements not found in DOM');
+                return; // Display not ready yet
+            }
+
+            console.log(`🎨 Updating Nest visual: ${currentTemp}° → ${targetTemp}° (${status})`);
 
             // Update current temperature (large center number)
             currentTempEl.textContent = currentTemp.toFixed(1) + '°';
@@ -4841,6 +5196,10 @@
         }
 
         function displaySonosInStats() {
+            // Sonos data now shown in Sensor Details panel, not here
+            // Skip creating stat card in stats-grid
+            return;
+
             let sonosCard = document.getElementById('sonos-stat-card');
 
             if (!sonosCard) {
@@ -5306,6 +5665,235 @@
 
         // Initialize Sonos integration
         initSonosIntegration();
+
+        // ============================================================================
+        // JUKEBOX LIGHT EFFECTS
+        // ============================================================================
+
+        function makeJukeboxDraggable(group, storageKey) {
+            let isDragging = false;
+            let startX, startY, currentTransform;
+
+            function handleStart(e) {
+                // Only drag if clicking on the jukebox body/screen, not buttons
+                if (e.target.closest('.jukebox-button')) {
+                    return;
+                }
+
+                isDragging = true;
+
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+                startX = clientX;
+                startY = clientY;
+
+                const transform = group.getAttribute('transform');
+                const match = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
+                currentTransform = {
+                    x: parseFloat(match[1]),
+                    y: parseFloat(match[2])
+                };
+
+                group.style.opacity = '0.7';
+                group.style.cursor = 'grabbing';
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            function handleMove(e) {
+                if (!isDragging) return;
+
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+                const dx = clientX - startX;
+                const dy = clientY - startY;
+                const newX = currentTransform.x + dx;
+                const newY = currentTransform.y + dy;
+
+                group.setAttribute('transform', `translate(${newX}, ${newY})`);
+            }
+
+            function handleEnd(e) {
+                if (!isDragging) return;
+                isDragging = false;
+
+                group.style.opacity = '1';
+                group.style.cursor = 'grab';
+
+                const transform = group.getAttribute('transform');
+                const match = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
+
+                const position = {
+                    x: parseFloat(match[1]),
+                    y: parseFloat(match[2])
+                };
+
+                localStorage.setItem(storageKey, JSON.stringify(position));
+            }
+
+            group.addEventListener('mousedown', handleStart);
+            group.addEventListener('touchstart', handleStart, { passive: false });
+
+            document.addEventListener('mousemove', handleMove);
+            document.addEventListener('touchmove', handleMove, { passive: false });
+
+            document.addEventListener('mouseup', handleEnd);
+            document.addEventListener('touchend', handleEnd);
+
+            group.style.cursor = 'grab';
+        }
+
+        function initJukebox() {
+            console.log('🎵 Initializing jukebox...');
+
+            const jukeboxPanel = document.getElementById('jukebox');
+
+            // Load saved position from localStorage
+            const savedPosition = localStorage.getItem('jukeboxPosition');
+            if (savedPosition && jukeboxPanel) {
+                const position = JSON.parse(savedPosition);
+                jukeboxPanel.setAttribute('transform', `translate(${position.x}, ${position.y})`);
+            }
+
+            // Make jukebox draggable
+            if (jukeboxPanel) {
+                makeJukeboxDraggable(jukeboxPanel, 'jukeboxPosition');
+            }
+
+            // Wire up jukebox buttons
+            document.getElementById('jukebox-btn-1')?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                console.log('🚨 Jukebox: Red Alert!');
+                redAlert();
+            });
+
+            document.getElementById('jukebox-btn-2')?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                console.log('🎉 Jukebox: Party Mode!');
+                partyMode();
+            });
+
+            document.getElementById('jukebox-btn-3')?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                console.log('🕺 Jukebox: Disco Mode!');
+                discoMode();
+            });
+
+            document.getElementById('jukebox-btn-4')?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                console.log('🌊 Jukebox: Wave Effect!');
+                waveEffect();
+            });
+
+            document.getElementById('jukebox-btn-5')?.addEventListener('click', (e) => {
+                e.stopPropagation();
+                console.log('🌅 Jukebox: Sunset Mode!');
+                sunsetMode();
+            });
+
+            console.log('✓ Jukebox initialized');
+        }
+
+        // Initialize jukebox
+        initJukebox();
+
+        // Weather panel draggable functionality
+        function makeWeatherPanelDraggable(group, storageKey) {
+            let isDragging = false;
+            let startX, startY, currentTransform;
+
+            function handleStart(e) {
+                isDragging = true;
+                const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+
+                const transform = group.getAttribute('transform');
+                const match = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
+
+                if (match) {
+                    currentTransform = { x: parseFloat(match[1]), y: parseFloat(match[2]) };
+                } else {
+                    currentTransform = { x: 800, y: 30 };
+                }
+
+                startX = clientX - currentTransform.x;
+                startY = clientY - currentTransform.y;
+
+                group.style.cursor = 'grabbing';
+                group.style.opacity = '0.9';
+                e.preventDefault();
+            }
+
+            function handleMove(e) {
+                if (!isDragging) return;
+
+                const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+                const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+
+                const newX = clientX - startX;
+                const newY = clientY - startY;
+
+                group.setAttribute('transform', `translate(${newX}, ${newY})`);
+                e.preventDefault();
+            }
+
+            function handleEnd(e) {
+                if (!isDragging) return;
+
+                isDragging = false;
+                group.style.cursor = 'grab';
+                group.style.opacity = '1';
+
+                const transform = group.getAttribute('transform');
+                const match = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
+
+                if (match) {
+                    const position = {
+                        x: parseFloat(match[1]),
+                        y: parseFloat(match[2])
+                    };
+                    localStorage.setItem(storageKey, JSON.stringify(position));
+                    console.log('🌤️ Weather panel position saved:', position);
+                }
+
+                e.preventDefault();
+            }
+
+            group.addEventListener('mousedown', handleStart);
+            document.addEventListener('mousemove', handleMove);
+            document.addEventListener('mouseup', handleEnd);
+
+            group.addEventListener('touchstart', handleStart, { passive: false });
+            document.addEventListener('touchmove', handleMove, { passive: false });
+            document.addEventListener('touchend', handleEnd);
+
+            group.style.cursor = 'grab';
+        }
+
+        function initWeatherPanel() {
+            console.log('🌤️ Initializing weather panel...');
+
+            const weatherPanel = document.getElementById('weather-info-panel');
+
+            // Load saved position from localStorage
+            const savedPosition = localStorage.getItem('weatherPanelPosition');
+            if (savedPosition && weatherPanel) {
+                const position = JSON.parse(savedPosition);
+                weatherPanel.setAttribute('transform', `translate(${position.x}, ${position.y})`);
+            }
+
+            // Make weather panel draggable
+            if (weatherPanel) {
+                makeWeatherPanelDraggable(weatherPanel, 'weatherPanelPosition');
+            }
+
+            console.log('✓ Weather panel initialized');
+        }
+
+        // Initialize weather panel
+        initWeatherPanel();
 
         // Expose Sonos control functions globally (for console access)
         window.bedroomPlay = () => sonosPlay(BEDROOM_SONOS_IP);
