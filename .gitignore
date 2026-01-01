@@ -30,3 +30,10 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Audio files (generated/temporary)
+*.wav
+*.mp3
+
+# Temporary files
+nul

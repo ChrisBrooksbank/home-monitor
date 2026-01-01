@@ -448,6 +448,27 @@
             100% { transform: rotate(360deg); }
         }
 
+        /* Sonos Control Buttons */
+        .sonos-button {
+            transition: all 0.2s ease;
+            transform-origin: center center;
+            transform-box: fill-box;
+        }
+
+        .sonos-button circle,
+        .sonos-button polygon,
+        .sonos-button rect {
+            transition: all 0.2s ease;
+        }
+
+        .sonos-button:hover circle {
+            filter: brightness(1.2) drop-shadow(0 0 5px rgba(255,255,255,0.5));
+        }
+
+        .sonos-button:active circle {
+            filter: brightness(0.9);
+        }
+
         /* Sparkle animation */
         .sparkle {
             position: absolute;
@@ -1167,6 +1188,117 @@
 
                 <!-- Light indicators will be dynamically added here by JavaScript -->
                 <g id="light-indicators-container"></g>
+
+                <!-- Sonos Controls - Bedroom -->
+                <g id="sonos-bedroom-controls" transform="translate(180, 280)">
+                    <!-- Control Panel Background -->
+                    <rect x="-35" y="-18" width="70" height="36" rx="5" fill="#2C3E50" opacity="0.85" stroke="#34495E" stroke-width="1.5"/>
+
+                    <!-- Title -->
+                    <text x="0" y="-8" text-anchor="middle" fill="#BDC3C7" font-size="7" font-weight="bold">SONOS</text>
+
+                    <!-- Play Button -->
+                    <g id="sonos-bedroom-play" class="sonos-button" transform="translate(-20, 5)" style="cursor: pointer;">
+                        <circle r="8" fill="#27AE60" stroke="#1E8449" stroke-width="1"/>
+                        <polygon points="-2.5,-3.5 -2.5,3.5 3.5,0" fill="white"/>
+                    </g>
+
+                    <!-- Pause Button -->
+                    <g id="sonos-bedroom-pause" class="sonos-button" transform="translate(-5, 5)" style="cursor: pointer;">
+                        <circle r="8" fill="#E67E22" stroke="#CA6F1E" stroke-width="1"/>
+                        <rect x="-3" y="-3.5" width="2" height="7" fill="white"/>
+                        <rect x="1" y="-3.5" width="2" height="7" fill="white"/>
+                    </g>
+
+                    <!-- Volume Down Button -->
+                    <g id="sonos-bedroom-voldown" class="sonos-button" transform="translate(10, 5)" style="cursor: pointer;">
+                        <circle r="7" fill="#3498DB" stroke="#2980B9" stroke-width="1"/>
+                        <text x="0" y="2.5" text-anchor="middle" fill="white" font-size="11" font-weight="bold">−</text>
+                    </g>
+
+                    <!-- Volume Up Button -->
+                    <g id="sonos-bedroom-volup" class="sonos-button" transform="translate(23, 5)" style="cursor: pointer;">
+                        <circle r="7" fill="#3498DB" stroke="#2980B9" stroke-width="1"/>
+                        <text x="0" y="2.5" text-anchor="middle" fill="white" font-size="10" font-weight="bold">+</text>
+                    </g>
+
+                    <!-- Volume Label -->
+                    <text id="sonos-bedroom-volume-label" x="0" y="16" text-anchor="middle" fill="#ECF0F1" font-size="6">Vol: --</text>
+                </g>
+
+                <!-- Sonos Controls - Office -->
+                <g id="sonos-office-controls" transform="translate(500, 280)">
+                    <!-- Control Panel Background -->
+                    <rect x="-35" y="-18" width="70" height="36" rx="5" fill="#2C3E50" opacity="0.85" stroke="#34495E" stroke-width="1.5"/>
+
+                    <!-- Title -->
+                    <text x="0" y="-8" text-anchor="middle" fill="#BDC3C7" font-size="7" font-weight="bold">SONOS</text>
+
+                    <!-- Play Button -->
+                    <g id="sonos-office-play" class="sonos-button" transform="translate(-20, 5)" style="cursor: pointer;">
+                        <circle r="8" fill="#27AE60" stroke="#1E8449" stroke-width="1"/>
+                        <polygon points="-2.5,-3.5 -2.5,3.5 3.5,0" fill="white"/>
+                    </g>
+
+                    <!-- Pause Button -->
+                    <g id="sonos-office-pause" class="sonos-button" transform="translate(-5, 5)" style="cursor: pointer;">
+                        <circle r="8" fill="#E67E22" stroke="#CA6F1E" stroke-width="1"/>
+                        <rect x="-3" y="-3.5" width="2" height="7" fill="white"/>
+                        <rect x="1" y="-3.5" width="2" height="7" fill="white"/>
+                    </g>
+
+                    <!-- Volume Down Button -->
+                    <g id="sonos-office-voldown" class="sonos-button" transform="translate(10, 5)" style="cursor: pointer;">
+                        <circle r="7" fill="#3498DB" stroke="#2980B9" stroke-width="1"/>
+                        <text x="0" y="2.5" text-anchor="middle" fill="white" font-size="11" font-weight="bold">−</text>
+                    </g>
+
+                    <!-- Volume Up Button -->
+                    <g id="sonos-office-volup" class="sonos-button" transform="translate(23, 5)" style="cursor: pointer;">
+                        <circle r="7" fill="#3498DB" stroke="#2980B9" stroke-width="1"/>
+                        <text x="0" y="2.5" text-anchor="middle" fill="white" font-size="10" font-weight="bold">+</text>
+                    </g>
+
+                    <!-- Volume Label -->
+                    <text id="sonos-office-volume-label" x="0" y="16" text-anchor="middle" fill="#ECF0F1" font-size="6">Vol: --</text>
+                </g>
+
+                <!-- Sonos Controls - Lounge -->
+                <g id="sonos-lounge-controls" transform="translate(400, 520)">
+                    <!-- Control Panel Background -->
+                    <rect x="-35" y="-18" width="70" height="36" rx="5" fill="#2C3E50" opacity="0.85" stroke="#34495E" stroke-width="1.5"/>
+
+                    <!-- Title -->
+                    <text x="0" y="-8" text-anchor="middle" fill="#BDC3C7" font-size="7" font-weight="bold">SONOS</text>
+
+                    <!-- Play Button -->
+                    <g id="sonos-lounge-play" class="sonos-button" transform="translate(-20, 5)" style="cursor: pointer;">
+                        <circle r="8" fill="#27AE60" stroke="#1E8449" stroke-width="1"/>
+                        <polygon points="-2.5,-3.5 -2.5,3.5 3.5,0" fill="white"/>
+                    </g>
+
+                    <!-- Pause Button -->
+                    <g id="sonos-lounge-pause" class="sonos-button" transform="translate(-5, 5)" style="cursor: pointer;">
+                        <circle r="8" fill="#E67E22" stroke="#CA6F1E" stroke-width="1"/>
+                        <rect x="-3" y="-3.5" width="2" height="7" fill="white"/>
+                        <rect x="1" y="-3.5" width="2" height="7" fill="white"/>
+                    </g>
+
+                    <!-- Volume Down Button -->
+                    <g id="sonos-lounge-voldown" class="sonos-button" transform="translate(10, 5)" style="cursor: pointer;">
+                        <circle r="7" fill="#3498DB" stroke="#2980B9" stroke-width="1"/>
+                        <text x="0" y="2.5" text-anchor="middle" fill="white" font-size="11" font-weight="bold">−</text>
+                    </g>
+
+                    <!-- Volume Up Button -->
+                    <g id="sonos-lounge-volup" class="sonos-button" transform="translate(23, 5)" style="cursor: pointer;">
+                        <circle r="7" fill="#3498DB" stroke="#2980B9" stroke-width="1"/>
+                        <text x="0" y="2.5" text-anchor="middle" fill="white" font-size="10" font-weight="bold">+</text>
+                    </g>
+
+                    <!-- Volume Label -->
+                    <text id="sonos-lounge-volume-label" x="0" y="16" text-anchor="middle" fill="#ECF0F1" font-size="6">Vol: --</text>
+                </g>
 
                 <!-- Motion indicators will be dynamically added here by JavaScript -->
                 <g id="motion-indicators-container"></g>
@@ -4738,35 +4870,483 @@
             `;
         }
 
-        // Note: This is a placeholder - actual implementation would need a backend proxy
-        // to handle Sonos SOAP API calls (can't be done directly from browser due to CORS)
-        // For now, we'll just show the speakers exist
+        // ============================================================================
+        // SONOS DIRECT CONTROL FUNCTIONS
+        // ============================================================================
+
+        const BEDROOM_SONOS_IP = '192.168.68.61';
+        const OFFICE_SONOS_IP = '192.168.68.75';
+        const LOUNGE_SONOS_IP = '192.168.68.64';
+
+        async function sonosSoapRequest(ip, path, soapAction, soapBody) {
+            try {
+                // Use proxy server to avoid CORS issues
+                const proxyUrl = `http://localhost:3000${path}`;
+                console.log(`🔊 Sending SOAP request via proxy to ${ip}: ${proxyUrl}`);
+
+                const response = await fetch(proxyUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/xml; charset="utf-8"',
+                        'SOAPAction': soapAction,
+                        'X-Sonos-IP': ip  // Tell proxy which speaker to target
+                    },
+                    body: soapBody
+                });
+
+                const text = await response.text();
+                console.log('✓ Response received:', response.status);
+                return { ok: response.ok, status: response.status, body: text };
+            } catch (error) {
+                console.error('✗ Sonos SOAP request failed:', error);
+
+                if (error.message.includes('Failed to fetch')) {
+                    alert(`Sonos proxy server not running!\n\nPlease run: node sonos-proxy.js\n\nThen refresh this page.`);
+                } else {
+                    alert(`Sonos control failed: ${error.message}`);
+                }
+                return { ok: false, error: error.message };
+            }
+        }
+
+        async function sonosPlay(ip) {
+            const soapBody = `<?xml version="1.0" encoding="utf-8"?>
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+  <s:Body>
+    <u:Play xmlns:u="urn:schemas-upnp-org:service:AVTransport:1">
+      <InstanceID>0</InstanceID>
+      <Speed>1</Speed>
+    </u:Play>
+  </s:Body>
+</s:Envelope>`;
+
+            const result = await sonosSoapRequest(
+                ip,
+                '/MediaRenderer/AVTransport/Control',
+                '"urn:schemas-upnp-org:service:AVTransport:1#Play"',
+                soapBody
+            );
+
+            console.log('🎵 Play:', result.ok ? 'Success' : 'Failed');
+            return result.ok;
+        }
+
+        async function sonosPause(ip) {
+            const soapBody = `<?xml version="1.0" encoding="utf-8"?>
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+  <s:Body>
+    <u:Pause xmlns:u="urn:schemas-upnp-org:service:AVTransport:1">
+      <InstanceID>0</InstanceID>
+    </u:Pause>
+  </s:Body>
+</s:Envelope>`;
+
+            const result = await sonosSoapRequest(
+                ip,
+                '/MediaRenderer/AVTransport/Control',
+                '"urn:schemas-upnp-org:service:AVTransport:1#Pause"',
+                soapBody
+            );
+
+            console.log('⏸️  Pause:', result.ok ? 'Success' : 'Failed');
+            return result.ok;
+        }
+
+        async function sonosGetVolume(ip) {
+            const soapBody = `<?xml version="1.0" encoding="utf-8"?>
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+  <s:Body>
+    <u:GetVolume xmlns:u="urn:schemas-upnp-org:service:RenderingControl:1">
+      <InstanceID>0</InstanceID>
+      <Channel>Master</Channel>
+    </u:GetVolume>
+  </s:Body>
+</s:Envelope>`;
+
+            const result = await sonosSoapRequest(
+                ip,
+                '/MediaRenderer/RenderingControl/Control',
+                '"urn:schemas-upnp-org:service:RenderingControl:1#GetVolume"',
+                soapBody
+            );
+
+            if (result.ok) {
+                const match = result.body.match(/<CurrentVolume>(\d+)<\/CurrentVolume>/);
+                return match ? parseInt(match[1]) : 0;
+            }
+            return 0;
+        }
+
+        async function sonosSetVolume(ip, volume) {
+            const soapBody = `<?xml version="1.0" encoding="utf-8"?>
+<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+  <s:Body>
+    <u:SetVolume xmlns:u="urn:schemas-upnp-org:service:RenderingControl:1">
+      <InstanceID>0</InstanceID>
+      <Channel>Master</Channel>
+      <DesiredVolume>${volume}</DesiredVolume>
+    </u:SetVolume>
+  </s:Body>
+</s:Envelope>`;
+
+            const result = await sonosSoapRequest(
+                ip,
+                '/MediaRenderer/RenderingControl/Control',
+                '"urn:schemas-upnp-org:service:RenderingControl:1#SetVolume"',
+                soapBody
+            );
+
+            console.log(`🔊 Set Volume ${volume}:`, result.ok ? 'Success' : 'Failed');
+            return result.ok;
+        }
+
+        async function sonosVolumeUp(ip) {
+            const currentVolume = await sonosGetVolume(ip);
+            const newVolume = Math.min(100, currentVolume + 5);
+            await sonosSetVolume(ip, newVolume);
+            await updateBedroomVolumeDisplay();
+        }
+
+        async function sonosVolumeDown(ip) {
+            const currentVolume = await sonosGetVolume(ip);
+            const newVolume = Math.max(0, currentVolume - 5);
+            await sonosSetVolume(ip, newVolume);
+            await updateBedroomVolumeDisplay();
+        }
+
+        async function updateBedroomVolumeDisplay() {
+            const volume = await sonosGetVolume(BEDROOM_SONOS_IP);
+            const label = document.getElementById('sonos-bedroom-volume-label');
+            if (label) {
+                label.textContent = `Vol: ${volume}`;
+            }
+        }
+
+        async function updateOfficeVolumeDisplay() {
+            const volume = await sonosGetVolume(OFFICE_SONOS_IP);
+            const label = document.getElementById('sonos-office-volume-label');
+            if (label) {
+                label.textContent = `Vol: ${volume}`;
+            }
+        }
+
+        async function updateLoungeVolumeDisplay() {
+            const volume = await sonosGetVolume(LOUNGE_SONOS_IP);
+            const label = document.getElementById('sonos-lounge-volume-label');
+            if (label) {
+                label.textContent = `Vol: ${volume}`;
+            }
+        }
+
+        function makeSonosDraggable(group, storageKey) {
+            let isDragging = false;
+            let startX, startY, currentTransform;
+
+            // Unified start handler for both mouse and touch
+            function handleStart(e) {
+                // Only drag if clicking on the background/title area, not buttons
+                if (e.target.closest('.sonos-button')) {
+                    return;
+                }
+
+                isDragging = true;
+
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+                startX = clientX;
+                startY = clientY;
+
+                const transform = group.getAttribute('transform');
+                const match = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
+                currentTransform = {
+                    x: parseFloat(match[1]),
+                    y: parseFloat(match[2])
+                };
+
+                group.style.opacity = '0.7';
+                group.style.cursor = 'grabbing';
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            function handleMove(e) {
+                if (!isDragging) return;
+
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+                const dx = clientX - startX;
+                const dy = clientY - startY;
+                const newX = currentTransform.x + dx;
+                const newY = currentTransform.y + dy;
+
+                group.setAttribute('transform', `translate(${newX}, ${newY})`);
+            }
+
+            function handleEnd(e) {
+                if (!isDragging) return;
+                isDragging = false;
+
+                group.style.opacity = '1';
+                group.style.cursor = 'grab';
+
+                // Save position to localStorage
+                const transform = group.getAttribute('transform');
+                const match = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
+
+                const position = {
+                    x: parseFloat(match[1]),
+                    y: parseFloat(match[2])
+                };
+
+                localStorage.setItem(storageKey, JSON.stringify(position));
+            }
+
+            // Add event listeners
+            group.addEventListener('mousedown', handleStart);
+            group.addEventListener('touchstart', handleStart, { passive: false });
+
+            document.addEventListener('mousemove', handleMove);
+            document.addEventListener('touchmove', handleMove, { passive: false });
+
+            document.addEventListener('mouseup', handleEnd);
+            document.addEventListener('touchend', handleEnd);
+
+            group.style.cursor = 'grab';
+        }
+
         function initSonosIntegration() {
             console.log('🎵 Sonos integration initialized');
             console.log(`Found ${SONOS_SPEAKERS.length} speakers`);
 
-            // Show Sonos card with speaker info
-            displaySonosInStats();
+            // ===== BEDROOM CONTROLS =====
+            const bedroomPanel = document.getElementById('sonos-bedroom-controls');
 
-            // Note: Real-time updates would require backend support
-            // For now, just show static info
-            let sonosCard = document.getElementById('sonos-stat-card');
-            if (sonosCard) {
-                sonosCard.innerHTML = `
-                    <div class="stat-label">🎵 Sonos</div>
-                    <div class="stat-value" style="font-size: 14px;">${SONOS_SPEAKERS.length} speakers found</div>
-                `;
+            // Load saved position from localStorage
+            const bedroomSavedPosition = localStorage.getItem('sonosBedroomPosition');
+            if (bedroomSavedPosition && bedroomPanel) {
+                const position = JSON.parse(bedroomSavedPosition);
+                bedroomPanel.setAttribute('transform', `translate(${position.x}, ${position.y})`);
             }
+
+            // Make panel draggable
+            if (bedroomPanel) {
+                makeSonosDraggable(bedroomPanel, 'sonosBedroomPosition');
+            }
+
+            // Wire up bedroom Sonos controls
+            const bedroomPlayBtn = document.getElementById('sonos-bedroom-play');
+            const bedroomPauseBtn = document.getElementById('sonos-bedroom-pause');
+            const bedroomVolUpBtn = document.getElementById('sonos-bedroom-volup');
+            const bedroomVolDownBtn = document.getElementById('sonos-bedroom-voldown');
+
+            if (bedroomPlayBtn) {
+                bedroomPlayBtn.addEventListener('click', async (e) => {
+                    console.log('▶️  Bedroom play clicked!');
+                    e.stopPropagation();
+                    await sonosPlay(BEDROOM_SONOS_IP);
+                });
+            }
+
+            if (bedroomPauseBtn) {
+                bedroomPauseBtn.addEventListener('click', async (e) => {
+                    console.log('⏸️  Bedroom pause clicked!');
+                    e.stopPropagation();
+                    await sonosPause(BEDROOM_SONOS_IP);
+                });
+            }
+
+            if (bedroomVolUpBtn) {
+                bedroomVolUpBtn.addEventListener('click', async (e) => {
+                    console.log('🔊 Bedroom volume up clicked!');
+                    e.stopPropagation();
+                    await sonosVolumeUp(BEDROOM_SONOS_IP);
+                });
+            }
+
+            if (bedroomVolDownBtn) {
+                bedroomVolDownBtn.addEventListener('click', async (e) => {
+                    console.log('🔉 Bedroom volume down clicked!');
+                    e.stopPropagation();
+                    await sonosVolumeDown(BEDROOM_SONOS_IP);
+                });
+            }
+
+            // Initial volume display
+            updateBedroomVolumeDisplay();
+
+            // ===== OFFICE CONTROLS =====
+            const officePanel = document.getElementById('sonos-office-controls');
+
+            // Load saved position from localStorage
+            const officeSavedPosition = localStorage.getItem('sonosOfficePosition');
+            if (officeSavedPosition && officePanel) {
+                const position = JSON.parse(officeSavedPosition);
+                officePanel.setAttribute('transform', `translate(${position.x}, ${position.y})`);
+            }
+
+            // Make panel draggable
+            if (officePanel) {
+                makeSonosDraggable(officePanel, 'sonosOfficePosition');
+            }
+
+            // Wire up office Sonos controls
+            const officePlayBtn = document.getElementById('sonos-office-play');
+            const officePauseBtn = document.getElementById('sonos-office-pause');
+            const officeVolUpBtn = document.getElementById('sonos-office-volup');
+            const officeVolDownBtn = document.getElementById('sonos-office-voldown');
+
+            if (officePlayBtn) {
+                officePlayBtn.addEventListener('click', async (e) => {
+                    console.log('▶️  Office play clicked!');
+                    e.stopPropagation();
+                    await sonosPlay(OFFICE_SONOS_IP);
+                });
+            }
+
+            if (officePauseBtn) {
+                officePauseBtn.addEventListener('click', async (e) => {
+                    console.log('⏸️  Office pause clicked!');
+                    e.stopPropagation();
+                    await sonosPause(OFFICE_SONOS_IP);
+                });
+            }
+
+            if (officeVolUpBtn) {
+                officeVolUpBtn.addEventListener('click', async (e) => {
+                    console.log('🔊 Office volume up clicked!');
+                    e.stopPropagation();
+                    const currentVolume = await sonosGetVolume(OFFICE_SONOS_IP);
+                    const newVolume = Math.min(100, currentVolume + 5);
+                    await sonosSetVolume(OFFICE_SONOS_IP, newVolume);
+                    await updateOfficeVolumeDisplay();
+                });
+            }
+
+            if (officeVolDownBtn) {
+                officeVolDownBtn.addEventListener('click', async (e) => {
+                    console.log('🔉 Office volume down clicked!');
+                    e.stopPropagation();
+                    const currentVolume = await sonosGetVolume(OFFICE_SONOS_IP);
+                    const newVolume = Math.max(0, currentVolume - 5);
+                    await sonosSetVolume(OFFICE_SONOS_IP, newVolume);
+                    await updateOfficeVolumeDisplay();
+                });
+            }
+
+            // Initial volume display
+            updateOfficeVolumeDisplay();
+
+            // ===== LOUNGE CONTROLS =====
+            const loungePanel = document.getElementById('sonos-lounge-controls');
+
+            // Load saved position from localStorage
+            const loungeSavedPosition = localStorage.getItem('sonosLoungePosition');
+            if (loungeSavedPosition && loungePanel) {
+                const position = JSON.parse(loungeSavedPosition);
+                loungePanel.setAttribute('transform', `translate(${position.x}, ${position.y})`);
+            }
+
+            // Make panel draggable
+            if (loungePanel) {
+                makeSonosDraggable(loungePanel, 'sonosLoungePosition');
+            }
+
+            // Wire up lounge Sonos controls
+            const loungePlayBtn = document.getElementById('sonos-lounge-play');
+            const loungePauseBtn = document.getElementById('sonos-lounge-pause');
+            const loungeVolUpBtn = document.getElementById('sonos-lounge-volup');
+            const loungeVolDownBtn = document.getElementById('sonos-lounge-voldown');
+
+            if (loungePlayBtn) {
+                loungePlayBtn.addEventListener('click', async (e) => {
+                    console.log('▶️  Lounge play clicked!');
+                    e.stopPropagation();
+                    await sonosPlay(LOUNGE_SONOS_IP);
+                });
+            }
+
+            if (loungePauseBtn) {
+                loungePauseBtn.addEventListener('click', async (e) => {
+                    console.log('⏸️  Lounge pause clicked!');
+                    e.stopPropagation();
+                    await sonosPause(LOUNGE_SONOS_IP);
+                });
+            }
+
+            if (loungeVolUpBtn) {
+                loungeVolUpBtn.addEventListener('click', async (e) => {
+                    console.log('🔊 Lounge volume up clicked!');
+                    e.stopPropagation();
+                    const currentVolume = await sonosGetVolume(LOUNGE_SONOS_IP);
+                    const newVolume = Math.min(100, currentVolume + 5);
+                    await sonosSetVolume(LOUNGE_SONOS_IP, newVolume);
+                    await updateLoungeVolumeDisplay();
+                });
+            }
+
+            if (loungeVolDownBtn) {
+                loungeVolDownBtn.addEventListener('click', async (e) => {
+                    console.log('🔉 Lounge volume down clicked!');
+                    e.stopPropagation();
+                    const currentVolume = await sonosGetVolume(LOUNGE_SONOS_IP);
+                    const newVolume = Math.max(0, currentVolume - 5);
+                    await sonosSetVolume(LOUNGE_SONOS_IP, newVolume);
+                    await updateLoungeVolumeDisplay();
+                });
+            }
+
+            // Initial volume display
+            updateLoungeVolumeDisplay();
+
+            // Show Sonos card
+            displaySonosInStats();
         }
 
         // Initialize Sonos integration
         initSonosIntegration();
 
-        // Expose Sonos broadcast function
-        window.broadcastToSonos = async function(message) {
-            console.log(`🔊 Broadcasting: "${message}"`);
-            // This would need backend support to actually work
-            alert('Sonos broadcast requires backend support. Use sonos-broadcast.js script instead.');
+        // Expose Sonos control functions globally (for console access)
+        window.bedroomPlay = () => sonosPlay(BEDROOM_SONOS_IP);
+        window.bedroomPause = () => sonosPause(BEDROOM_SONOS_IP);
+        window.bedroomVolumeUp = async () => {
+            await sonosVolumeUp(BEDROOM_SONOS_IP);
+            await updateBedroomVolumeDisplay();
+        };
+        window.bedroomVolumeDown = async () => {
+            await sonosVolumeDown(BEDROOM_SONOS_IP);
+            await updateBedroomVolumeDisplay();
+        };
+
+        window.officePlay = () => sonosPlay(OFFICE_SONOS_IP);
+        window.officePause = () => sonosPause(OFFICE_SONOS_IP);
+        window.officeVolumeUp = async () => {
+            const currentVolume = await sonosGetVolume(OFFICE_SONOS_IP);
+            const newVolume = Math.min(100, currentVolume + 5);
+            await sonosSetVolume(OFFICE_SONOS_IP, newVolume);
+            await updateOfficeVolumeDisplay();
+        };
+        window.officeVolumeDown = async () => {
+            const currentVolume = await sonosGetVolume(OFFICE_SONOS_IP);
+            const newVolume = Math.max(0, currentVolume - 5);
+            await sonosSetVolume(OFFICE_SONOS_IP, newVolume);
+            await updateOfficeVolumeDisplay();
+        };
+
+        window.loungePlay = () => sonosPlay(LOUNGE_SONOS_IP);
+        window.loungePause = () => sonosPause(LOUNGE_SONOS_IP);
+        window.loungeVolumeUp = async () => {
+            const currentVolume = await sonosGetVolume(LOUNGE_SONOS_IP);
+            const newVolume = Math.min(100, currentVolume + 5);
+            await sonosSetVolume(LOUNGE_SONOS_IP, newVolume);
+            await updateLoungeVolumeDisplay();
+        };
+        window.loungeVolumeDown = async () => {
+            const currentVolume = await sonosGetVolume(LOUNGE_SONOS_IP);
+            const newVolume = Math.max(0, currentVolume - 5);
+            await sonosSetVolume(LOUNGE_SONOS_IP, newVolume);
+            await updateLoungeVolumeDisplay();
         };
     </script>
 
