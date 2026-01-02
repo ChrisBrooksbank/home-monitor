@@ -12,8 +12,6 @@ all_behaviors.json
 
 # Node modules
 node_modules/
-package.json
-package-lock.json
 
 # Python cache
 __pycache__/
