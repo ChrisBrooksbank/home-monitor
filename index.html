@@ -471,21 +471,16 @@
 
         /* Jukebox Buttons */
         .jukebox-button {
-            transition: all 0.3s ease;
-            transform-origin: center center;
-            transform-box: fill-box;
-        }
-
-        .jukebox-button:hover {
-            transform: scale(1.15);
+            transition: filter 0.2s ease, opacity 0.2s ease;
+            cursor: pointer;
         }
 
         .jukebox-button:hover circle {
-            filter: brightness(1.3) drop-shadow(0 0 8px currentColor);
+            filter: brightness(1.2) drop-shadow(0 0 6px currentColor);
         }
 
         .jukebox-button:active {
-            transform: scale(0.95);
+            opacity: 0.7;
         }
 
         .jukebox-button:active circle {
@@ -1823,8 +1818,6 @@
 
                 // Don't cancel ongoing speech, queue it instead
                 window.speechSynthesis.speak(utterance);
-
-                console.log(`💡 Announced: ${room} light ${action}`);
             }
         }
 
@@ -1867,6 +1860,11 @@
             const gridLines = document.getElementById('grid-lines');
             const axisLabels = document.getElementById('axis-labels');
             const legend = document.getElementById('legend');
+
+            // Check if graph elements exist in DOM
+            if (!graphLines || !gridLines || !axisLabels || !legend) {
+                return; // Graph not rendered yet
+            }
 
             // Clear existing elements
             graphLines.innerHTML = '';
@@ -2187,36 +2185,71 @@
             return tempText;
         }
 
-        function makeDraggable(group, elementId, position) {
+        function loadSavedPosition(element, storageKey) {
+            if (!element) return;
+            const savedPosition = localStorage.getItem(storageKey);
+            if (savedPosition) {
+                const position = JSON.parse(savedPosition);
+                element.setAttribute('transform', `translate(${position.x}, ${position.y})`);
+            }
+        }
+
+        // Generic draggable factory function
+        function createDraggable(element, options = {}) {
+            const {
+                storageKey,
+                excludeSelector = null,
+                cursor = 'move',
+                activeCursor = null,
+                onStart = null,
+                onMove = null,
+                onEnd = null,
+                customSave = null
+            } = options;
+
             let isDragging = false;
             let startX, startY, currentTransform;
 
-            group.style.cursor = 'move';
+            // Set default cursor
+            if (typeof cursor === 'string') {
+                element.style.cursor = cursor;
+            }
 
-            // Unified start handler for both mouse and touch
             function handleStart(e) {
+                // Skip if clicking on excluded elements
+                if (excludeSelector && e.target.closest(excludeSelector)) {
+                    return;
+                }
+
+                // Call custom onStart if provided (can return false to cancel)
+                if (onStart && onStart(e) === false) {
+                    return;
+                }
+
                 isDragging = true;
 
-                // Get coordinates from either mouse or touch event
                 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
                 const clientY = e.touches ? e.touches[0].clientY : e.clientY;
 
                 startX = clientX;
                 startY = clientY;
 
-                const transform = group.getAttribute('transform');
+                const transform = element.getAttribute('transform');
                 const match = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
                 currentTransform = {
                     x: parseFloat(match[1]),
                     y: parseFloat(match[2])
                 };
 
-                group.style.opacity = '0.7';
+                element.style.opacity = '0.7';
+                if (activeCursor) {
+                    element.style.cursor = activeCursor;
+                }
+
                 e.preventDefault();
                 e.stopPropagation();
             }
 
-            // Unified move handler
             function handleMove(e) {
                 if (!isDragging) return;
 
@@ -2225,44 +2258,69 @@
 
                 const dx = clientX - startX;
                 const dy = clientY - startY;
-                const newX = currentTransform.x + dx;
-                const newY = currentTransform.y + dy;
 
-                group.setAttribute('transform', `translate(${newX}, ${newY})`);
+                // Call custom onMove if provided
+                if (onMove) {
+                    onMove({ dx, dy, clientX, clientY, startX, startY, currentTransform, element });
+                } else {
+                    // Default behavior: update position
+                    const newX = currentTransform.x + dx;
+                    const newY = currentTransform.y + dy;
+                    element.setAttribute('transform', `translate(${newX}, ${newY})`);
+                }
             }
 
-            // Unified end handler
             function handleEnd(e) {
                 if (!isDragging) return;
                 isDragging = false;
 
-                group.style.opacity = '1';
+                element.style.opacity = '1';
+                if (activeCursor) {
+                    element.style.cursor = cursor;
+                }
 
-                // Save position to localStorage
-                const transform = group.getAttribute('transform');
-                const match = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
-
-                customThermometerPositions[elementId] = {
-                    x: parseFloat(match[1]),
-                    y: parseFloat(match[2]),
-                    isOutdoor: position.isOutdoor
-                };
-
-                localStorage.setItem(
-                    'thermometerPositions',
-                    JSON.stringify(customThermometerPositions)
-                );
+                // Call custom onEnd or save if provided
+                if (onEnd) {
+                    onEnd(e, element);
+                } else if (customSave) {
+                    customSave(element);
+                } else if (storageKey) {
+                    // Default save behavior
+                    const transform = element.getAttribute('transform');
+                    const match = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
+                    const position = {
+                        x: parseFloat(match[1]),
+                        y: parseFloat(match[2])
+                    };
+                    localStorage.setItem(storageKey, JSON.stringify(position));
+                }
             }
 
-            // Add both mouse and touch event listeners
-            group.addEventListener('mousedown', handleStart);
-            group.addEventListener('touchstart', handleStart, { passive: false });
+            // Add event listeners
+            element.addEventListener('mousedown', handleStart);
+            element.addEventListener('touchstart', handleStart, { passive: false });
 
             document.addEventListener('mousemove', handleMove);
             document.addEventListener('touchmove', handleMove, { passive: false });
 
             document.addEventListener('mouseup', handleEnd);
             document.addEventListener('touchend', handleEnd);
+        }
+
+        function makeDraggable(group, elementId, position) {
+            createDraggable(group, {
+                cursor: 'move',
+                customSave: (element) => {
+                    const transform = element.getAttribute('transform');
+                    const match = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
+                    customThermometerPositions[elementId] = {
+                        x: parseFloat(match[1]),
+                        y: parseFloat(match[2]),
+                        isOutdoor: position.isOutdoor
+                    };
+                    localStorage.setItem('thermometerPositions', JSON.stringify(customThermometerPositions));
+                }
+            });
         }
 
         function resetThermometerPositions() {
@@ -2407,8 +2465,6 @@
                 });
 
                 if (response.ok) {
-                    console.log(`Light ${lightId} toggled to ${newState ? 'ON' : 'OFF'}`);
-
                     // Get light name for logging
                     try {
                         const lightsResponse = await fetch(`http://${BRIDGE_IP}/api/${USERNAME}/lights/${lightId}`);
@@ -2562,7 +2618,6 @@
 
                     // IMPORTANT: Also update the visual display in the house with this data
                     if (currentTemp && typeof updateNestVisualDisplay === 'function') {
-                        console.log('🔄 Updating visual thermostat from sensor panel data');
                         updateNestVisualDisplay(
                             parseFloat(currentTemp),
                             targetTemp ? parseFloat(targetTemp) : null,
@@ -2674,6 +2729,71 @@
             }
         }
 
+        async function buildHubPanel() {
+            const HUB_IP = '192.168.68.62';
+            const HUB_NAME = 'Google Home Hub';
+
+            try {
+                // Get Hub status
+                const statusResponse = await fetch(`http://${HUB_IP}:8008/apps`);
+                const statusText = await statusResponse.text();
+
+                let isPlaying = false;
+                let appName = 'Idle';
+
+                try {
+                    const statusData = JSON.parse(statusText);
+                    if (statusData.applications && statusData.applications.length > 0) {
+                        isPlaying = true;
+                        appName = statusData.applications[0].displayName || 'Active';
+                    }
+                } catch (e) {
+                    // Idle state
+                }
+
+                const statusColor = isPlaying ? '#4CAF50' : '#999';
+                const statusIcon = isPlaying ? '▶️' : '💤';
+
+                let html = `<div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 15px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 2px solid #5568d3;">`;
+                html += `<div style="font-weight: 700; font-size: 16px; margin-bottom: 12px; color: white; font-family: 'Fredoka', sans-serif;">📺 ${HUB_NAME}</div>`;
+
+                // Status
+                html += `<div style="display: flex; align-items: center; margin-bottom: 8px; padding: 6px; background: rgba(255,255,255,0.9); border-radius: 8px;">`;
+                html += `<span style="flex: 1; font-weight: 600;">Status</span>`;
+                html += `<span style="font-weight: 700; color: ${statusColor};">${statusIcon} ${appName}</span>`;
+                html += `</div>`;
+
+                // Quick Actions
+                html += `<div style="margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">`;
+
+                // Announce button
+                html += `<button onclick="hubAnnounce()" style="padding: 8px; background: #4CAF50; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 12px;">📢 Announce</button>`;
+
+                // Stop button
+                html += `<button onclick="hubStop()" style="padding: 8px; background: #f44336; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 12px;">⏹️ Stop</button>`;
+
+                // YouTube button
+                html += `<button onclick="hubYouTube()" style="padding: 8px; background: #FF0000; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 12px;">▶️ YouTube</button>`;
+
+                // Dashboard button
+                html += `<button onclick="hubShowDashboard()" style="padding: 8px; background: #2196F3; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 12px;">🏠 Dashboard</button>`;
+
+                html += `</div>`;
+
+                // IP Address
+                html += `<div style="display: flex; align-items: center; margin-top: 8px; padding: 6px; background: rgba(255,255,255,0.9); border-radius: 8px;">`;
+                html += `<span style="flex: 1; font-weight: 600; font-size: 12px;">IP</span>`;
+                html += `<span style="font-weight: 700; color: #666; font-size: 11px;">${HUB_IP}</span>`;
+                html += `</div>`;
+
+                html += `</div>`;
+                return html;
+            } catch (error) {
+                console.error('Error building Hub panel:', error);
+                return '';
+            }
+        }
+
         async function getSonosVolume(ip) {
             try {
                 const soapBody = `<?xml version="1.0" encoding="utf-8"?>
@@ -2756,6 +2876,9 @@
                 html += await buildSpeakerPanel('Bedroom', '192.168.68.61');
                 html += await buildSpeakerPanel('Office', '192.168.68.75');
                 html += await buildSpeakerPanel('Lounge', '192.168.68.64');
+
+                // Add Google Home Hub Panel
+                html += await buildHubPanel();
 
                 // Group sensors by their physical device (based on uniqueid prefix)
                 const sensorGroups = {};
@@ -2890,16 +3013,10 @@
 
                 const sensors = await response.json();
 
-                // Debug: log all motion sensors found
-                console.log('=== Motion Sensors Scan ===');
-
                 // Process motion sensors
                 for (const [sensorId, sensorInfo] of Object.entries(sensors)) {
                     if (sensorInfo.type === 'ZLLPresence') {
                         const room = mapMotionSensorToRoom(sensorInfo.name);
-
-                        // Debug logging
-                        console.log(`Sensor: "${sensorInfo.name}" | Presence: ${sensorInfo.state.presence} | Mapped to: ${room || 'UNMAPPED'}`);
 
                         if (room && motionSensors[room]) {
                             // Store previous state
@@ -2911,7 +3028,6 @@
 
                             // Check if motion just started (changed from false to true)
                             if (motionSensors[room].detected && !motionSensors[room].previousDetected) {
-                                console.log(`🔊 ANNOUNCING: Motion in ${room}`);
                                 announceMotion(room);
                                 logMotionEvent(room); // Log the event
                             }
@@ -3673,8 +3789,8 @@
         }
 
         // Show all sensors and lights for debugging
-        showAllSensors();
-        showAllLights();
+        // showAllSensors();
+        // showAllLights();
 
         // Fetch sunrise/sunset times for Chelmsford and update sky
         fetchSunTimes();
@@ -3796,262 +3912,190 @@
             return confirm(message);
         }
 
-        // 🚨 RED ALERT - Flash all lights red
-        async function redAlert() {
-            if (!confirmEffect('Red Alert')) return;
+        // Wrapper function to handle common light effect boilerplate
+        async function runLightEffect(effectName, effectCallback) {
+            if (!confirmEffect(effectName)) return;
             if (effectInProgress) return;
             effectInProgress = true;
             disableEffectButtons(true);
 
-            const success = await saveLightStates();
-            if (!success) {
-                effectInProgress = false;
-                disableEffectButtons(false);
-                return;
-            }
-
-            const lights = await getAllLights();
-            if (!lights) {
-                effectInProgress = false;
-                disableEffectButtons(false);
-                return;
-            }
-
-            // Flash red 6 times (3 seconds total)
-            for (let i = 0; i < 6; i++) {
-                // Turn all lights red and bright
-                for (const lightId of Object.keys(lights)) {
-                    await setLightState(lightId, {
-                        on: true,
-                        bri: 254,
-                        hue: 0, // Red
-                        sat: 254,
-                        transitiontime: 0 // Instant
-                    });
+            try {
+                const success = await saveLightStates();
+                if (!success) {
+                    effectInProgress = false;
+                    disableEffectButtons(false);
+                    return;
                 }
 
-                await new Promise(resolve => setTimeout(resolve, 250));
-
-                // Turn all lights off briefly
-                for (const lightId of Object.keys(lights)) {
-                    await setLightState(lightId, { on: false, transitiontime: 0 });
+                const lights = await getAllLights();
+                if (!lights) {
+                    effectInProgress = false;
+                    disableEffectButtons(false);
+                    return;
                 }
 
-                await new Promise(resolve => setTimeout(resolve, 250));
-            }
+                // Run the actual effect logic
+                await effectCallback(lights);
 
-            // Restore original states
-            await restoreLightStates();
-            disableEffectButtons(false);
+                // Restore original states
+                await restoreLightStates();
+            } finally {
+                effectInProgress = false;
+                disableEffectButtons(false);
+            }
+        }
+
+        // 🚨 RED ALERT - Flash all lights red
+        async function redAlert() {
+            return runLightEffect('Red Alert', async (lights) => {
+                // Flash red 6 times (3 seconds total)
+                for (let i = 0; i < 6; i++) {
+                    // Turn all lights red and bright
+                    for (const lightId of Object.keys(lights)) {
+                        await setLightState(lightId, {
+                            on: true,
+                            bri: 254,
+                            hue: 0, // Red
+                            sat: 254,
+                            transitiontime: 0 // Instant
+                        });
+                    }
+
+                    await new Promise(resolve => setTimeout(resolve, 250));
+
+                    // Turn all lights off briefly
+                    for (const lightId of Object.keys(lights)) {
+                        await setLightState(lightId, { on: false, transitiontime: 0 });
+                    }
+
+                    await new Promise(resolve => setTimeout(resolve, 250));
+                }
+            });
         }
 
         // 🎉 PARTY MODE - Cycle through rainbow colors
         async function partyMode() {
-            if (!confirmEffect('Party Mode')) return;
-            if (effectInProgress) return;
-            effectInProgress = true;
-            disableEffectButtons(true);
+            return runLightEffect('Party Mode', async (lights) => {
+                // Rainbow colors (hue values in Philips Hue scale: 0-65535)
+                const colors = [
+                    0,      // Red
+                    10922,  // Orange
+                    12750,  // Yellow
+                    25500,  // Green
+                    46920,  // Blue
+                    56100   // Purple
+                ];
 
-            const success = await saveLightStates();
-            if (!success) {
-                effectInProgress = false;
-                disableEffectButtons(false);
-                return;
-            }
+                // Cycle through colors for 6 seconds
+                for (let cycle = 0; cycle < 12; cycle++) {
+                    const hue = colors[cycle % colors.length];
 
-            const lights = await getAllLights();
-            if (!lights) {
-                effectInProgress = false;
-                disableEffectButtons(false);
-                return;
-            }
+                    for (const lightId of Object.keys(lights)) {
+                        await setLightState(lightId, {
+                            on: true,
+                            bri: 254,
+                            hue: hue,
+                            sat: 254,
+                            transitiontime: 5 // Smooth transition
+                        });
+                    }
 
-            // Rainbow colors (hue values in Philips Hue scale: 0-65535)
-            const colors = [
-                0,      // Red
-                10922,  // Orange
-                12750,  // Yellow
-                25500,  // Green
-                46920,  // Blue
-                56100   // Purple
-            ];
-
-            // Cycle through colors for 6 seconds
-            for (let cycle = 0; cycle < 12; cycle++) {
-                const hue = colors[cycle % colors.length];
-
-                for (const lightId of Object.keys(lights)) {
-                    await setLightState(lightId, {
-                        on: true,
-                        bri: 254,
-                        hue: hue,
-                        sat: 254,
-                        transitiontime: 5 // Smooth transition
-                    });
+                    await new Promise(resolve => setTimeout(resolve, 500));
                 }
-
-                await new Promise(resolve => setTimeout(resolve, 500));
-            }
-
-            // Restore original states
-            await restoreLightStates();
-            disableEffectButtons(false);
+            });
         }
 
         // 🕺 DISCO - Random flashing colors
         async function discoMode() {
-            if (!confirmEffect('Disco')) return;
-            if (effectInProgress) return;
-            effectInProgress = true;
-            disableEffectButtons(true);
+            return runLightEffect('Disco', async (lights) => {
+                const lightIds = Object.keys(lights);
 
-            const success = await saveLightStates();
-            if (!success) {
-                effectInProgress = false;
-                disableEffectButtons(false);
-                return;
-            }
+                // Random flashing for 5 seconds
+                for (let i = 0; i < 20; i++) {
+                    // Each light gets a random color
+                    for (const lightId of lightIds) {
+                        const randomHue = Math.floor(Math.random() * 65535);
+                        const randomOn = Math.random() > 0.3; // 70% chance to be on
 
-            const lights = await getAllLights();
-            if (!lights) {
-                effectInProgress = false;
-                disableEffectButtons(false);
-                return;
-            }
+                        await setLightState(lightId, {
+                            on: randomOn,
+                            bri: randomOn ? 254 : 0,
+                            hue: randomHue,
+                            sat: 254,
+                            transitiontime: 0
+                        });
+                    }
 
-            const lightIds = Object.keys(lights);
-
-            // Random flashing for 5 seconds
-            for (let i = 0; i < 20; i++) {
-                // Each light gets a random color
-                for (const lightId of lightIds) {
-                    const randomHue = Math.floor(Math.random() * 65535);
-                    const randomOn = Math.random() > 0.3; // 70% chance to be on
-
-                    await setLightState(lightId, {
-                        on: randomOn,
-                        bri: randomOn ? 254 : 0,
-                        hue: randomHue,
-                        sat: 254,
-                        transitiontime: 0
-                    });
+                    await new Promise(resolve => setTimeout(resolve, 250));
                 }
-
-                await new Promise(resolve => setTimeout(resolve, 250));
-            }
-
-            // Restore original states
-            await restoreLightStates();
-            disableEffectButtons(false);
+            });
         }
 
         // 🌊 WAVE - Lights turn on in sequence
         async function waveEffect() {
-            if (!confirmEffect('Wave')) return;
-            if (effectInProgress) return;
-            effectInProgress = true;
-            disableEffectButtons(true);
+            return runLightEffect('Wave', async (lights) => {
+                const lightIds = Object.keys(lights);
 
-            const success = await saveLightStates();
-            if (!success) {
-                effectInProgress = false;
-                disableEffectButtons(false);
-                return;
-            }
-
-            const lights = await getAllLights();
-            if (!lights) {
-                effectInProgress = false;
-                disableEffectButtons(false);
-                return;
-            }
-
-            const lightIds = Object.keys(lights);
-
-            // Turn all lights off first
-            for (const lightId of lightIds) {
-                await setLightState(lightId, { on: false, transitiontime: 0 });
-            }
-
-            await new Promise(resolve => setTimeout(resolve, 300));
-
-            // Wave through lights 3 times
-            for (let wave = 0; wave < 3; wave++) {
+                // Turn all lights off first
                 for (const lightId of lightIds) {
-                    // Turn this light on with cyan color
-                    await setLightState(lightId, {
-                        on: true,
-                        bri: 254,
-                        hue: 46920, // Cyan/Blue
-                        sat: 254,
-                        transitiontime: 0
-                    });
-
-                    await new Promise(resolve => setTimeout(resolve, 150));
-
-                    // Turn it back off
-                    await setLightState(lightId, { on: false, transitiontime: 2 });
+                    await setLightState(lightId, { on: false, transitiontime: 0 });
                 }
-            }
 
-            await new Promise(resolve => setTimeout(resolve, 500));
+                await new Promise(resolve => setTimeout(resolve, 300));
 
-            // Restore original states
-            await restoreLightStates();
-            disableEffectButtons(false);
+                // Wave through lights 3 times
+                for (let wave = 0; wave < 3; wave++) {
+                    for (const lightId of lightIds) {
+                        // Turn this light on with cyan color
+                        await setLightState(lightId, {
+                            on: true,
+                            bri: 254,
+                            hue: 46920, // Cyan/Blue
+                            sat: 254,
+                            transitiontime: 0
+                        });
+
+                        await new Promise(resolve => setTimeout(resolve, 150));
+
+                        // Turn it back off
+                        await setLightState(lightId, { on: false, transitiontime: 2 });
+                    }
+                }
+
+                await new Promise(resolve => setTimeout(resolve, 500));
+            });
         }
 
         // 🌅 SUNSET - Gradual warm orange glow then fade
         async function sunsetMode() {
-            if (!confirmEffect('Sunset')) return;
-            if (effectInProgress) return;
-            effectInProgress = true;
-            disableEffectButtons(true);
+            return runLightEffect('Sunset', async (lights) => {
+                // Fade to warm sunset orange
+                for (const lightId of Object.keys(lights)) {
+                    await setLightState(lightId, {
+                        on: true,
+                        bri: 200,
+                        hue: 5000, // Warm orange
+                        sat: 200,
+                        transitiontime: 30 // 3 seconds fade in
+                    });
+                }
 
-            const success = await saveLightStates();
-            if (!success) {
-                effectInProgress = false;
-                disableEffectButtons(false);
-                return;
-            }
+                await new Promise(resolve => setTimeout(resolve, 3500));
 
-            const lights = await getAllLights();
-            if (!lights) {
-                effectInProgress = false;
-                disableEffectButtons(false);
-                return;
-            }
+                // Hold for 2 seconds
+                await new Promise(resolve => setTimeout(resolve, 2000));
 
-            // Fade to warm sunset orange
-            for (const lightId of Object.keys(lights)) {
-                await setLightState(lightId, {
-                    on: true,
-                    bri: 200,
-                    hue: 5000, // Warm orange
-                    sat: 200,
-                    transitiontime: 30 // 3 seconds fade in
-                });
-            }
+                // Fade to dim
+                for (const lightId of Object.keys(lights)) {
+                    await setLightState(lightId, {
+                        on: true,
+                        bri: 1,
+                        transitiontime: 30 // 3 seconds fade out
+                    });
+                }
 
-            await new Promise(resolve => setTimeout(resolve, 3500));
-
-            // Hold for 2 seconds
-            await new Promise(resolve => setTimeout(resolve, 2000));
-
-            // Fade to dim
-            for (const lightId of Object.keys(lights)) {
-                await setLightState(lightId, {
-                    on: true,
-                    bri: 1,
-                    transitiontime: 30 // 3 seconds fade out
-                });
-            }
-
-            await new Promise(resolve => setTimeout(resolve, 3500));
-
-            // Restore original states
-            await restoreLightStates();
-            disableEffectButtons(false);
+                await new Promise(resolve => setTimeout(resolve, 3500));
+            });
         }
 
         // ============================================================================
@@ -4914,8 +4958,6 @@
                 }
             }
 
-            console.log(`🌡️ Updating visual display: temp=${tempC}, target=${targetTempValue}, status=${status}`);
-
             // Update the visual Nest thermostat display in the lounge
             updateNestVisualDisplay(tempC, targetTempValue, status, statusColor);
         }
@@ -4931,8 +4973,6 @@
                 console.warn('⚠️ Nest visual display elements not found in DOM');
                 return; // Display not ready yet
             }
-
-            console.log(`🎨 Updating Nest visual: ${currentTemp}° → ${targetTemp}° (${status})`);
 
             // Update current temperature (large center number)
             currentTempEl.textContent = currentTemp.toFixed(1) + '°';
@@ -4994,11 +5034,7 @@
             group.style.cursor = 'pointer';
 
             // Load saved position from localStorage
-            const savedPosition = localStorage.getItem('nestThermostatPosition');
-            if (savedPosition) {
-                const pos = JSON.parse(savedPosition);
-                group.setAttribute('transform', `translate(${pos.x}, ${pos.y})`);
-            }
+            loadSavedPosition(group, 'nestThermostatPosition');
 
             // Get current target temperature from device
             function getCurrentTargetTemp() {
@@ -5237,11 +5273,16 @@
         const OFFICE_SONOS_IP = '192.168.68.75';
         const LOUNGE_SONOS_IP = '192.168.68.64';
 
+        const SONOS_ROOMS = [
+            { name: 'bedroom', ip: BEDROOM_SONOS_IP, controlsId: 'sonos-bedroom-controls', storageKey: 'sonosBedroomPosition', labelId: 'sonos-bedroom-volume-label' },
+            { name: 'office', ip: OFFICE_SONOS_IP, controlsId: 'sonos-office-controls', storageKey: 'sonosOfficePosition', labelId: 'sonos-office-volume-label' },
+            { name: 'lounge', ip: LOUNGE_SONOS_IP, controlsId: 'sonos-lounge-controls', storageKey: 'sonosLoungePosition', labelId: 'sonos-lounge-volume-label' }
+        ];
+
         async function sonosSoapRequest(ip, path, soapAction, soapBody) {
             try {
                 // Use proxy server to avoid CORS issues
                 const proxyUrl = `http://localhost:3000${path}`;
-                console.log(`🔊 Sending SOAP request via proxy to ${ip}: ${proxyUrl}`);
 
                 const response = await fetch(proxyUrl, {
                     method: 'POST',
@@ -5254,16 +5295,9 @@
                 });
 
                 const text = await response.text();
-                console.log('✓ Response received:', response.status);
                 return { ok: response.ok, status: response.status, body: text };
             } catch (error) {
                 console.error('✗ Sonos SOAP request failed:', error);
-
-                if (error.message.includes('Failed to fetch')) {
-                    alert(`Sonos proxy server not running!\n\nPlease run: node sonos-proxy.js\n\nThen refresh this page.`);
-                } else {
-                    alert(`Sonos control failed: ${error.message}`);
-                }
                 return { ok: false, error: error.message };
             }
         }
@@ -5286,7 +5320,6 @@
                 soapBody
             );
 
-            console.log('🎵 Play:', result.ok ? 'Success' : 'Failed');
             return result.ok;
         }
 
@@ -5307,7 +5340,6 @@
                 soapBody
             );
 
-            console.log('⏸️  Pause:', result.ok ? 'Success' : 'Failed');
             return result.ok;
         }
 
@@ -5355,394 +5387,140 @@
                 soapBody
             );
 
-            console.log(`🔊 Set Volume ${volume}:`, result.ok ? 'Success' : 'Failed');
             return result.ok;
         }
 
-        async function sonosVolumeUp(ip) {
+        async function sonosVolumeChange(ip, delta, labelId) {
             const currentVolume = await sonosGetVolume(ip);
-            const newVolume = Math.min(100, currentVolume + 5);
+            const newVolume = Math.max(0, Math.min(100, currentVolume + delta));
             await sonosSetVolume(ip, newVolume);
-            await updateBedroomVolumeDisplay();
+            await updateVolumeDisplay(ip, labelId);
         }
 
-        async function sonosVolumeDown(ip) {
-            const currentVolume = await sonosGetVolume(ip);
-            const newVolume = Math.max(0, currentVolume - 5);
-            await sonosSetVolume(ip, newVolume);
-            await updateBedroomVolumeDisplay();
-        }
-
-        async function updateBedroomVolumeDisplay() {
-            const volume = await sonosGetVolume(BEDROOM_SONOS_IP);
-            const label = document.getElementById('sonos-bedroom-volume-label');
-            if (label) {
-                label.textContent = `Vol: ${volume}`;
-            }
-        }
-
-        async function updateOfficeVolumeDisplay() {
-            const volume = await sonosGetVolume(OFFICE_SONOS_IP);
-            const label = document.getElementById('sonos-office-volume-label');
-            if (label) {
-                label.textContent = `Vol: ${volume}`;
-            }
-        }
-
-        async function updateLoungeVolumeDisplay() {
-            const volume = await sonosGetVolume(LOUNGE_SONOS_IP);
-            const label = document.getElementById('sonos-lounge-volume-label');
+        async function updateVolumeDisplay(ip, labelId) {
+            const volume = await sonosGetVolume(ip);
+            const label = document.getElementById(labelId);
             if (label) {
                 label.textContent = `Vol: ${volume}`;
             }
         }
 
         function makeSonosDraggable(group, storageKey) {
-            let isDragging = false;
-            let startX, startY, currentTransform;
-
-            // Unified start handler for both mouse and touch
-            function handleStart(e) {
-                // Only drag if clicking on the background/title area, not buttons
-                if (e.target.closest('.sonos-button')) {
-                    return;
-                }
-
-                isDragging = true;
-
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-                startX = clientX;
-                startY = clientY;
-
-                const transform = group.getAttribute('transform');
-                const match = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
-                currentTransform = {
-                    x: parseFloat(match[1]),
-                    y: parseFloat(match[2])
-                };
-
-                group.style.opacity = '0.7';
-                group.style.cursor = 'grabbing';
-                e.preventDefault();
-                e.stopPropagation();
-            }
-
-            function handleMove(e) {
-                if (!isDragging) return;
-
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-                const dx = clientX - startX;
-                const dy = clientY - startY;
-                const newX = currentTransform.x + dx;
-                const newY = currentTransform.y + dy;
-
-                group.setAttribute('transform', `translate(${newX}, ${newY})`);
-            }
-
-            function handleEnd(e) {
-                if (!isDragging) return;
-                isDragging = false;
-
-                group.style.opacity = '1';
-                group.style.cursor = 'grab';
-
-                // Save position to localStorage
-                const transform = group.getAttribute('transform');
-                const match = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
-
-                const position = {
-                    x: parseFloat(match[1]),
-                    y: parseFloat(match[2])
-                };
-
-                localStorage.setItem(storageKey, JSON.stringify(position));
-            }
-
-            // Add event listeners
-            group.addEventListener('mousedown', handleStart);
-            group.addEventListener('touchstart', handleStart, { passive: false });
-
-            document.addEventListener('mousemove', handleMove);
-            document.addEventListener('touchmove', handleMove, { passive: false });
-
-            document.addEventListener('mouseup', handleEnd);
-            document.addEventListener('touchend', handleEnd);
-
-            group.style.cursor = 'grab';
+            createDraggable(group, {
+                storageKey: storageKey,
+                excludeSelector: '.sonos-button',
+                cursor: 'grab',
+                activeCursor: 'grabbing'
+            });
         }
 
-        function initSonosIntegration() {
-            console.log('🎵 Sonos integration initialized');
-            console.log(`Found ${SONOS_SPEAKERS.length} speakers`);
-
-            // ===== BEDROOM CONTROLS =====
-            const bedroomPanel = document.getElementById('sonos-bedroom-controls');
+        function setupSonosRoom(config) {
+            const panel = document.getElementById(config.controlsId);
+            if (!panel) return;
 
             // Load saved position from localStorage
-            const bedroomSavedPosition = localStorage.getItem('sonosBedroomPosition');
-            if (bedroomSavedPosition && bedroomPanel) {
-                const position = JSON.parse(bedroomSavedPosition);
-                bedroomPanel.setAttribute('transform', `translate(${position.x}, ${position.y})`);
-            }
+            loadSavedPosition(panel, config.storageKey);
 
             // Make panel draggable
-            if (bedroomPanel) {
-                makeSonosDraggable(bedroomPanel, 'sonosBedroomPosition');
-            }
+            makeSonosDraggable(panel, config.storageKey);
 
-            // Wire up bedroom Sonos controls
-            const bedroomPlayBtn = document.getElementById('sonos-bedroom-play');
-            const bedroomPauseBtn = document.getElementById('sonos-bedroom-pause');
-            const bedroomVolUpBtn = document.getElementById('sonos-bedroom-volup');
-            const bedroomVolDownBtn = document.getElementById('sonos-bedroom-voldown');
+            // Wire up controls
+            const playBtn = document.getElementById(`sonos-${config.name}-play`);
+            const pauseBtn = document.getElementById(`sonos-${config.name}-pause`);
+            const volUpBtn = document.getElementById(`sonos-${config.name}-volup`);
+            const volDownBtn = document.getElementById(`sonos-${config.name}-voldown`);
 
-            if (bedroomPlayBtn) {
-                bedroomPlayBtn.addEventListener('click', async (e) => {
-                    console.log('▶️  Bedroom play clicked!');
+            if (playBtn) {
+                playBtn.addEventListener('click', async (e) => {
                     e.stopPropagation();
-                    await sonosPlay(BEDROOM_SONOS_IP);
+                    await sonosPlay(config.ip);
                 });
             }
 
-            if (bedroomPauseBtn) {
-                bedroomPauseBtn.addEventListener('click', async (e) => {
-                    console.log('⏸️  Bedroom pause clicked!');
+            if (pauseBtn) {
+                pauseBtn.addEventListener('click', async (e) => {
                     e.stopPropagation();
-                    await sonosPause(BEDROOM_SONOS_IP);
+                    await sonosPause(config.ip);
                 });
             }
 
-            if (bedroomVolUpBtn) {
-                bedroomVolUpBtn.addEventListener('click', async (e) => {
-                    console.log('🔊 Bedroom volume up clicked!');
+            if (volUpBtn) {
+                volUpBtn.addEventListener('click', async (e) => {
                     e.stopPropagation();
-                    await sonosVolumeUp(BEDROOM_SONOS_IP);
+                    await sonosVolumeChange(config.ip, 5, config.labelId);
                 });
             }
 
-            if (bedroomVolDownBtn) {
-                bedroomVolDownBtn.addEventListener('click', async (e) => {
-                    console.log('🔉 Bedroom volume down clicked!');
+            if (volDownBtn) {
+                volDownBtn.addEventListener('click', async (e) => {
                     e.stopPropagation();
-                    await sonosVolumeDown(BEDROOM_SONOS_IP);
+                    await sonosVolumeChange(config.ip, -5, config.labelId);
                 });
             }
 
             // Initial volume display
-            updateBedroomVolumeDisplay();
+            updateVolumeDisplay(config.ip, config.labelId);
+        }
 
-            // ===== OFFICE CONTROLS =====
-            const officePanel = document.getElementById('sonos-office-controls');
-
-            // Load saved position from localStorage
-            const officeSavedPosition = localStorage.getItem('sonosOfficePosition');
-            if (officeSavedPosition && officePanel) {
-                const position = JSON.parse(officeSavedPosition);
-                officePanel.setAttribute('transform', `translate(${position.x}, ${position.y})`);
-            }
-
-            // Make panel draggable
-            if (officePanel) {
-                makeSonosDraggable(officePanel, 'sonosOfficePosition');
-            }
-
-            // Wire up office Sonos controls
-            const officePlayBtn = document.getElementById('sonos-office-play');
-            const officePauseBtn = document.getElementById('sonos-office-pause');
-            const officeVolUpBtn = document.getElementById('sonos-office-volup');
-            const officeVolDownBtn = document.getElementById('sonos-office-voldown');
-
-            if (officePlayBtn) {
-                officePlayBtn.addEventListener('click', async (e) => {
-                    console.log('▶️  Office play clicked!');
-                    e.stopPropagation();
-                    await sonosPlay(OFFICE_SONOS_IP);
+        async function checkSonosProxyAvailability() {
+            try {
+                const response = await fetch('http://localhost:3000/MediaRenderer/AVTransport/Control', {
+                    method: 'HEAD',
+                    signal: AbortSignal.timeout(2000)
                 });
+                return true;
+            } catch (error) {
+                console.log('🔇 Sonos proxy not available - controls will be disabled');
+                return false;
+            }
+        }
+
+        function disableSonosControls() {
+            const controlIds = [
+                'sonos-bedroom-controls',
+                'sonos-office-controls',
+                'sonos-lounge-controls'
+            ];
+
+            controlIds.forEach(id => {
+                const panel = document.getElementById(id);
+                if (panel) {
+                    panel.style.opacity = '0.3';
+                    panel.style.pointerEvents = 'none';
+                    panel.style.cursor = 'not-allowed';
+                }
+            });
+        }
+
+        async function initSonosIntegration() {
+            // Check if proxy is available
+            const proxyAvailable = await checkSonosProxyAvailability();
+            if (!proxyAvailable) {
+                disableSonosControls();
+                return; // Don't set up event listeners if proxy isn't available
             }
 
-            if (officePauseBtn) {
-                officePauseBtn.addEventListener('click', async (e) => {
-                    console.log('⏸️  Office pause clicked!');
-                    e.stopPropagation();
-                    await sonosPause(OFFICE_SONOS_IP);
-                });
-            }
-
-            if (officeVolUpBtn) {
-                officeVolUpBtn.addEventListener('click', async (e) => {
-                    console.log('🔊 Office volume up clicked!');
-                    e.stopPropagation();
-                    const currentVolume = await sonosGetVolume(OFFICE_SONOS_IP);
-                    const newVolume = Math.min(100, currentVolume + 5);
-                    await sonosSetVolume(OFFICE_SONOS_IP, newVolume);
-                    await updateOfficeVolumeDisplay();
-                });
-            }
-
-            if (officeVolDownBtn) {
-                officeVolDownBtn.addEventListener('click', async (e) => {
-                    console.log('🔉 Office volume down clicked!');
-                    e.stopPropagation();
-                    const currentVolume = await sonosGetVolume(OFFICE_SONOS_IP);
-                    const newVolume = Math.max(0, currentVolume - 5);
-                    await sonosSetVolume(OFFICE_SONOS_IP, newVolume);
-                    await updateOfficeVolumeDisplay();
-                });
-            }
-
-            // Initial volume display
-            updateOfficeVolumeDisplay();
-
-            // ===== LOUNGE CONTROLS =====
-            const loungePanel = document.getElementById('sonos-lounge-controls');
-
-            // Load saved position from localStorage
-            const loungeSavedPosition = localStorage.getItem('sonosLoungePosition');
-            if (loungeSavedPosition && loungePanel) {
-                const position = JSON.parse(loungeSavedPosition);
-                loungePanel.setAttribute('transform', `translate(${position.x}, ${position.y})`);
-            }
-
-            // Make panel draggable
-            if (loungePanel) {
-                makeSonosDraggable(loungePanel, 'sonosLoungePosition');
-            }
-
-            // Wire up lounge Sonos controls
-            const loungePlayBtn = document.getElementById('sonos-lounge-play');
-            const loungePauseBtn = document.getElementById('sonos-lounge-pause');
-            const loungeVolUpBtn = document.getElementById('sonos-lounge-volup');
-            const loungeVolDownBtn = document.getElementById('sonos-lounge-voldown');
-
-            if (loungePlayBtn) {
-                loungePlayBtn.addEventListener('click', async (e) => {
-                    console.log('▶️  Lounge play clicked!');
-                    e.stopPropagation();
-                    await sonosPlay(LOUNGE_SONOS_IP);
-                });
-            }
-
-            if (loungePauseBtn) {
-                loungePauseBtn.addEventListener('click', async (e) => {
-                    console.log('⏸️  Lounge pause clicked!');
-                    e.stopPropagation();
-                    await sonosPause(LOUNGE_SONOS_IP);
-                });
-            }
-
-            if (loungeVolUpBtn) {
-                loungeVolUpBtn.addEventListener('click', async (e) => {
-                    console.log('🔊 Lounge volume up clicked!');
-                    e.stopPropagation();
-                    const currentVolume = await sonosGetVolume(LOUNGE_SONOS_IP);
-                    const newVolume = Math.min(100, currentVolume + 5);
-                    await sonosSetVolume(LOUNGE_SONOS_IP, newVolume);
-                    await updateLoungeVolumeDisplay();
-                });
-            }
-
-            if (loungeVolDownBtn) {
-                loungeVolDownBtn.addEventListener('click', async (e) => {
-                    console.log('🔉 Lounge volume down clicked!');
-                    e.stopPropagation();
-                    const currentVolume = await sonosGetVolume(LOUNGE_SONOS_IP);
-                    const newVolume = Math.max(0, currentVolume - 5);
-                    await sonosSetVolume(LOUNGE_SONOS_IP, newVolume);
-                    await updateLoungeVolumeDisplay();
-                });
-            }
-
-            // Initial volume display
-            updateLoungeVolumeDisplay();
+            // Set up all Sonos rooms
+            SONOS_ROOMS.forEach(room => setupSonosRoom(room));
 
             // Show Sonos card
             displaySonosInStats();
         }
 
         // Initialize Sonos integration
-        initSonosIntegration();
+        initSonosIntegration().catch(err => console.error('Failed to initialize Sonos:', err));
 
         // ============================================================================
         // JUKEBOX LIGHT EFFECTS
         // ============================================================================
 
         function makeJukeboxDraggable(group, storageKey) {
-            let isDragging = false;
-            let startX, startY, currentTransform;
-
-            function handleStart(e) {
-                // Only drag if clicking on the jukebox body/screen, not buttons
-                if (e.target.closest('.jukebox-button')) {
-                    return;
-                }
-
-                isDragging = true;
-
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-                startX = clientX;
-                startY = clientY;
-
-                const transform = group.getAttribute('transform');
-                const match = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
-                currentTransform = {
-                    x: parseFloat(match[1]),
-                    y: parseFloat(match[2])
-                };
-
-                group.style.opacity = '0.7';
-                group.style.cursor = 'grabbing';
-                e.preventDefault();
-                e.stopPropagation();
-            }
-
-            function handleMove(e) {
-                if (!isDragging) return;
-
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-                const dx = clientX - startX;
-                const dy = clientY - startY;
-                const newX = currentTransform.x + dx;
-                const newY = currentTransform.y + dy;
-
-                group.setAttribute('transform', `translate(${newX}, ${newY})`);
-            }
-
-            function handleEnd(e) {
-                if (!isDragging) return;
-                isDragging = false;
-
-                group.style.opacity = '1';
-                group.style.cursor = 'grab';
-
-                const transform = group.getAttribute('transform');
-                const match = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
-
-                const position = {
-                    x: parseFloat(match[1]),
-                    y: parseFloat(match[2])
-                };
-
-                localStorage.setItem(storageKey, JSON.stringify(position));
-            }
-
-            group.addEventListener('mousedown', handleStart);
-            group.addEventListener('touchstart', handleStart, { passive: false });
-
-            document.addEventListener('mousemove', handleMove);
-            document.addEventListener('touchmove', handleMove, { passive: false });
-
-            document.addEventListener('mouseup', handleEnd);
-            document.addEventListener('touchend', handleEnd);
-
-            group.style.cursor = 'grab';
+            createDraggable(group, {
+                storageKey: storageKey,
+                excludeSelector: '.jukebox-button',
+                cursor: 'grab',
+                activeCursor: 'grabbing'
+            });
         }
 
         function initJukebox() {
@@ -5751,11 +5529,7 @@
             const jukeboxPanel = document.getElementById('jukebox');
 
             // Load saved position from localStorage
-            const savedPosition = localStorage.getItem('jukeboxPosition');
-            if (savedPosition && jukeboxPanel) {
-                const position = JSON.parse(savedPosition);
-                jukeboxPanel.setAttribute('transform', `translate(${position.x}, ${position.y})`);
-            }
+            loadSavedPosition(jukeboxPanel, 'jukeboxPosition');
 
             // Make jukebox draggable
             if (jukeboxPanel) {
@@ -5801,75 +5575,11 @@
 
         // Weather panel draggable functionality
         function makeWeatherPanelDraggable(group, storageKey) {
-            let isDragging = false;
-            let startX, startY, currentTransform;
-
-            function handleStart(e) {
-                isDragging = true;
-                const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
-                const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
-
-                const transform = group.getAttribute('transform');
-                const match = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
-
-                if (match) {
-                    currentTransform = { x: parseFloat(match[1]), y: parseFloat(match[2]) };
-                } else {
-                    currentTransform = { x: 800, y: 30 };
-                }
-
-                startX = clientX - currentTransform.x;
-                startY = clientY - currentTransform.y;
-
-                group.style.cursor = 'grabbing';
-                group.style.opacity = '0.9';
-                e.preventDefault();
-            }
-
-            function handleMove(e) {
-                if (!isDragging) return;
-
-                const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
-                const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
-
-                const newX = clientX - startX;
-                const newY = clientY - startY;
-
-                group.setAttribute('transform', `translate(${newX}, ${newY})`);
-                e.preventDefault();
-            }
-
-            function handleEnd(e) {
-                if (!isDragging) return;
-
-                isDragging = false;
-                group.style.cursor = 'grab';
-                group.style.opacity = '1';
-
-                const transform = group.getAttribute('transform');
-                const match = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
-
-                if (match) {
-                    const position = {
-                        x: parseFloat(match[1]),
-                        y: parseFloat(match[2])
-                    };
-                    localStorage.setItem(storageKey, JSON.stringify(position));
-                    console.log('🌤️ Weather panel position saved:', position);
-                }
-
-                e.preventDefault();
-            }
-
-            group.addEventListener('mousedown', handleStart);
-            document.addEventListener('mousemove', handleMove);
-            document.addEventListener('mouseup', handleEnd);
-
-            group.addEventListener('touchstart', handleStart, { passive: false });
-            document.addEventListener('touchmove', handleMove, { passive: false });
-            document.addEventListener('touchend', handleEnd);
-
-            group.style.cursor = 'grab';
+            createDraggable(group, {
+                storageKey: storageKey,
+                cursor: 'grab',
+                activeCursor: 'grabbing'
+            });
         }
 
         function initWeatherPanel() {
@@ -5878,11 +5588,7 @@
             const weatherPanel = document.getElementById('weather-info-panel');
 
             // Load saved position from localStorage
-            const savedPosition = localStorage.getItem('weatherPanelPosition');
-            if (savedPosition && weatherPanel) {
-                const position = JSON.parse(savedPosition);
-                weatherPanel.setAttribute('transform', `translate(${position.x}, ${position.y})`);
-            }
+            loadSavedPosition(weatherPanel, 'weatherPanelPosition');
 
             // Make weather panel draggable
             if (weatherPanel) {
@@ -5898,44 +5604,179 @@
         // Expose Sonos control functions globally (for console access)
         window.bedroomPlay = () => sonosPlay(BEDROOM_SONOS_IP);
         window.bedroomPause = () => sonosPause(BEDROOM_SONOS_IP);
-        window.bedroomVolumeUp = async () => {
-            await sonosVolumeUp(BEDROOM_SONOS_IP);
-            await updateBedroomVolumeDisplay();
-        };
-        window.bedroomVolumeDown = async () => {
-            await sonosVolumeDown(BEDROOM_SONOS_IP);
-            await updateBedroomVolumeDisplay();
-        };
+        window.bedroomVolumeUp = () => sonosVolumeChange(BEDROOM_SONOS_IP, 5, 'sonos-bedroom-volume-label');
+        window.bedroomVolumeDown = () => sonosVolumeChange(BEDROOM_SONOS_IP, -5, 'sonos-bedroom-volume-label');
 
         window.officePlay = () => sonosPlay(OFFICE_SONOS_IP);
         window.officePause = () => sonosPause(OFFICE_SONOS_IP);
-        window.officeVolumeUp = async () => {
-            const currentVolume = await sonosGetVolume(OFFICE_SONOS_IP);
-            const newVolume = Math.min(100, currentVolume + 5);
-            await sonosSetVolume(OFFICE_SONOS_IP, newVolume);
-            await updateOfficeVolumeDisplay();
-        };
-        window.officeVolumeDown = async () => {
-            const currentVolume = await sonosGetVolume(OFFICE_SONOS_IP);
-            const newVolume = Math.max(0, currentVolume - 5);
-            await sonosSetVolume(OFFICE_SONOS_IP, newVolume);
-            await updateOfficeVolumeDisplay();
-        };
+        window.officeVolumeUp = () => sonosVolumeChange(OFFICE_SONOS_IP, 5, 'sonos-office-volume-label');
+        window.officeVolumeDown = () => sonosVolumeChange(OFFICE_SONOS_IP, -5, 'sonos-office-volume-label');
 
         window.loungePlay = () => sonosPlay(LOUNGE_SONOS_IP);
         window.loungePause = () => sonosPause(LOUNGE_SONOS_IP);
-        window.loungeVolumeUp = async () => {
-            const currentVolume = await sonosGetVolume(LOUNGE_SONOS_IP);
-            const newVolume = Math.min(100, currentVolume + 5);
-            await sonosSetVolume(LOUNGE_SONOS_IP, newVolume);
-            await updateLoungeVolumeDisplay();
-        };
-        window.loungeVolumeDown = async () => {
-            const currentVolume = await sonosGetVolume(LOUNGE_SONOS_IP);
-            const newVolume = Math.max(0, currentVolume - 5);
-            await sonosSetVolume(LOUNGE_SONOS_IP, newVolume);
-            await updateLoungeVolumeDisplay();
-        };
+        window.loungeVolumeUp = () => sonosVolumeChange(LOUNGE_SONOS_IP, 5, 'sonos-lounge-volume-label');
+        window.loungeVolumeDown = () => sonosVolumeChange(LOUNGE_SONOS_IP, -5, 'sonos-lounge-volume-label');
+
+        // ============================================================================
+        // GOOGLE HOME HUB CONTROL FUNCTIONS
+        // ============================================================================
+
+        const HUB_IP = '192.168.68.62';
+        const HUB_PORT = 8008;
+
+        async function hubAnnounce() {
+            const message = prompt('What would you like to announce?', 'Hello! This is a test announcement.');
+            if (!message) return;
+
+            try {
+                console.log(`📢 Announcing to Hub: "${message}"`);
+
+                // Use Google TTS URL
+                const encodedMessage = encodeURIComponent(message);
+                const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=en&q=${encodedMessage}`;
+
+                // Cast to Hub using Default Media Receiver
+                const response = await fetch(`http://${HUB_IP}:${HUB_PORT}/apps/CC1AD845`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        type: 'LOAD',
+                        autoplay: true,
+                        media: {
+                            contentId: ttsUrl,
+                            contentType: 'audio/mp3',
+                            streamType: 'BUFFERED'
+                        }
+                    })
+                });
+
+                if (response.ok) {
+                    console.log('✓ Announcement sent');
+                    alert('Announcement sent to Hub!');
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                console.error('✗ Hub announce failed:', error);
+                alert(`Failed to send announcement: ${error.message}`);
+            }
+        }
+
+        async function hubStop() {
+            try {
+                console.log('🛑 Stopping Hub playback...');
+
+                // Get current app status
+                const statusResponse = await fetch(`http://${HUB_IP}:${HUB_PORT}/apps`);
+                const statusText = await statusResponse.text();
+
+                try {
+                    const statusData = JSON.parse(statusText);
+                    if (statusData.applications && statusData.applications.length > 0) {
+                        const appId = statusData.applications[0].sessionId;
+
+                        // Stop the app
+                        await fetch(`http://${HUB_IP}:${HUB_PORT}/apps/${appId}`, {
+                            method: 'DELETE'
+                        });
+
+                        console.log('✓ Playback stopped');
+                        alert('Hub playback stopped');
+                    } else {
+                        alert('Hub is already idle');
+                    }
+                } catch (e) {
+                    alert('Hub is already idle');
+                }
+            } catch (error) {
+                console.error('✗ Hub stop failed:', error);
+                alert(`Failed to stop Hub: ${error.message}`);
+            }
+        }
+
+        async function hubYouTube() {
+            const videoId = prompt('Enter YouTube video ID or URL:', 'dQw4w9WgXcQ');
+            if (!videoId) return;
+
+            try {
+                // Extract video ID if full URL was provided
+                let id = videoId;
+                const urlMatch = videoId.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
+                if (urlMatch) {
+                    id = urlMatch[1];
+                }
+
+                console.log(`📺 Casting YouTube video ${id} to Hub...`);
+
+                const response = await fetch(`http://${HUB_IP}:${HUB_PORT}/apps/YouTube`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        type: 'LOAD',
+                        media: {
+                            contentId: id,
+                            streamType: 'BUFFERED',
+                            contentType: 'video/mp4'
+                        }
+                    })
+                });
+
+                if (response.ok) {
+                    console.log('✓ YouTube video casting');
+                    alert(`Casting video ${id} to Hub!`);
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                console.error('✗ Hub YouTube cast failed:', error);
+                alert(`Failed to cast YouTube: ${error.message}`);
+            }
+        }
+
+        async function hubShowDashboard() {
+            try {
+                // Get current page URL
+                const dashboardUrl = window.location.href;
+
+                console.log(`🏠 Displaying dashboard on Hub: ${dashboardUrl}`);
+
+                const response = await fetch(`http://${HUB_IP}:${HUB_PORT}/apps/E8C28D3C`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        type: 'LOAD',
+                        media: {
+                            contentId: dashboardUrl,
+                            contentType: 'text/html',
+                            streamType: 'LIVE'
+                        }
+                    })
+                });
+
+                if (response.ok) {
+                    console.log('✓ Dashboard displayed on Hub');
+                    alert('Dashboard is now showing on Hub!');
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (error) {
+                console.error('✗ Hub display dashboard failed:', error);
+                alert(`Failed to display dashboard: ${error.message}`);
+            }
+        }
+
+        // Export Hub functions to window
+        window.hubAnnounce = hubAnnounce;
+        window.hubStop = hubStop;
+        window.hubYouTube = hubYouTube;
+        window.hubShowDashboard = hubShowDashboard;
+
     </script>
 
     <!-- Service Worker Registration -->
