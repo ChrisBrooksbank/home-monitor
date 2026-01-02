@@ -21,9 +21,9 @@
 
                 // Tapo Smart Plugs (TP-Link P105 etc.)
                 tapo: {
-                    tree: { ip: '192.168.68.77', room: 'Extension', label: 'Tree Lights' }
-                    // Add more plugs like:
-                    // lamp: { ip: '192.168.68.78', room: 'Lounge', label: 'Table Lamp' }
+                    tree: { ip: '192.168.68.77', room: 'Extension', label: 'Tree Lights', x: 800, y: 410 },
+                    winter: { ip: '192.168.68.72', room: 'Extension', label: 'Winter Lights', x: 690, y: 410 },
+                    extension: { ip: '192.168.68.80', room: 'Extension', label: 'Extension Plug', x: 580, y: 410 }
                 }
             },
 
@@ -3824,9 +3824,9 @@
         const LOUNGE_SONOS_IP = HOUSE_CONFIG.devices.sonos.lounge;
 
         const SONOS_ROOMS = [
-            { name: 'bedroom', ip: BEDROOM_SONOS_IP, controlsId: 'sonos-bedroom-controls', storageKey: 'sonosBedroomPosition', labelId: 'sonos-bedroom-volume-label' },
-            { name: 'office', ip: OFFICE_SONOS_IP, controlsId: 'sonos-office-controls', storageKey: 'sonosOfficePosition', labelId: 'sonos-office-volume-label' },
-            { name: 'lounge', ip: LOUNGE_SONOS_IP, controlsId: 'sonos-lounge-controls', storageKey: 'sonosLoungePosition', labelId: 'sonos-lounge-volume-label' }
+            { name: 'bedroom', ip: BEDROOM_SONOS_IP, controlsId: 'sonos-bedroom-controls', storageKey: 'sonosBedroomPosition', labelId: 'sonos-bedroom-volume-label', x: 180, y: 280 },
+            { name: 'office', ip: OFFICE_SONOS_IP, controlsId: 'sonos-office-controls', storageKey: 'sonosOfficePosition', labelId: 'sonos-office-volume-label', x: 500, y: 280 },
+            { name: 'lounge', ip: LOUNGE_SONOS_IP, controlsId: 'sonos-lounge-controls', storageKey: 'sonosLoungePosition', labelId: 'sonos-lounge-volume-label', x: 400, y: 520 }
         ];
 
         async function sonosSoapRequest(ip, path, soapAction, soapBody) {
@@ -4032,6 +4032,67 @@ ${paramsXml.trimEnd()}
             });
         }
 
+        /**
+         * Generate Sonos control panels dynamically
+         */
+        function generateSonosControls() {
+            const container = document.getElementById('sonos-controls-container');
+            if (!container) {
+                Logger.error('Sonos controls container not found');
+                return;
+            }
+
+            const SVG_NS = 'http://www.w3.org/2000/svg';
+
+            SONOS_ROOMS.forEach(room => {
+                // Create main group
+                const group = document.createElementNS(SVG_NS, 'g');
+                group.id = room.controlsId;
+                group.setAttribute('transform', `translate(${room.x}, ${room.y})`);
+
+                // Add all SVG elements
+                group.innerHTML = `
+                    <!-- Control Panel Background -->
+                    <rect x="-35" y="-18" width="70" height="36" rx="5" fill="#2C3E50" opacity="0.85" stroke="#34495E" stroke-width="1.5"/>
+
+                    <!-- Title -->
+                    <text x="0" y="-8" text-anchor="middle" fill="#BDC3C7" font-size="7" font-weight="bold">SONOS</text>
+
+                    <!-- Play Button -->
+                    <g id="sonos-${room.name}-play" class="sonos-button" transform="translate(-20, 5)" style="cursor: pointer;">
+                        <circle r="8" fill="#27AE60" stroke="#1E8449" stroke-width="1"/>
+                        <polygon points="-2.5,-3.5 -2.5,3.5 3.5,0" fill="white"/>
+                    </g>
+
+                    <!-- Pause Button -->
+                    <g id="sonos-${room.name}-pause" class="sonos-button" transform="translate(-5, 5)" style="cursor: pointer;">
+                        <circle r="8" fill="#E67E22" stroke="#CA6F1E" stroke-width="1"/>
+                        <rect x="-3" y="-3.5" width="2" height="7" fill="white"/>
+                        <rect x="1" y="-3.5" width="2" height="7" fill="white"/>
+                    </g>
+
+                    <!-- Volume Down Button -->
+                    <g id="sonos-${room.name}-voldown" class="sonos-button" transform="translate(10, 5)" style="cursor: pointer;">
+                        <circle r="7" fill="#3498DB" stroke="#2980B9" stroke-width="1"/>
+                        <text x="0" y="2.5" text-anchor="middle" fill="white" font-size="11" font-weight="bold">−</text>
+                    </g>
+
+                    <!-- Volume Up Button -->
+                    <g id="sonos-${room.name}-volup" class="sonos-button" transform="translate(23, 5)" style="cursor: pointer;">
+                        <circle r="7" fill="#3498DB" stroke="#2980B9" stroke-width="1"/>
+                        <text x="0" y="2.5" text-anchor="middle" fill="white" font-size="10" font-weight="bold">+</text>
+                    </g>
+
+                    <!-- Volume Label -->
+                    <text id="${room.labelId}" x="0" y="16" text-anchor="middle" fill="#ECF0F1" font-size="6">Vol: --</text>
+                `;
+
+                container.appendChild(group);
+            });
+
+            Logger.info(`Generated ${SONOS_ROOMS.length} Sonos control panels`);
+        }
+
         async function initSonosIntegration() {
             // Check if proxy is available
             const proxyAvailable = await checkSonosProxyAvailability();
@@ -4047,7 +4108,8 @@ ${paramsXml.trimEnd()}
             displaySonosInStats();
         }
 
-        // Initialize Sonos integration
+        // Generate and initialize Sonos integration
+        generateSonosControls();
         initSonosIntegration().catch(err => Logger.error('Failed to initialize Sonos:', err));
 
         // ============================================================================
@@ -4172,6 +4234,77 @@ ${paramsXml.trimEnd()}
         }
 
         /**
+         * Generate Tapo plug controls dynamically
+         */
+        function generateTapoPlugControls() {
+            const container = document.getElementById('tapo-plugs-container');
+            if (!container) {
+                Logger.error('Tapo plugs container not found');
+                return;
+            }
+
+            const SVG_NS = 'http://www.w3.org/2000/svg';
+
+            Object.entries(TAPO_PLUGS).forEach(([plugName, config]) => {
+                // Create main group
+                const group = document.createElementNS(SVG_NS, 'g');
+                group.id = `tapo-${plugName}-controls`;
+                group.setAttribute('transform', `translate(${config.x}, ${config.y}) scale(0.7)`);
+
+                // Add all SVG elements
+                group.innerHTML = `
+                    <!-- Title -->
+                    <text x="0" y="-32" text-anchor="middle" fill="#ECF0F1" font-size="7" font-weight="bold">${config.label.toUpperCase()}</text>
+
+                    <!-- UK Socket Faceplate (white/cream) -->
+                    <rect x="-35" y="-25" width="70" height="60" rx="3" fill="#F5F5F5" stroke="#D0D0D0" stroke-width="2"/>
+
+                    <!-- Socket cutout shadow (3D effect) -->
+                    <rect x="-28" y="-10" width="56" height="35" rx="2" fill="#E0E0E0" opacity="0.8"/>
+
+                    <!-- Three UK socket holes (rectangular pins) -->
+                    <g id="socket-holes">
+                        <!-- Earth pin (top, larger) -->
+                        <rect x="-3" y="-8" width="6" height="10" rx="1" fill="#2C2C2C"/>
+                        <!-- Live pin (bottom left) -->
+                        <rect x="-15" y="8" width="6" height="10" rx="1" fill="#2C2C2C"/>
+                        <!-- Neutral pin (bottom right) -->
+                        <rect x="9" y="8" width="6" height="10" rx="1" fill="#2C2C2C"/>
+                    </g>
+
+                    <!-- Rocker Switch -->
+                    <g id="tapo-${plugName}-toggle" class="tapo-toggle" style="cursor: pointer;" transform="translate(0, -18)">
+                        <!-- Switch housing -->
+                        <rect x="-12" y="-8" width="24" height="16" rx="2" fill="#333" stroke="#222" stroke-width="1"/>
+
+                        <!-- Rocker switch (will rotate and change color) -->
+                        <g id="tapo-${plugName}-toggle-knob">
+                            <rect id="tapo-${plugName}-toggle-bg" x="-10" y="-6" width="20" height="12" rx="1.5" fill="#CC0000" stroke="#AA0000" stroke-width="1"/>
+                            <!-- Switch text -->
+                            <text id="tapo-${plugName}-status-text" x="0" y="1.5" text-anchor="middle" fill="white" font-size="6" font-weight="bold">--</text>
+                        </g>
+                    </g>
+
+                    <!-- Power indicator LED -->
+                    <circle id="tapo-${plugName}-power-led" cx="25" cy="-18" r="2.5" fill="#FF0000" opacity="0">
+                        <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite"/>
+                    </circle>
+
+                    <!-- ON/OFF labels on faceplate -->
+                    <text id="tapo-${plugName}-on-label" x="0" y="-24" text-anchor="middle" fill="#666" font-size="4" font-weight="bold" opacity="0.5">ON</text>
+                    <text id="tapo-${plugName}-off-label" x="0" y="-12" text-anchor="middle" fill="#666" font-size="4" font-weight="bold" opacity="0.5">OFF</text>
+
+                    <!-- "13A" rating text (typical UK socket) -->
+                    <text x="0" y="32" text-anchor="middle" fill="#999" font-size="5">13A</text>
+                `;
+
+                container.appendChild(group);
+            });
+
+            Logger.info(`Generated ${Object.keys(TAPO_PLUGS).length} Tapo plug controls`);
+        }
+
+        /**
          * Initialize Tapo integration
          */
         async function initTapoIntegration() {
@@ -4246,7 +4379,8 @@ ${paramsXml.trimEnd()}
             Logger.success('✓ Tapo integration initialized');
         }
 
-        // Initialize Tapo integration
+        // Generate and initialize Tapo integration
+        generateTapoPlugControls();
         initTapoIntegration().catch(err => Logger.error('Failed to initialize Tapo:', err));
 
         // ============================================================================

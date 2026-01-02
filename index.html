@@ -468,79 +468,8 @@
                 <!-- Light indicators will be dynamically added here by JavaScript -->
                 <g id="light-indicators-container"></g>
 
-                <!-- Sonos Controls - Bedroom -->
-                <g id="sonos-bedroom-controls" transform="translate(180, 280)">
-                    <!-- Control Panel Background -->
-                    <rect x="-35" y="-18" width="70" height="36" rx="5" fill="#2C3E50" opacity="0.85" stroke="#34495E" stroke-width="1.5"/>
-
-                    <!-- Title -->
-                    <text x="0" y="-8" text-anchor="middle" fill="#BDC3C7" font-size="7" font-weight="bold">SONOS</text>
-
-                    <!-- Play Button -->
-                    <g id="sonos-bedroom-play" class="sonos-button" transform="translate(-20, 5)" style="cursor: pointer;">
-                        <circle r="8" fill="#27AE60" stroke="#1E8449" stroke-width="1"/>
-                        <polygon points="-2.5,-3.5 -2.5,3.5 3.5,0" fill="white"/>
-                    </g>
-
-                    <!-- Pause Button -->
-                    <g id="sonos-bedroom-pause" class="sonos-button" transform="translate(-5, 5)" style="cursor: pointer;">
-                        <circle r="8" fill="#E67E22" stroke="#CA6F1E" stroke-width="1"/>
-                        <rect x="-3" y="-3.5" width="2" height="7" fill="white"/>
-                        <rect x="1" y="-3.5" width="2" height="7" fill="white"/>
-                    </g>
-
-                    <!-- Volume Down Button -->
-                    <g id="sonos-bedroom-voldown" class="sonos-button" transform="translate(10, 5)" style="cursor: pointer;">
-                        <circle r="7" fill="#3498DB" stroke="#2980B9" stroke-width="1"/>
-                        <text x="0" y="2.5" text-anchor="middle" fill="white" font-size="11" font-weight="bold">−</text>
-                    </g>
-
-                    <!-- Volume Up Button -->
-                    <g id="sonos-bedroom-volup" class="sonos-button" transform="translate(23, 5)" style="cursor: pointer;">
-                        <circle r="7" fill="#3498DB" stroke="#2980B9" stroke-width="1"/>
-                        <text x="0" y="2.5" text-anchor="middle" fill="white" font-size="10" font-weight="bold">+</text>
-                    </g>
-
-                    <!-- Volume Label -->
-                    <text id="sonos-bedroom-volume-label" x="0" y="16" text-anchor="middle" fill="#ECF0F1" font-size="6">Vol: --</text>
-                </g>
-
-                <!-- Sonos Controls - Office -->
-                <g id="sonos-office-controls" transform="translate(500, 280)">
-                    <!-- Control Panel Background -->
-                    <rect x="-35" y="-18" width="70" height="36" rx="5" fill="#2C3E50" opacity="0.85" stroke="#34495E" stroke-width="1.5"/>
-
-                    <!-- Title -->
-                    <text x="0" y="-8" text-anchor="middle" fill="#BDC3C7" font-size="7" font-weight="bold">SONOS</text>
-
-                    <!-- Play Button -->
-                    <g id="sonos-office-play" class="sonos-button" transform="translate(-20, 5)" style="cursor: pointer;">
-                        <circle r="8" fill="#27AE60" stroke="#1E8449" stroke-width="1"/>
-                        <polygon points="-2.5,-3.5 -2.5,3.5 3.5,0" fill="white"/>
-                    </g>
-
-                    <!-- Pause Button -->
-                    <g id="sonos-office-pause" class="sonos-button" transform="translate(-5, 5)" style="cursor: pointer;">
-                        <circle r="8" fill="#E67E22" stroke="#CA6F1E" stroke-width="1"/>
-                        <rect x="-3" y="-3.5" width="2" height="7" fill="white"/>
-                        <rect x="1" y="-3.5" width="2" height="7" fill="white"/>
-                    </g>
-
-                    <!-- Volume Down Button -->
-                    <g id="sonos-office-voldown" class="sonos-button" transform="translate(10, 5)" style="cursor: pointer;">
-                        <circle r="7" fill="#3498DB" stroke="#2980B9" stroke-width="1"/>
-                        <text x="0" y="2.5" text-anchor="middle" fill="white" font-size="11" font-weight="bold">−</text>
-                    </g>
-
-                    <!-- Volume Up Button -->
-                    <g id="sonos-office-volup" class="sonos-button" transform="translate(23, 5)" style="cursor: pointer;">
-                        <circle r="7" fill="#3498DB" stroke="#2980B9" stroke-width="1"/>
-                        <text x="0" y="2.5" text-anchor="middle" fill="white" font-size="10" font-weight="bold">+</text>
-                    </g>
-
-                    <!-- Volume Label -->
-                    <text id="sonos-office-volume-label" x="0" y="16" text-anchor="middle" fill="#ECF0F1" font-size="6">Vol: --</text>
-                </g>
+                <!-- Sonos Controls (dynamically generated) -->
+                <g id="sonos-controls-container"></g>
 
                 <!-- Light Effects Jukebox - Extension Room -->
                 <g id="jukebox" transform="translate(800, 500)">
@@ -605,92 +534,8 @@
                     </circle>
                 </g>
 
-                <!-- Tapo Smart Plug Controls - Extension Room -->
-                <g id="tapo-tree-controls" transform="translate(800, 410)">
-                    <!-- Title -->
-                    <text x="0" y="-32" text-anchor="middle" fill="#ECF0F1" font-size="7" font-weight="bold">TREE LIGHTS</text>
-
-                    <!-- UK Socket Faceplate (white/cream) -->
-                    <rect x="-35" y="-25" width="70" height="60" rx="3" fill="#F5F5F5" stroke="#D0D0D0" stroke-width="2"/>
-
-                    <!-- Socket cutout shadow (3D effect) -->
-                    <rect x="-28" y="-10" width="56" height="35" rx="2" fill="#E0E0E0" opacity="0.8"/>
-
-                    <!-- Three UK socket holes (rectangular pins) -->
-                    <g id="socket-holes">
-                        <!-- Earth pin (top, larger) -->
-                        <rect x="-3" y="-8" width="6" height="10" rx="1" fill="#2C2C2C"/>
-
-                        <!-- Live pin (bottom left) -->
-                        <rect x="-15" y="8" width="6" height="10" rx="1" fill="#2C2C2C"/>
-
-                        <!-- Neutral pin (bottom right) -->
-                        <rect x="9" y="8" width="6" height="10" rx="1" fill="#2C2C2C"/>
-                    </g>
-
-                    <!-- Rocker Switch -->
-                    <g id="tapo-tree-toggle" class="tapo-toggle" style="cursor: pointer;" transform="translate(0, -18)">
-                        <!-- Switch housing -->
-                        <rect x="-12" y="-8" width="24" height="16" rx="2" fill="#333" stroke="#222" stroke-width="1"/>
-
-                        <!-- Rocker switch (will rotate and change color) -->
-                        <g id="tapo-tree-toggle-knob">
-                            <rect id="tapo-tree-toggle-bg" x="-10" y="-6" width="20" height="12" rx="1.5" fill="#CC0000" stroke="#AA0000" stroke-width="1"/>
-
-                            <!-- Switch text -->
-                            <text id="tapo-tree-status-text" x="0" y="1.5" text-anchor="middle" fill="white" font-size="6" font-weight="bold">--</text>
-                        </g>
-                    </g>
-
-                    <!-- Power indicator LED -->
-                    <circle id="tapo-tree-power-led" cx="25" cy="-18" r="2.5" fill="#FF0000" opacity="0">
-                        <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite"/>
-                    </circle>
-
-                    <!-- ON/OFF labels on faceplate -->
-                    <text id="tapo-tree-on-label" x="0" y="-24" text-anchor="middle" fill="#666" font-size="4" font-weight="bold" opacity="0.5">ON</text>
-                    <text id="tapo-tree-off-label" x="0" y="-12" text-anchor="middle" fill="#666" font-size="4" font-weight="bold" opacity="0.5">OFF</text>
-
-                    <!-- "13A" rating text (typical UK socket) -->
-                    <text x="0" y="32" text-anchor="middle" fill="#999" font-size="5">13A</text>
-                </g>
-
-                <!-- Sonos Controls - Lounge -->
-                <g id="sonos-lounge-controls" transform="translate(400, 520)">
-                    <!-- Control Panel Background -->
-                    <rect x="-35" y="-18" width="70" height="36" rx="5" fill="#2C3E50" opacity="0.85" stroke="#34495E" stroke-width="1.5"/>
-
-                    <!-- Title -->
-                    <text x="0" y="-8" text-anchor="middle" fill="#BDC3C7" font-size="7" font-weight="bold">SONOS</text>
-
-                    <!-- Play Button -->
-                    <g id="sonos-lounge-play" class="sonos-button" transform="translate(-20, 5)" style="cursor: pointer;">
-                        <circle r="8" fill="#27AE60" stroke="#1E8449" stroke-width="1"/>
-                        <polygon points="-2.5,-3.5 -2.5,3.5 3.5,0" fill="white"/>
-                    </g>
-
-                    <!-- Pause Button -->
-                    <g id="sonos-lounge-pause" class="sonos-button" transform="translate(-5, 5)" style="cursor: pointer;">
-                        <circle r="8" fill="#E67E22" stroke="#CA6F1E" stroke-width="1"/>
-                        <rect x="-3" y="-3.5" width="2" height="7" fill="white"/>
-                        <rect x="1" y="-3.5" width="2" height="7" fill="white"/>
-                    </g>
-
-                    <!-- Volume Down Button -->
-                    <g id="sonos-lounge-voldown" class="sonos-button" transform="translate(10, 5)" style="cursor: pointer;">
-                        <circle r="7" fill="#3498DB" stroke="#2980B9" stroke-width="1"/>
-                        <text x="0" y="2.5" text-anchor="middle" fill="white" font-size="11" font-weight="bold">−</text>
-                    </g>
-
-                    <!-- Volume Up Button -->
-                    <g id="sonos-lounge-volup" class="sonos-button" transform="translate(23, 5)" style="cursor: pointer;">
-                        <circle r="7" fill="#3498DB" stroke="#2980B9" stroke-width="1"/>
-                        <text x="0" y="2.5" text-anchor="middle" fill="white" font-size="10" font-weight="bold">+</text>
-                    </g>
-
-                    <!-- Volume Label -->
-                    <text id="sonos-lounge-volume-label" x="0" y="16" text-anchor="middle" fill="#ECF0F1" font-size="6">Vol: --</text>
-                </g>
+                <!-- Tapo Smart Plug Controls (dynamically generated) -->
+                <g id="tapo-plugs-container"></g>
 
                 <!-- Motion indicators will be dynamically added here by JavaScript -->
                 <g id="motion-indicators-container"></g>
