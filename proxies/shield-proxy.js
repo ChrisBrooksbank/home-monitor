@@ -2,7 +2,7 @@
 // Provides HTTP API for SHIELD control from the web UI
 
 const http = require('http');
-const shieldControl = require('./shield-control');
+const shieldControl = require('../scripts/control/shield-control');
 
 const PORT = 8082; // Different from Sonos proxy (8081)
 

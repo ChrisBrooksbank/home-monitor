@@ -6,7 +6,7 @@ const { loginDeviceByIp } = require('tp-link-tapo-connect');
 const PORT = 3001;
 
 // Load configuration from tapo-control.js
-const tapoControl = require('./tapo-control.js');
+const tapoControl = require('../scripts/control/tapo-control.js');
 const TAPO_EMAIL = process.env.TAPO_EMAIL || 'chrisbrooksbank@gmail.com';
 const TAPO_PASSWORD = process.env.TAPO_PASSWORD || 'Monty@28';
 const PLUGS = tapoControl.PLUGS;
