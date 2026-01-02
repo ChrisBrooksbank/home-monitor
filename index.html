@@ -469,6 +469,28 @@
             filter: brightness(0.9);
         }
 
+        /* Tapo Smart Plug Toggle Switch */
+        .tapo-toggle {
+            transition: all 0.2s ease;
+        }
+
+        .tapo-toggle:hover #tapo-tree-toggle-knob circle {
+            filter: brightness(1.1) drop-shadow(0 0 8px rgba(255,255,255,0.6));
+        }
+
+        .tapo-toggle:active #tapo-tree-toggle-knob {
+            transform: scale(0.95);
+        }
+
+        /* Smooth transitions for toggle state changes */
+        #tapo-tree-toggle-knob {
+            transition: transform 0.3s ease;
+        }
+
+        #tapo-tree-toggle-bg {
+            transition: fill 0.3s ease;
+        }
+
         /* Jukebox Buttons */
         .jukebox-button {
             transition: filter 0.2s ease, opacity 0.2s ease;
@@ -1370,6 +1392,56 @@
                     </circle>
                 </g>
 
+                <!-- Tapo Smart Plug Controls - Extension Room -->
+                <g id="tapo-tree-controls" transform="translate(800, 410)">
+                    <!-- Title -->
+                    <text x="0" y="-32" text-anchor="middle" fill="#ECF0F1" font-size="7" font-weight="bold">TREE LIGHTS</text>
+
+                    <!-- UK Socket Faceplate (white/cream) -->
+                    <rect x="-35" y="-25" width="70" height="60" rx="3" fill="#F5F5F5" stroke="#D0D0D0" stroke-width="2"/>
+
+                    <!-- Socket cutout shadow (3D effect) -->
+                    <rect x="-28" y="-10" width="56" height="35" rx="2" fill="#E0E0E0" opacity="0.8"/>
+
+                    <!-- Three UK socket holes (rectangular pins) -->
+                    <g id="socket-holes">
+                        <!-- Earth pin (top, larger) -->
+                        <rect x="-3" y="-8" width="6" height="10" rx="1" fill="#2C2C2C"/>
+
+                        <!-- Live pin (bottom left) -->
+                        <rect x="-15" y="8" width="6" height="10" rx="1" fill="#2C2C2C"/>
+
+                        <!-- Neutral pin (bottom right) -->
+                        <rect x="9" y="8" width="6" height="10" rx="1" fill="#2C2C2C"/>
+                    </g>
+
+                    <!-- Rocker Switch -->
+                    <g id="tapo-tree-toggle" class="tapo-toggle" style="cursor: pointer;" transform="translate(0, -18)">
+                        <!-- Switch housing -->
+                        <rect x="-12" y="-8" width="24" height="16" rx="2" fill="#333" stroke="#222" stroke-width="1"/>
+
+                        <!-- Rocker switch (will rotate and change color) -->
+                        <g id="tapo-tree-toggle-knob">
+                            <rect id="tapo-tree-toggle-bg" x="-10" y="-6" width="20" height="12" rx="1.5" fill="#CC0000" stroke="#AA0000" stroke-width="1"/>
+
+                            <!-- Switch text -->
+                            <text id="tapo-tree-status-text" x="0" y="1.5" text-anchor="middle" fill="white" font-size="6" font-weight="bold">--</text>
+                        </g>
+                    </g>
+
+                    <!-- Power indicator LED -->
+                    <circle id="tapo-tree-power-led" cx="25" cy="-18" r="2.5" fill="#FF0000" opacity="0">
+                        <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite"/>
+                    </circle>
+
+                    <!-- ON/OFF labels on faceplate -->
+                    <text id="tapo-tree-on-label" x="0" y="-24" text-anchor="middle" fill="#666" font-size="4" font-weight="bold" opacity="0.5">ON</text>
+                    <text id="tapo-tree-off-label" x="0" y="-12" text-anchor="middle" fill="#666" font-size="4" font-weight="bold" opacity="0.5">OFF</text>
+
+                    <!-- "13A" rating text (typical UK socket) -->
+                    <text x="0" y="32" text-anchor="middle" fill="#999" font-size="5">13A</text>
+                </g>
+
                 <!-- Sonos Controls - Lounge -->
                 <g id="sonos-lounge-controls" transform="translate(400, 520)">
                     <!-- Control Panel Background -->
@@ -1540,6 +1612,13 @@
                     bedroom: '192.168.68.61',
                     office: '192.168.68.75',
                     lounge: '192.168.68.64'
+                },
+
+                // Tapo Smart Plugs (TP-Link P105 etc.)
+                tapo: {
+                    tree: { ip: '192.168.68.77', room: 'Extension', label: 'Tree Lights' }
+                    // Add more plugs like:
+                    // lamp: { ip: '192.168.68.78', room: 'Lounge', label: 'Table Lamp' }
                 }
             },
 
@@ -5085,8 +5164,8 @@
             // Initial fetch
             updateNestDisplay();
 
-            // Update every 5 minutes
-            setInterval(updateNestDisplay, 5 * 60 * 1000);
+            // Update every 15 minutes (reduced from 5 to avoid 429 rate limits)
+            setInterval(updateNestDisplay, 15 * 60 * 1000);
         }
 
         function makeNestDraggable(group) {
@@ -5570,6 +5649,236 @@ ${paramsXml.trimEnd()}
 
         // Initialize Sonos integration
         initSonosIntegration().catch(err => console.error('Failed to initialize Sonos:', err));
+
+        // ============================================================================
+        // TAPO SMART PLUG INTEGRATION
+        // ============================================================================
+
+        const TAPO_PROXY_URL = 'http://localhost:3001';
+        const TAPO_PLUGS = HOUSE_CONFIG.devices.tapo || {};
+
+        /**
+         * Call Tapo proxy API
+         */
+        async function tapoRequest(endpoint, body = {}) {
+            try {
+                const response = await fetch(`${TAPO_PROXY_URL}${endpoint}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error(`Tapo API error (${endpoint}):`, error);
+                throw error;
+            }
+        }
+
+        /**
+         * Turn Tapo plug ON
+         */
+        async function tapoTurnOn(plugName) {
+            try {
+                console.log(`🔌 Turning ON ${plugName}...`);
+                const result = await tapoRequest('/on', { plugName });
+                console.log(`✓ ${plugName} is now ON`);
+                return result;
+            } catch (error) {
+                console.error(`Failed to turn on ${plugName}:`, error);
+                throw error;
+            }
+        }
+
+        /**
+         * Turn Tapo plug OFF
+         */
+        async function tapoTurnOff(plugName) {
+            try {
+                console.log(`🔌 Turning OFF ${plugName}...`);
+                const result = await tapoRequest('/off', { plugName });
+                console.log(`✓ ${plugName} is now OFF`);
+                return result;
+            } catch (error) {
+                console.error(`Failed to turn off ${plugName}:`, error);
+                throw error;
+            }
+        }
+
+        /**
+         * Get Tapo plug status
+         */
+        async function tapoGetStatus(plugName) {
+            try {
+                const result = await tapoRequest('/status', { plugName });
+                return result;
+            } catch (error) {
+                console.error(`Failed to get status for ${plugName}:`, error);
+                return null;
+            }
+        }
+
+        /**
+         * Update Tapo plug toggle visual state (UK socket style)
+         */
+        function updateTapoToggleVisual(plugName, isOn) {
+            const toggleKnob = document.getElementById(`tapo-${plugName}-toggle-knob`);
+            const toggleBg = document.getElementById(`tapo-${plugName}-toggle-bg`);
+            const statusText = document.getElementById(`tapo-${plugName}-status-text`);
+            const onLabel = document.getElementById(`tapo-${plugName}-on-label`);
+            const offLabel = document.getElementById(`tapo-${plugName}-off-label`);
+            const powerLed = document.getElementById(`tapo-${plugName}-power-led`);
+
+            if (toggleKnob && toggleBg && statusText) {
+                if (isOn) {
+                    // ON state: rocker tilted up, red switch, LED on
+                    toggleKnob.setAttribute('transform', 'rotate(-8)');
+                    toggleBg.setAttribute('fill', '#CC0000');
+                    toggleBg.setAttribute('stroke', '#AA0000');
+                    statusText.textContent = 'ON';
+                    statusText.setAttribute('fill', 'white');
+                    if (onLabel) onLabel.setAttribute('opacity', '1');
+                    if (offLabel) offLabel.setAttribute('opacity', '0.3');
+                    if (powerLed) powerLed.setAttribute('opacity', '1');
+                } else {
+                    // OFF state: rocker tilted down, gray switch, LED off
+                    toggleKnob.setAttribute('transform', 'rotate(8)');
+                    toggleBg.setAttribute('fill', '#DDDDDD');
+                    toggleBg.setAttribute('stroke', '#BBBBBB');
+                    statusText.textContent = 'OFF';
+                    statusText.setAttribute('fill', '#666666');
+                    if (onLabel) onLabel.setAttribute('opacity', '0.3');
+                    if (offLabel) offLabel.setAttribute('opacity', '1');
+                    if (powerLed) powerLed.setAttribute('opacity', '0');
+                }
+            }
+        }
+
+        /**
+         * Update Tapo plug status display
+         */
+        async function updateTapoStatus(plugName) {
+            const status = await tapoGetStatus(plugName);
+
+            if (status && status.success) {
+                updateTapoToggleVisual(plugName, status.state === 'on');
+            }
+        }
+
+        /**
+         * Check if Tapo proxy is available
+         */
+        async function checkTapoProxyAvailability() {
+            try {
+                const response = await fetch(`${TAPO_PROXY_URL}/plugs`, {
+                    method: 'GET',
+                    signal: AbortSignal.timeout(2000)
+                });
+                return response.ok;
+            } catch (error) {
+                console.log('🔇 Tapo proxy not available - controls will be disabled');
+                return false;
+            }
+        }
+
+        /**
+         * Disable Tapo controls (when proxy unavailable)
+         */
+        function disableTapoControls() {
+            Object.keys(TAPO_PLUGS).forEach(plugName => {
+                const controlId = `tapo-${plugName}-controls`;
+                const panel = document.getElementById(controlId);
+                if (panel) {
+                    panel.style.opacity = '0.3';
+                    panel.style.pointerEvents = 'none';
+                    panel.style.cursor = 'not-allowed';
+                }
+            });
+        }
+
+        /**
+         * Initialize Tapo integration
+         */
+        async function initTapoIntegration() {
+            console.log('🔌 Initializing Tapo smart plug integration...');
+
+            // Check if proxy is available
+            const proxyAvailable = await checkTapoProxyAvailability();
+            if (!proxyAvailable) {
+                console.log('⚠️  Tapo proxy not running. Start with: node tapo-proxy.js');
+                disableTapoControls();
+                return;
+            }
+
+            // Initialize each plug
+            for (const [plugName, config] of Object.entries(TAPO_PLUGS)) {
+                const controlsId = `tapo-${plugName}-controls`;
+                const toggleId = `tapo-${plugName}-toggle`;
+
+                const panel = document.getElementById(controlsId);
+                if (!panel) continue;
+
+                console.log(`  Setting up ${plugName} (${config.label})...`);
+
+                // Load saved position
+                loadSavedPosition(panel, `tapo-${plugName}-position`);
+
+                // Make draggable (exclude toggle from dragging)
+                createDraggable(panel, {
+                    storageKey: `tapo-${plugName}-position`,
+                    excludeSelector: '.tapo-toggle',
+                    cursor: 'grab',
+                    activeCursor: 'grabbing'
+                });
+
+                // Wire up toggle switch
+                const toggle = document.getElementById(toggleId);
+                if (toggle) {
+                    toggle.addEventListener('click', async (e) => {
+                        e.stopPropagation();
+                        try {
+                            // Get current status
+                            const status = await tapoGetStatus(plugName);
+                            const isCurrentlyOn = status?.state === 'on';
+
+                            // Toggle to opposite state
+                            if (isCurrentlyOn) {
+                                await tapoTurnOff(plugName);
+                            } else {
+                                await tapoTurnOn(plugName);
+                            }
+
+                            // Update visual immediately with optimistic state
+                            updateTapoToggleVisual(plugName, !isCurrentlyOn);
+
+                            // Confirm with actual status after 1 second
+                            setTimeout(() => updateTapoStatus(plugName), 1000);
+                        } catch (error) {
+                            console.error(`Error toggling ${plugName}:`, error);
+                            // Refresh status on error to show true state
+                            setTimeout(() => updateTapoStatus(plugName), 500);
+                        }
+                    });
+                }
+
+                // Initial status update
+                updateTapoStatus(plugName);
+
+                // Refresh status every 30 seconds
+                setInterval(() => updateTapoStatus(plugName), 30 * 1000);
+            }
+
+            console.log('✓ Tapo integration initialized');
+        }
+
+        // Initialize Tapo integration
+        initTapoIntegration().catch(err => console.error('Failed to initialize Tapo:', err));
 
         // ============================================================================
         // JUKEBOX LIGHT EFFECTS
