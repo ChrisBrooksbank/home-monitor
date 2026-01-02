@@ -1592,14 +1592,6 @@
 
     <script src="config.js"></script>
     <script src="nest-config.js"></script>
-
-    <!-- Refactored Modular Architecture -->
-    <script src="js/config.js"></script>
-    <script src="js/utils/logger.js"></script>
-    <script src="js/utils/helpers.js"></script>
-    <script src="js/api/sonos.js"></script>
-    <script src="js/api/tapo.js"></script>
-
     <script>
         // ============================================================================
         // HOUSE CONFIGURATION - Edit these values to personalize for your home
@@ -2957,7 +2949,7 @@
   </s:Body>
 </s:Envelope>`;
 
-                const response = await fetch(`${APP_CONFIG.proxies.sonos}/MediaRenderer/RenderingControl/Control`, {
+                const response = await fetch('http://localhost:3000/MediaRenderer/RenderingControl/Control', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'text/xml; charset="utf-8"',
@@ -2988,7 +2980,7 @@
   </s:Body>
 </s:Envelope>`;
 
-                const response = await fetch(`${APP_CONFIG.proxies.sonos}/MediaRenderer/AVTransport/Control`, {
+                const response = await fetch('http://localhost:3000/MediaRenderer/AVTransport/Control', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'text/xml; charset="utf-8"',
@@ -3957,30 +3949,29 @@
         updateWeatherDisplay();
 
         // Real-time polling with different intervals for different data types
-        // Using IntervalManager for automatic cleanup on page unload
         // Motion sensors: every 3 seconds (critical for real-time detection)
-        IntervalManager.register(loadMotionSensors, APP_CONFIG.intervals.motionSensors);
+        setInterval(loadMotionSensors, 3000);
 
         // Lights: every 10 seconds (change frequently)
-        IntervalManager.register(loadLights, APP_CONFIG.intervals.lights);
+        setInterval(loadLights, 10000);
 
         // Sensor details: every 10 seconds (includes light levels, battery, motion)
-        IntervalManager.register(loadSensorDetails, APP_CONFIG.intervals.sensorDetails);
+        setInterval(loadSensorDetails, 10000);
 
         // Temperatures: every 60 seconds (change slowly, without sparkles to reduce visual noise)
-        IntervalManager.register(() => loadTemperatures(false), APP_CONFIG.intervals.temperatures);
+        setInterval(() => loadTemperatures(false), 60000);
 
         // Update motion log display every minute to refresh "time ago"
-        IntervalManager.register(updateMotionLogDisplay, APP_CONFIG.intervals.motionLog);
+        setInterval(updateMotionLogDisplay, 60000);
 
         // Update sky every minute to check for time of day changes
-        IntervalManager.register(updateSky, APP_CONFIG.intervals.sky);
+        setInterval(updateSky, 60000);
 
         // Refresh sunrise/sunset times once per day (every 24 hours)
-        IntervalManager.register(fetchSunTimes, APP_CONFIG.intervals.sunTimes);
+        setInterval(fetchSunTimes, 24 * 60 * 60 * 1000);
 
         // Weather: every 15 minutes (API rate limit friendly)
-        IntervalManager.register(updateWeatherDisplay, APP_CONFIG.intervals.weather);
+        setInterval(updateWeatherDisplay, (WEATHER_CONFIG?.UPDATE_INTERVAL || 15) * 60 * 1000);
 
         // ============================================================================
         // FUN LIGHT EFFECTS
@@ -5174,7 +5165,7 @@
             updateNestDisplay();
 
             // Update every 15 minutes (reduced from 5 to avoid 429 rate limits)
-            IntervalManager.register(updateNestDisplay, APP_CONFIG.intervals.nest);
+            setInterval(updateNestDisplay, 15 * 60 * 1000);
         }
 
         function makeNestDraggable(group) {
@@ -5435,7 +5426,7 @@
         async function sonosSoapRequest(ip, path, soapAction, soapBody) {
             try {
                 // Use proxy server to avoid CORS issues
-                const proxyUrl = `${APP_CONFIG.proxies.sonos}${path}`;
+                const proxyUrl = `http://localhost:3000${path}`;
 
                 const response = await fetch(proxyUrl, {
                     method: 'POST',
@@ -5612,10 +5603,16 @@ ${paramsXml.trimEnd()}
         }
 
         async function checkSonosProxyAvailability() {
-            return await checkProxyAvailability(
-                `${APP_CONFIG.proxies.sonos}/MediaRenderer/AVTransport/Control`,
-                'Sonos'
-            );
+            try {
+                const response = await fetch('http://localhost:3000/MediaRenderer/AVTransport/Control', {
+                    method: 'HEAD',
+                    signal: AbortSignal.timeout(2000)
+                });
+                return true;
+            } catch (error) {
+                console.log('🔇 Sonos proxy not available - controls will be disabled');
+                return false;
+            }
         }
 
         function disableSonosControls() {
@@ -5657,7 +5654,7 @@ ${paramsXml.trimEnd()}
         // TAPO SMART PLUG INTEGRATION
         // ============================================================================
 
-        const TAPO_PROXY_URL = APP_CONFIG.proxies.tapo;
+        const TAPO_PROXY_URL = 'http://localhost:3001';
         const TAPO_PLUGS = HOUSE_CONFIG.devices.tapo || {};
 
         /**
@@ -5874,7 +5871,7 @@ ${paramsXml.trimEnd()}
                 updateTapoStatus(plugName);
 
                 // Refresh status every 30 seconds
-                IntervalManager.register(() => updateTapoStatus(plugName), APP_CONFIG.intervals.tapoStatus);
+                setInterval(() => updateTapoStatus(plugName), 30 * 1000);
             }
 
             console.log('✓ Tapo integration initialized');
