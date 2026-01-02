@@ -2629,10 +2629,10 @@
                     // Refresh lights after a short delay
                     setTimeout(loadLights, 500);
                 } else {
-                    console.error('Failed to toggle light');
+                    Logger.error('Failed to toggle light');
                 }
             } catch (error) {
-                console.error('Error toggling light:', error);
+                Logger.error('Error toggling light:', error);
             }
         }
 
@@ -2687,7 +2687,7 @@
                 }
 
             } catch (error) {
-                console.error('Error loading lights:', error);
+                Logger.error('Error loading lights:', error);
             }
         }
 
@@ -2832,7 +2832,7 @@
                 html += `</div>`;
                 return html;
             } catch (error) {
-                console.error('Error building thermostat panel:', error);
+                Logger.error('Error building thermostat panel:', error);
                 return '';
             }
         }
@@ -2875,7 +2875,7 @@
                 html += `</div>`;
                 return html;
             } catch (error) {
-                console.error(`Error building speaker panel for ${name}:`, error);
+                Logger.error(`Error building speaker panel for ${name}:`, error);
                 return '';
             }
         }
@@ -2940,7 +2940,7 @@
                 html += `</div>`;
                 return html;
             } catch (error) {
-                console.error('Error building Hub panel:', error);
+                Logger.error('Error building Hub panel:', error);
                 return '';
             }
         }
@@ -3153,7 +3153,7 @@
                 container.innerHTML = html || '<div style="text-align: center; color: #999; padding: 20px;">No sensor data available</div>';
 
             } catch (error) {
-                console.error('Error loading sensor details:', error);
+                Logger.error('Error loading sensor details:', error);
             }
         }
 
@@ -3190,7 +3190,7 @@
                 updateMotionIndicators();
 
             } catch (error) {
-                console.error('Error loading motion sensors:', error);
+                Logger.error('Error loading motion sensors:', error);
             }
         }
 
@@ -3523,7 +3523,7 @@
                 }
 
             } catch (error) {
-                console.error('Error loading temperatures:', error);
+                Logger.error('Error loading temperatures:', error);
                 const lastUpdateEl = document.getElementById('lastUpdate');
                 if (lastUpdateEl) {
                     lastUpdateEl.textContent = `⚠️ Oops! ${error.message}`;
@@ -3539,32 +3539,32 @@
                 const response = await fetch(`http://${BRIDGE_IP}/api/${USERNAME}/lights`);
                 const lights = await response.json();
 
-                console.log('\n');
-                console.log('═══════════════════════════════════════════════════════════');
-                console.log('                    ALL HUE LIGHTS                         ');
-                console.log('═══════════════════════════════════════════════════════════');
-                console.log('\n');
+                Logger.info('\n');
+                Logger.info('═══════════════════════════════════════════════════════════');
+                Logger.info('                    ALL HUE LIGHTS                         ');
+                Logger.info('═══════════════════════════════════════════════════════════');
+                Logger.info('\n');
 
                 for (const [id, light] of Object.entries(lights)) {
                     const room = mapLightToRoom(light.name);
-                    console.log(`┌─ Light ID: ${id} ─────────────────────────────────────`);
-                    console.log(`│ Name: "${light.name}"`);
-                    console.log(`│ Type: ${light.type}`);
-                    console.log(`│ Model: ${light.modelid || 'N/A'}`);
-                    console.log(`│ State: ${light.state.on ? 'ON' : 'OFF'}`);
-                    console.log(`│ Reachable: ${light.state.reachable}`);
-                    console.log(`│ Mapped to room: ${room || '❌ NOT MAPPED'}`);
-                    console.log('└────────────────────────────────────────────────────────');
-                    console.log('\n');
+                    Logger.info(`┌─ Light ID: ${id} ─────────────────────────────────────`);
+                    Logger.info(`│ Name: "${light.name}"`);
+                    Logger.info(`│ Type: ${light.type}`);
+                    Logger.info(`│ Model: ${light.modelid || 'N/A'}`);
+                    Logger.info(`│ State: ${light.state.on ? 'ON' : 'OFF'}`);
+                    Logger.info(`│ Reachable: ${light.state.reachable}`);
+                    Logger.info(`│ Mapped to room: ${room || '❌ NOT MAPPED'}`);
+                    Logger.info('└────────────────────────────────────────────────────────');
+                    Logger.info('\n');
                 }
 
-                console.log('═══════════════════════════════════════════════════════════');
-                console.log(`Total lights found: ${Object.keys(lights).length}`);
-                console.log('═══════════════════════════════════════════════════════════');
-                console.log('\n');
+                Logger.info('═══════════════════════════════════════════════════════════');
+                Logger.info(`Total lights found: ${Object.keys(lights).length}`);
+                Logger.info('═══════════════════════════════════════════════════════════');
+                Logger.info('\n');
 
             } catch (error) {
-                console.error('Error fetching lights:', error);
+                Logger.error('Error fetching lights:', error);
             }
         }
 
@@ -3574,37 +3574,37 @@
                 const response = await fetch(`http://${BRIDGE_IP}/api/${USERNAME}/sensors`);
                 const sensors = await response.json();
 
-                console.log('\n');
-                console.log('═══════════════════════════════════════════════════════════');
-                console.log('                    ALL HUE SENSORS                        ');
-                console.log('═══════════════════════════════════════════════════════════');
-                console.log('\n');
+                Logger.info('\n');
+                Logger.info('═══════════════════════════════════════════════════════════');
+                Logger.info('                    ALL HUE SENSORS                        ');
+                Logger.info('═══════════════════════════════════════════════════════════');
+                Logger.info('\n');
 
                 for (const [id, sensor] of Object.entries(sensors)) {
-                    console.log(`┌─ Sensor ID: ${id} ─────────────────────────────────────`);
-                    console.log(`│ Name: "${sensor.name}"`);
-                    console.log(`│ Type: ${sensor.type}`);
-                    console.log(`│ Model: ${sensor.modelid || 'N/A'}`);
-                    console.log(`│ Manufacturer: ${sensor.manufacturername || 'N/A'}`);
+                    Logger.info(`┌─ Sensor ID: ${id} ─────────────────────────────────────`);
+                    Logger.info(`│ Name: "${sensor.name}"`);
+                    Logger.info(`│ Type: ${sensor.type}`);
+                    Logger.info(`│ Model: ${sensor.modelid || 'N/A'}`);
+                    Logger.info(`│ Manufacturer: ${sensor.manufacturername || 'N/A'}`);
 
                     if (sensor.state) {
-                        console.log(`│ State:`);
+                        Logger.info(`│ State:`);
                         for (const [key, value] of Object.entries(sensor.state)) {
-                            console.log(`│   - ${key}: ${value}`);
+                            Logger.info(`│   - ${key}: ${value}`);
                         }
                     }
 
-                    console.log('└────────────────────────────────────────────────────────');
-                    console.log('\n');
+                    Logger.info('└────────────────────────────────────────────────────────');
+                    Logger.info('\n');
                 }
 
-                console.log('═══════════════════════════════════════════════════════════');
-                console.log(`Total sensors found: ${Object.keys(sensors).length}`);
-                console.log('═══════════════════════════════════════════════════════════');
-                console.log('\n');
+                Logger.info('═══════════════════════════════════════════════════════════');
+                Logger.info(`Total sensors found: ${Object.keys(sensors).length}`);
+                Logger.info('═══════════════════════════════════════════════════════════');
+                Logger.info('\n');
 
             } catch (error) {
-                console.error('Error fetching sensors:', error);
+                Logger.error('Error fetching sensors:', error);
             }
         }
 
@@ -3643,14 +3643,14 @@
                     sunriseTime = new Date(data.results.sunrise);
                     sunsetTime = new Date(data.results.sunset);
 
-                    console.log(`🌅 Sunrise today: ${sunriseTime.toLocaleTimeString()}`);
-                    console.log(`🌇 Sunset today: ${sunsetTime.toLocaleTimeString()}`);
+                    Logger.info(`🌅 Sunrise today: ${sunriseTime.toLocaleTimeString()}`);
+                    Logger.info(`🌇 Sunset today: ${sunsetTime.toLocaleTimeString()}`);
 
                     // Update sky immediately with new times
                     updateSky();
                 }
             } catch (error) {
-                console.error('Error fetching sun times:', error);
+                Logger.error('Error fetching sun times:', error);
                 // Fallback to default times if API fails
                 const now = new Date();
                 sunriseTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 7, 0);
@@ -3661,7 +3661,7 @@
         // Fetch weather data from WeatherAPI.com
         async function fetchWeather() {
             if (!WEATHER_CONFIG?.API_KEY || WEATHER_CONFIG.API_KEY === 'YOUR-WEATHERAPI-KEY-HERE') {
-                console.warn('⚠️ Weather API key not configured');
+                Logger.warn('⚠️ Weather API key not configured');
                 return null;
             }
 
@@ -3687,7 +3687,7 @@
                     windDir: data.current.wind_dir
                 };
             } catch (error) {
-                console.error('Error fetching weather:', error);
+                Logger.error('Error fetching weather:', error);
                 return null;
             }
         }
@@ -3734,7 +3734,7 @@
             if (weatherWindSvgEl) weatherWindSvgEl.textContent = `🌬️ ${Math.round(weatherData.wind)} km/h`;
             if (weatherWindDirSvgEl) weatherWindDirSvgEl.textContent = weatherData.windDir;
 
-            console.log(`🌤️ Weather updated: ${weatherData.temp.toFixed(1)}°C, ${weatherData.condition}`);
+            Logger.info(`🌤️ Weather updated: ${weatherData.temp.toFixed(1)}°C, ${weatherData.condition}`);
 
             // Update visual effects based on weather
             updateWeatherVisuals(weatherData);
@@ -3765,35 +3765,35 @@
                 if (rainEl) rainEl.style.display = 'block';
                 skyColor1 = '#6B7F8F';
                 skyColor2 = '#8B9DAF';
-                console.log('🌧️ Rain effect activated');
+                Logger.info('🌧️ Rain effect activated');
             } else if (condition.includes('snow') || condition.includes('sleet') || condition.includes('blizzard')) {
                 // Show snow
                 if (snowEl) snowEl.style.display = 'block';
                 skyColor1 = '#D0D8E0';
                 skyColor2 = '#E8EEF5';
-                console.log('❄️ Snow effect activated');
+                Logger.info('❄️ Snow effect activated');
             } else if (condition.includes('fog') || condition.includes('mist') || condition.includes('haze')) {
                 // Show fog
                 if (fogEl) fogEl.style.display = 'block';
                 skyColor1 = '#B0B8C0';
                 skyColor2 = '#D0D8E0';
-                console.log('🌫️ Fog effect activated');
+                Logger.info('🌫️ Fog effect activated');
             } else if (condition.includes('thunder') || condition.includes('storm')) {
                 // Stormy - darker sky, show rain
                 if (rainEl) rainEl.style.display = 'block';
                 skyColor1 = '#4A5568';
                 skyColor2 = '#6B7F8F';
-                console.log('⛈️ Storm effect activated');
+                Logger.info('⛈️ Storm effect activated');
             } else if (condition.includes('cloud') || condition.includes('overcast')) {
                 // Cloudy
                 skyColor1 = '#A0AEC0';
                 skyColor2 = '#C0CED8';
-                console.log('☁️ Cloudy sky');
+                Logger.info('☁️ Cloudy sky');
             } else if (condition.includes('clear') || condition.includes('sunny')) {
                 // Clear/Sunny - use default bright colors
                 skyColor1 = '#87CEEB';
                 skyColor2 = '#E0F6FF';
-                console.log('☀️ Clear sky');
+                Logger.info('☀️ Clear sky');
             } else {
                 // Partly cloudy or other
                 skyColor1 = '#98C8E8';
@@ -3996,7 +3996,7 @@
                 if (!response.ok) return null;
                 return await response.json();
             } catch (error) {
-                console.error('Error getting lights:', error);
+                Logger.error('Error getting lights:', error);
                 return null;
             }
         }
@@ -4010,7 +4010,7 @@
                     body: JSON.stringify(state)
                 });
             } catch (error) {
-                console.error(`Error setting light ${lightId}:`, error);
+                Logger.error(`Error setting light ${lightId}:`, error);
             }
         }
 
@@ -4715,7 +4715,7 @@
             const [category, place] = locationKey.split('.');
             const location = mooseLocations[category][place];
 
-            console.log(`🫎 Moose appearing! Activity: ${activity.name} at ${locationKey}`);
+            Logger.info(`🫎 Moose appearing! Activity: ${activity.name} at ${locationKey}`);
 
             // Monty announces his arrival!
             announceMoose();
@@ -4839,7 +4839,7 @@
                     stars.forEach(s => { s.style.filter = ''; });
                 }
 
-                console.log('🫎 Moose left!');
+                Logger.info('🫎 Moose left!');
                 scheduleMooseAppearance();
             }, MOOSE_CONFIG.WALK_OUT_DURATION);
         }
@@ -4857,7 +4857,7 @@
             localStorage.setItem('mooseNextAppearance', mooseState.nextAppearanceTime);
 
             const minutes = Math.round(randomInterval / 60000);
-            console.log(`🫎 Next moose appearance in ~${minutes} minutes`);
+            Logger.info(`🫎 Next moose appearance in ~${minutes} minutes`);
         }
 
         function handleVisibilityChange() {
@@ -4875,7 +4875,7 @@
                     if (timeRemaining > 0) {
                         mooseState.currentTimeout = setTimeout(showMoose, timeRemaining);
                         const minutes = Math.round(timeRemaining / 60000);
-                        console.log(`🫎 Moose will appear in ~${minutes} minutes`);
+                        Logger.info(`🫎 Moose will appear in ~${minutes} minutes`);
                     } else {
                         scheduleMooseAppearance();
                     }
@@ -4908,8 +4908,8 @@
         }
 
         function initMooseSystem() {
-            console.log('🫎 Moose system initialized!');
-            console.log(`   Debug mode: ${MOOSE_CONFIG.DEBUG_MODE ? 'ON (30-60 sec)' : 'OFF (10-20 min)'}`);
+            Logger.info('🫎 Moose system initialized!');
+            Logger.info(`   Debug mode: ${MOOSE_CONFIG.DEBUG_MODE ? 'ON (30-60 sec)' : 'OFF (10-20 min)'}`);
 
             // Add visibility change listener
             document.addEventListener('visibilitychange', handleVisibilityChange);
@@ -4930,7 +4930,7 @@
         let nestTokenExpiry = NEST_CONFIG?.expires_at;
 
         async function refreshNestToken() {
-            console.log('🌡️  Refreshing Nest access token...');
+            Logger.info('🌡️  Refreshing Nest access token...');
 
             const tokenData = new URLSearchParams({
                 client_id: NEST_CONFIG.CLIENT_ID,
@@ -4953,14 +4953,14 @@
                 if (tokens.access_token) {
                     nestAccessToken = tokens.access_token;
                     nestTokenExpiry = Date.now() + (tokens.expires_in * 1000);
-                    console.log('✓ Nest token refreshed');
+                    Logger.success('✓ Nest token refreshed');
                     return true;
                 } else {
-                    console.error('✗ Failed to refresh Nest token:', tokens);
+                    Logger.error('✗ Failed to refresh Nest token:', tokens);
                     return false;
                 }
             } catch (error) {
-                console.error('✗ Error refreshing Nest token:', error);
+                Logger.error('✗ Error refreshing Nest token:', error);
                 return false;
             }
         }
@@ -4983,21 +4983,21 @@
                 );
 
                 if (!response.ok) {
-                    console.error('✗ Nest API error:', response.status);
+                    Logger.error('✗ Nest API error:', response.status);
                     return null;
                 }
 
                 const data = await response.json();
                 return data.devices || [];
             } catch (error) {
-                console.error('✗ Error fetching Nest devices:', error);
+                Logger.error('✗ Error fetching Nest devices:', error);
                 return null;
             }
         }
 
         async function setNestTemperature(targetTempC) {
             if (nestDevices.length === 0) {
-                console.error('No Nest devices found');
+                Logger.error('No Nest devices found');
                 return false;
             }
 
@@ -5010,7 +5010,7 @@
             const device = nestDevices[0]; // First device
             const deviceName = device.name; // Full device resource name
 
-            console.log(`🌡️  Setting Nest temperature to ${targetTempC}°C...`);
+            Logger.info(`🌡️  Setting Nest temperature to ${targetTempC}°C...`);
 
             try {
                 const response = await fetch(
@@ -5032,11 +5032,11 @@
 
                 if (!response.ok) {
                     const error = await response.text();
-                    console.error('✗ Failed to set temperature:', error);
+                    Logger.error('✗ Failed to set temperature:', error);
                     return false;
                 }
 
-                console.log(`✓ Temperature set to ${targetTempC}°C`);
+                Logger.info(`✓ Temperature set to ${targetTempC}°C`);
 
                 // Log the temperature change
                 logThermostatEvent(targetTempC);
@@ -5046,7 +5046,7 @@
 
                 return true;
             } catch (error) {
-                console.error('✗ Error setting temperature:', error);
+                Logger.error('✗ Error setting temperature:', error);
                 return false;
             }
         }
@@ -5070,7 +5070,7 @@
                     const tempC = tempTrait.ambientTemperatureCelsius;
                     const deviceName = infoTrait?.customName || `Nest ${index + 1}`;
 
-                    console.log(`🌡️  ${deviceName}: ${tempC.toFixed(1)}°C`);
+                    Logger.info(`🌡️  ${deviceName}: ${tempC.toFixed(1)}°C`);
 
                     // Display in the stats
                     displayNestInStats(deviceName, tempC, thermostatTrait);
@@ -5082,7 +5082,7 @@
             // Nest data now shown in Sensor Details panel, not in stat card
             // But we still need to update the visual thermostat display in the house
 
-            console.log(`🌡️ displayNestInStats called: ${name}, ${tempC}°C`);
+            Logger.info(`🌡️ displayNestInStats called: ${name}, ${tempC}°C`);
 
             let targetTempValue = null;
             let status = 'OFF';
@@ -5122,7 +5122,7 @@
             const displayBgEl = document.getElementById('nest-display-bg');
 
             if (!currentTempEl) {
-                console.warn('⚠️ Nest visual display elements not found in DOM');
+                Logger.warn('⚠️ Nest visual display elements not found in DOM');
                 return; // Display not ready yet
             }
 
@@ -5158,11 +5158,11 @@
 
         function initNestIntegration() {
             if (!NEST_CONFIG || !NEST_CONFIG.access_token) {
-                console.log('⚠️  Nest not configured. Run nest-auth.js to set up.');
+                Logger.info('⚠️  Nest not configured. Run nest-auth.js to set up.');
                 return;
             }
 
-            console.log('🌡️  Nest integration initialized');
+            Logger.info('🌡️  Nest integration initialized');
 
             // Make Nest thermostat draggable
             const nestDisplay = document.getElementById('nest-thermostat-display');
@@ -5280,7 +5280,7 @@
                         y: parseFloat(match[2])
                     };
                     localStorage.setItem('nestThermostatPosition', JSON.stringify(position));
-                    console.log('🌡️  Nest position saved:', position);
+                    Logger.info('🌡️  Nest position saved:', position);
                 } else if (isAdjustingTemp) {
                     // Apply temperature change
                     isAdjustingTemp = false;
@@ -5293,7 +5293,7 @@
 
                     // Only send command if temperature actually changed
                     if (Math.abs(currentAdjustedTemp - startTemp) >= 0.5) {
-                        console.log(`🌡️  Setting Nest temperature to ${currentAdjustedTemp}°C`);
+                        Logger.info(`🌡️  Setting Nest temperature to ${currentAdjustedTemp}°C`);
                         await setNestTemperature(currentAdjustedTemp);
                     } else {
                         // No change, restore display
@@ -5450,7 +5450,7 @@
                 const text = await response.text();
                 return { ok: response.ok, status: response.status, body: text };
             } catch (error) {
-                console.error('✗ Sonos SOAP request failed:', error);
+                Logger.error('✗ Sonos SOAP request failed:', error);
                 return { ok: false, error: error.message };
             }
         }
@@ -5504,7 +5504,7 @@ ${paramsXml.trimEnd()}
         async function sonosCommand(ip, commandName, extraParams = {}) {
             const template = SONOS_COMMANDS[commandName];
             if (!template) {
-                console.error(`Unknown Sonos command: ${commandName}`);
+                Logger.error(`Unknown Sonos command: ${commandName}`);
                 return { ok: false, error: 'Unknown command' };
             }
 
@@ -5651,7 +5651,7 @@ ${paramsXml.trimEnd()}
         }
 
         // Initialize Sonos integration
-        initSonosIntegration().catch(err => console.error('Failed to initialize Sonos:', err));
+        initSonosIntegration().catch(err => Logger.error('Failed to initialize Sonos:', err));
 
         // ============================================================================
         // TAPO SMART PLUG INTEGRATION
@@ -5679,52 +5679,30 @@ ${paramsXml.trimEnd()}
 
                 return await response.json();
             } catch (error) {
-                console.error(`Tapo API error (${endpoint}):`, error);
+                Logger.error(`Tapo API error (${endpoint}):`, error);
                 throw error;
             }
         }
 
         /**
-         * Turn Tapo plug ON
+         * Turn Tapo plug ON - now using TapoAPI module
          */
         async function tapoTurnOn(plugName) {
-            try {
-                console.log(`🔌 Turning ON ${plugName}...`);
-                const result = await tapoRequest('/on', { plugName });
-                console.log(`✓ ${plugName} is now ON`);
-                return result;
-            } catch (error) {
-                console.error(`Failed to turn on ${plugName}:`, error);
-                throw error;
-            }
+            return await TapoAPI.turnOn(plugName);
         }
 
         /**
-         * Turn Tapo plug OFF
+         * Turn Tapo plug OFF - now using TapoAPI module
          */
         async function tapoTurnOff(plugName) {
-            try {
-                console.log(`🔌 Turning OFF ${plugName}...`);
-                const result = await tapoRequest('/off', { plugName });
-                console.log(`✓ ${plugName} is now OFF`);
-                return result;
-            } catch (error) {
-                console.error(`Failed to turn off ${plugName}:`, error);
-                throw error;
-            }
+            return await TapoAPI.turnOff(plugName);
         }
 
         /**
-         * Get Tapo plug status
+         * Get Tapo plug status - now using TapoAPI module
          */
         async function tapoGetStatus(plugName) {
-            try {
-                const result = await tapoRequest('/status', { plugName });
-                return result;
-            } catch (error) {
-                console.error(`Failed to get status for ${plugName}:`, error);
-                return null;
-            }
+            return await TapoAPI.getStatus(plugName);
         }
 
         /**
@@ -5775,19 +5753,10 @@ ${paramsXml.trimEnd()}
         }
 
         /**
-         * Check if Tapo proxy is available
+         * Check if Tapo proxy is available - now using TapoAPI module
          */
         async function checkTapoProxyAvailability() {
-            try {
-                const response = await fetch(`${TAPO_PROXY_URL}/plugs`, {
-                    method: 'GET',
-                    signal: AbortSignal.timeout(2000)
-                });
-                return response.ok;
-            } catch (error) {
-                console.log('🔇 Tapo proxy not available - controls will be disabled');
-                return false;
-            }
+            return await TapoAPI.checkAvailability();
         }
 
         /**
@@ -5809,12 +5778,12 @@ ${paramsXml.trimEnd()}
          * Initialize Tapo integration
          */
         async function initTapoIntegration() {
-            console.log('🔌 Initializing Tapo smart plug integration...');
+            Logger.info('🔌 Initializing Tapo smart plug integration...');
 
             // Check if proxy is available
             const proxyAvailable = await checkTapoProxyAvailability();
             if (!proxyAvailable) {
-                console.log('⚠️  Tapo proxy not running. Start with: node tapo-proxy.js');
+                Logger.info('⚠️  Tapo proxy not running. Start with: node tapo-proxy.js');
                 disableTapoControls();
                 return;
             }
@@ -5827,7 +5796,7 @@ ${paramsXml.trimEnd()}
                 const panel = document.getElementById(controlsId);
                 if (!panel) continue;
 
-                console.log(`  Setting up ${plugName} (${config.label})...`);
+                Logger.info(`  Setting up ${plugName} (${config.label})...`);
 
                 // Load saved position
                 loadSavedPosition(panel, `tapo-${plugName}-position`);
@@ -5863,7 +5832,7 @@ ${paramsXml.trimEnd()}
                             // Confirm with actual status after 1 second
                             setTimeout(() => updateTapoStatus(plugName), 1000);
                         } catch (error) {
-                            console.error(`Error toggling ${plugName}:`, error);
+                            Logger.error(`Error toggling ${plugName}:`, error);
                             // Refresh status on error to show true state
                             setTimeout(() => updateTapoStatus(plugName), 500);
                         }
@@ -5877,11 +5846,11 @@ ${paramsXml.trimEnd()}
                 IntervalManager.register(() => updateTapoStatus(plugName), APP_CONFIG.intervals.tapoStatus);
             }
 
-            console.log('✓ Tapo integration initialized');
+            Logger.success('✓ Tapo integration initialized');
         }
 
         // Initialize Tapo integration
-        initTapoIntegration().catch(err => console.error('Failed to initialize Tapo:', err));
+        initTapoIntegration().catch(err => Logger.error('Failed to initialize Tapo:', err));
 
         // ============================================================================
         // JUKEBOX LIGHT EFFECTS
@@ -5897,7 +5866,7 @@ ${paramsXml.trimEnd()}
         }
 
         function initJukebox() {
-            console.log('🎵 Initializing jukebox...');
+            Logger.info('🎵 Initializing jukebox...');
 
             const jukeboxPanel = document.getElementById('jukebox');
 
@@ -5912,35 +5881,35 @@ ${paramsXml.trimEnd()}
             // Wire up jukebox buttons
             document.getElementById('jukebox-btn-1')?.addEventListener('click', (e) => {
                 e.stopPropagation();
-                console.log('🚨 Jukebox: Red Alert!');
+                Logger.info('🚨 Jukebox: Red Alert!');
                 redAlert();
             });
 
             document.getElementById('jukebox-btn-2')?.addEventListener('click', (e) => {
                 e.stopPropagation();
-                console.log('🎉 Jukebox: Party Mode!');
+                Logger.info('🎉 Jukebox: Party Mode!');
                 partyMode();
             });
 
             document.getElementById('jukebox-btn-3')?.addEventListener('click', (e) => {
                 e.stopPropagation();
-                console.log('🕺 Jukebox: Disco Mode!');
+                Logger.info('🕺 Jukebox: Disco Mode!');
                 discoMode();
             });
 
             document.getElementById('jukebox-btn-4')?.addEventListener('click', (e) => {
                 e.stopPropagation();
-                console.log('🌊 Jukebox: Wave Effect!');
+                Logger.info('🌊 Jukebox: Wave Effect!');
                 waveEffect();
             });
 
             document.getElementById('jukebox-btn-5')?.addEventListener('click', (e) => {
                 e.stopPropagation();
-                console.log('🌅 Jukebox: Sunset Mode!');
+                Logger.info('🌅 Jukebox: Sunset Mode!');
                 sunsetMode();
             });
 
-            console.log('✓ Jukebox initialized');
+            Logger.success('✓ Jukebox initialized');
         }
 
         // Initialize jukebox
@@ -5956,7 +5925,7 @@ ${paramsXml.trimEnd()}
         }
 
         function initWeatherPanel() {
-            console.log('🌤️ Initializing weather panel...');
+            Logger.info('🌤️ Initializing weather panel...');
 
             const weatherPanel = document.getElementById('weather-info-panel');
 
@@ -5968,7 +5937,7 @@ ${paramsXml.trimEnd()}
                 makeWeatherPanelDraggable(weatherPanel, 'weatherPanelPosition');
             }
 
-            console.log('✓ Weather panel initialized');
+            Logger.success('✓ Weather panel initialized');
         }
 
         // Initialize weather panel
@@ -6002,7 +5971,7 @@ ${paramsXml.trimEnd()}
             if (!message) return;
 
             try {
-                console.log(`📢 Announcing to Hub: "${message}"`);
+                Logger.info(`📢 Announcing to Hub: "${message}"`);
 
                 // Use Google TTS URL
                 const encodedMessage = encodeURIComponent(message);
@@ -6026,20 +5995,20 @@ ${paramsXml.trimEnd()}
                 });
 
                 if (response.ok) {
-                    console.log('✓ Announcement sent');
+                    Logger.success('✓ Announcement sent');
                     alert('Announcement sent to Hub!');
                 } else {
                     throw new Error(`HTTP ${response.status}`);
                 }
             } catch (error) {
-                console.error('✗ Hub announce failed:', error);
+                Logger.error('✗ Hub announce failed:', error);
                 alert(`Failed to send announcement: ${error.message}`);
             }
         }
 
         async function hubStop() {
             try {
-                console.log('🛑 Stopping Hub playback...');
+                Logger.info('🛑 Stopping Hub playback...');
 
                 // Get current app status
                 const statusResponse = await fetch(`http://${HUB_IP}:${HUB_PORT}/apps`);
@@ -6055,7 +6024,7 @@ ${paramsXml.trimEnd()}
                             method: 'DELETE'
                         });
 
-                        console.log('✓ Playback stopped');
+                        Logger.success('✓ Playback stopped');
                         alert('Hub playback stopped');
                     } else {
                         alert('Hub is already idle');
@@ -6064,7 +6033,7 @@ ${paramsXml.trimEnd()}
                     alert('Hub is already idle');
                 }
             } catch (error) {
-                console.error('✗ Hub stop failed:', error);
+                Logger.error('✗ Hub stop failed:', error);
                 alert(`Failed to stop Hub: ${error.message}`);
             }
         }
@@ -6081,7 +6050,7 @@ ${paramsXml.trimEnd()}
                     id = urlMatch[1];
                 }
 
-                console.log(`📺 Casting YouTube video ${id} to Hub...`);
+                Logger.info(`📺 Casting YouTube video ${id} to Hub...`);
 
                 const response = await fetch(`http://${HUB_IP}:${HUB_PORT}/apps/YouTube`, {
                     method: 'POST',
@@ -6099,13 +6068,13 @@ ${paramsXml.trimEnd()}
                 });
 
                 if (response.ok) {
-                    console.log('✓ YouTube video casting');
+                    Logger.success('✓ YouTube video casting');
                     alert(`Casting video ${id} to Hub!`);
                 } else {
                     throw new Error(`HTTP ${response.status}`);
                 }
             } catch (error) {
-                console.error('✗ Hub YouTube cast failed:', error);
+                Logger.error('✗ Hub YouTube cast failed:', error);
                 alert(`Failed to cast YouTube: ${error.message}`);
             }
         }
@@ -6115,7 +6084,7 @@ ${paramsXml.trimEnd()}
                 // Get current page URL
                 const dashboardUrl = window.location.href;
 
-                console.log(`🏠 Displaying dashboard on Hub: ${dashboardUrl}`);
+                Logger.info(`🏠 Displaying dashboard on Hub: ${dashboardUrl}`);
 
                 const response = await fetch(`http://${HUB_IP}:${HUB_PORT}/apps/E8C28D3C`, {
                     method: 'POST',
@@ -6133,13 +6102,13 @@ ${paramsXml.trimEnd()}
                 });
 
                 if (response.ok) {
-                    console.log('✓ Dashboard displayed on Hub');
+                    Logger.success('✓ Dashboard displayed on Hub');
                     alert('Dashboard is now showing on Hub!');
                 } else {
                     throw new Error(`HTTP ${response.status}`);
                 }
             } catch (error) {
-                console.error('✗ Hub display dashboard failed:', error);
+                Logger.error('✗ Hub display dashboard failed:', error);
                 alert(`Failed to display dashboard: ${error.message}`);
             }
         }
@@ -6158,10 +6127,10 @@ ${paramsXml.trimEnd()}
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/service-worker.js')
                     .then((registration) => {
-                        console.log('Service Worker registered successfully:', registration.scope);
+                        Logger.info('Service Worker registered successfully:', registration.scope);
                     })
                     .catch((error) => {
-                        console.log('Service Worker registration failed:', error);
+                        Logger.info('Service Worker registration failed:', error);
                     });
             });
         }
