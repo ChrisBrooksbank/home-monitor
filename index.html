@@ -1521,8 +1521,78 @@
     <script src="config.js"></script>
     <script src="nest-config.js"></script>
     <script>
-        const BRIDGE_IP = HUE_CONFIG.BRIDGE_IP;
-        const USERNAME = HUE_CONFIG.USERNAME;
+        // ============================================================================
+        // HOUSE CONFIGURATION - Edit these values to personalize for your home
+        // ============================================================================
+        const HOUSE_CONFIG = {
+            // House Information
+            address: '28 Barn Green',
+
+            // Network & Device IPs
+            devices: {
+                hueBridge: HUE_CONFIG.BRIDGE_IP,
+                hueUsername: HUE_CONFIG.USERNAME,
+                googleHub: '192.168.68.62',
+                nest: null,  // Set if using Nest integration
+
+                // Sonos Speakers (add/remove as needed)
+                sonos: {
+                    bedroom: '192.168.68.61',
+                    office: '192.168.68.75',
+                    lounge: '192.168.68.64'
+                }
+            },
+
+            // Room Definitions
+            rooms: [
+                'Main Bedroom',
+                'Guest Bedroom',
+                'Bathroom',
+                'Landing',
+                'Hall',
+                'Home Office',
+                'Lounge',
+                'Kitchen',
+                'Extension',
+                'Outdoor'
+            ],
+
+            // Light Name to Room Mapping Rules
+            // Maps keywords found in light names to room names
+            lightMappings: {
+                // Pattern: [keywords to match in light name, room name]
+                'outdoor|outside|garden': 'Outdoor',
+                'guest': 'Guest Bedroom',
+                'main bedroom|mainbedroom|^bedroomlight$|^bedroom$': 'Main Bedroom',
+                'landing': 'Landing',
+                'office': 'Home Office',
+                'bathroom|bath': 'Bathroom',
+                'lounge': 'Lounge',
+                'hall': 'Hall',
+                'extension': 'Extension',
+                'kitchen': 'Kitchen'
+            },
+
+            // Motion Sensor Name to Room Mapping Rules
+            motionSensorMappings: {
+                'outdoor|outside|garden': 'Outdoor',
+                'hall|frontdoor|front door': 'Hall',
+                'landing': 'Landing',
+                'bathroom|bath': 'Bathroom'
+            },
+
+            // Temperature Sensor Locations (SVG coordinates)
+            tempSensorPositions: {
+                'temp-bedroom': { x: 700, y: 300, isOutdoor: false },
+                'temp-office': { x: 515, y: 290, isOutdoor: false },
+                'temp-lounge': { x: 400, y: 480, isOutdoor: false },
+                'temp-outdoor': { x: 60, y: 10, isOutdoor: true }
+            }
+        };
+
+        // Legacy constants for backward compatibility
+        const BRIDGE_IP = HOUSE_CONFIG.devices.hueBridge;
+        const USERNAME = HOUSE_CONFIG.devices.hueUsername;
 
         const sensorMapping = {
             // First Floor
@@ -2362,22 +2432,13 @@
         function mapLightToRoom(lightName) {
             const nameLower = lightName.toLowerCase();
 
-            if (nameLower.includes('outdoor') || nameLower.includes('outside') || nameLower.includes('garden')) return 'Outdoor';
-
-            // Guest bedroom must be checked BEFORE main bedroom to avoid conflicts
-            if (nameLower.includes('guest')) return 'Guest Bedroom';
-
-            // Main bedroom - check for various naming patterns
-            if (nameLower.includes('main bedroom') || nameLower.includes('mainbedroom') ||
-                nameLower === 'bedroomlight' || nameLower === 'bedroom') return 'Main Bedroom';
-
-            if (nameLower.includes('landing')) return 'Landing';
-            if (nameLower.includes('office')) return 'Home Office';
-            if (nameLower.includes('bathroom') || nameLower.includes('bath')) return 'Bathroom';
-            if (nameLower.includes('lounge')) return 'Lounge';
-            if (nameLower.includes('hall')) return 'Hall';
-            if (nameLower.includes('extension')) return 'Extension';
-            if (nameLower.includes('kitchen')) return 'Kitchen';
+            // Check each mapping pattern from config
+            for (const [pattern, room] of Object.entries(HOUSE_CONFIG.lightMappings)) {
+                const regex = new RegExp(pattern, 'i');
+                if (regex.test(nameLower)) {
+                    return room;
+                }
+            }
 
             return null;
         }
@@ -2546,10 +2607,13 @@
         function mapMotionSensorToRoom(sensorName) {
             const nameLower = sensorName.toLowerCase();
 
-            if (nameLower.includes('outdoor') || nameLower.includes('outside') || nameLower.includes('garden')) return 'Outdoor';
-            if (nameLower.includes('hall') || nameLower.includes('frontdoor') || nameLower.includes('front door')) return 'Hall';
-            if (nameLower.includes('landing')) return 'Landing';
-            if (nameLower.includes('bathroom') || nameLower.includes('bath')) return 'Bathroom';
+            // Check each mapping pattern from config
+            for (const [pattern, room] of Object.entries(HOUSE_CONFIG.motionSensorMappings)) {
+                const regex = new RegExp(pattern, 'i');
+                if (regex.test(nameLower)) {
+                    return room;
+                }
+            }
 
             return null;
         }
@@ -2730,7 +2794,7 @@
         }
 
         async function buildHubPanel() {
-            const HUB_IP = '192.168.68.62';
+            const HUB_IP = HOUSE_CONFIG.devices.googleHub;
             const HUB_NAME = 'Google Home Hub';
 
             try {
@@ -5269,9 +5333,10 @@
         // SONOS DIRECT CONTROL FUNCTIONS
         // ============================================================================
 
-        const BEDROOM_SONOS_IP = '192.168.68.61';
-        const OFFICE_SONOS_IP = '192.168.68.75';
-        const LOUNGE_SONOS_IP = '192.168.68.64';
+        // Sonos IPs from config
+        const BEDROOM_SONOS_IP = HOUSE_CONFIG.devices.sonos.bedroom;
+        const OFFICE_SONOS_IP = HOUSE_CONFIG.devices.sonos.office;
+        const LOUNGE_SONOS_IP = HOUSE_CONFIG.devices.sonos.lounge;
 
         const SONOS_ROOMS = [
             { name: 'bedroom', ip: BEDROOM_SONOS_IP, controlsId: 'sonos-bedroom-controls', storageKey: 'sonosBedroomPosition', labelId: 'sonos-bedroom-volume-label' },
@@ -5302,65 +5367,78 @@
             }
         }
 
-        async function sonosPlay(ip) {
-            const soapBody = `<?xml version="1.0" encoding="utf-8"?>
+        // Sonos SOAP command templates
+        const SONOS_COMMANDS = {
+            Play: {
+                service: 'AVTransport',
+                path: '/MediaRenderer/AVTransport/Control',
+                params: { InstanceID: 0, Speed: 1 }
+            },
+            Pause: {
+                service: 'AVTransport',
+                path: '/MediaRenderer/AVTransport/Control',
+                params: { InstanceID: 0 }
+            },
+            GetVolume: {
+                service: 'RenderingControl',
+                path: '/MediaRenderer/RenderingControl/Control',
+                params: { InstanceID: 0, Channel: 'Master' }
+            },
+            SetVolume: {
+                service: 'RenderingControl',
+                path: '/MediaRenderer/RenderingControl/Control',
+                params: { InstanceID: 0, Channel: 'Master', DesiredVolume: null }
+            }
+        };
+
+        // Build SOAP XML from template
+        function buildSoapXml(action, service, params) {
+            const xmlns = service === 'AVTransport' ? 'urn:schemas-upnp-org:service:AVTransport:1' : 'urn:schemas-upnp-org:service:RenderingControl:1';
+
+            let paramsXml = '';
+            for (const [key, value] of Object.entries(params)) {
+                if (value !== null) {
+                    paramsXml += `      <${key}>${value}</${key}>\n`;
+                }
+            }
+
+            return `<?xml version="1.0" encoding="utf-8"?>
 <s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
   <s:Body>
-    <u:Play xmlns:u="urn:schemas-upnp-org:service:AVTransport:1">
-      <InstanceID>0</InstanceID>
-      <Speed>1</Speed>
-    </u:Play>
+    <u:${action} xmlns:u="${xmlns}">
+${paramsXml.trimEnd()}
+    </u:${action}>
   </s:Body>
 </s:Envelope>`;
+        }
 
-            const result = await sonosSoapRequest(
-                ip,
-                '/MediaRenderer/AVTransport/Control',
-                '"urn:schemas-upnp-org:service:AVTransport:1#Play"',
-                soapBody
-            );
+        // Generic Sonos command function
+        async function sonosCommand(ip, commandName, extraParams = {}) {
+            const template = SONOS_COMMANDS[commandName];
+            if (!template) {
+                console.error(`Unknown Sonos command: ${commandName}`);
+                return { ok: false, error: 'Unknown command' };
+            }
 
+            const params = { ...template.params, ...extraParams };
+            const soapBody = buildSoapXml(commandName, template.service, params);
+            const soapAction = `"urn:schemas-upnp-org:service:${template.service}:1#${commandName}"`;
+
+            return await sonosSoapRequest(ip, template.path, soapAction, soapBody);
+        }
+
+        async function sonosPlay(ip) {
+            const result = await sonosCommand(ip, 'Play');
             return result.ok;
         }
 
         async function sonosPause(ip) {
-            const soapBody = `<?xml version="1.0" encoding="utf-8"?>
-<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-  <s:Body>
-    <u:Pause xmlns:u="urn:schemas-upnp-org:service:AVTransport:1">
-      <InstanceID>0</InstanceID>
-    </u:Pause>
-  </s:Body>
-</s:Envelope>`;
-
-            const result = await sonosSoapRequest(
-                ip,
-                '/MediaRenderer/AVTransport/Control',
-                '"urn:schemas-upnp-org:service:AVTransport:1#Pause"',
-                soapBody
-            );
-
+            const result = await sonosCommand(ip, 'Pause');
             return result.ok;
         }
 
         async function sonosGetVolume(ip) {
-            const soapBody = `<?xml version="1.0" encoding="utf-8"?>
-<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-  <s:Body>
-    <u:GetVolume xmlns:u="urn:schemas-upnp-org:service:RenderingControl:1">
-      <InstanceID>0</InstanceID>
-      <Channel>Master</Channel>
-    </u:GetVolume>
-  </s:Body>
-</s:Envelope>`;
-
-            const result = await sonosSoapRequest(
-                ip,
-                '/MediaRenderer/RenderingControl/Control',
-                '"urn:schemas-upnp-org:service:RenderingControl:1#GetVolume"',
-                soapBody
-            );
-
+            const result = await sonosCommand(ip, 'GetVolume');
             if (result.ok) {
                 const match = result.body.match(/<CurrentVolume>(\d+)<\/CurrentVolume>/);
                 return match ? parseInt(match[1]) : 0;
@@ -5369,24 +5447,7 @@
         }
 
         async function sonosSetVolume(ip, volume) {
-            const soapBody = `<?xml version="1.0" encoding="utf-8"?>
-<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/" s:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
-  <s:Body>
-    <u:SetVolume xmlns:u="urn:schemas-upnp-org:service:RenderingControl:1">
-      <InstanceID>0</InstanceID>
-      <Channel>Master</Channel>
-      <DesiredVolume>${volume}</DesiredVolume>
-    </u:SetVolume>
-  </s:Body>
-</s:Envelope>`;
-
-            const result = await sonosSoapRequest(
-                ip,
-                '/MediaRenderer/RenderingControl/Control',
-                '"urn:schemas-upnp-org:service:RenderingControl:1#SetVolume"',
-                soapBody
-            );
-
+            const result = await sonosCommand(ip, 'SetVolume', { DesiredVolume: volume });
             return result.ok;
         }
 
