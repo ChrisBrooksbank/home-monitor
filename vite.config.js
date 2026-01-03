@@ -1,8 +1,14 @@
 import { defineConfig } from 'vite';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   // Base public path
   base: './',
+
+  // Define global constants
+  define: {
+    __DEV__: mode === 'development',
+    __PROD__: mode === 'production'
+  },
 
   // Server configuration
   server: {
@@ -57,4 +63,4 @@ export default defineConfig({
     port: 4173,
     open: true
   }
-});
+}));

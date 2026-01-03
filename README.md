@@ -47,63 +47,129 @@ A real-time, interactive dashboard for monitoring Philips Hue sensors throughout
 - App-like experience in standalone mode
 - Custom themed app icon with house design
 
+🎵 **Sonos Speaker Control**
+- Control Sonos speakers in bedroom, office, and lounge
+- Play/pause, volume control
+- SOAP/UPnP integration via proxy server
+
+🔌 **TP-Link Tapo Smart Plugs**
+- Toggle smart plugs on/off from the UI
+- UK socket faceplate design with rocker switch
+- Control tree lights, winter lights, and extension plugs
+
+📺 **NVIDIA SHIELD TV Integration**
+- Launch apps (Netflix, YouTube, Plex, Spotify, etc.)
+- ADB-based control via proxy server
+
+🌡️ **Google Nest Thermostat**
+- Display current and target temperatures
+- Visual thermostat control
+
 ## Setup
 
-1. **Copy the example config:**
+### Prerequisites
+- Node.js 18+ (for development server and proxy servers)
+- npm (comes with Node.js)
+
+### Quick Start
+
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+2. **Create environment file:**
+   ```bash
+   # Copy the template
+   cp .env.example .env
+
+   # Or on Windows
+   copy .env.example .env
+   ```
+
+3. **Configure credentials in `.env`:**
+   ```env
+   # Tapo smart plug credentials (required)
+   TAPO_EMAIL=your-email@example.com
+   TAPO_PASSWORD=your-password
+
+   # Frontend origin for CORS (default is fine for development)
+   FRONTEND_ORIGIN=http://localhost:5173
+
+   NODE_ENV=development
+   ```
+
+4. **Configure Hue Bridge:**
    ```bash
    copy config.example.js config.js
    ```
+   - Edit `config.js` with your Hue Bridge IP and username
+   - See Philips Hue API documentation for generating API username
 
-2. **Edit config.js with your Hue Bridge details:**
-   - Find your Bridge IP address
-   - Generate an API username (see Philips Hue API documentation)
+5. **Add weather API key (optional but recommended):**
+   - Sign up at [weatherapi.com/signup.aspx](https://www.weatherapi.com/signup.aspx)
+   - Add your API key to `WEATHER_CONFIG.API_KEY` in `config.js`
+   - Free tier: 1 million calls/month
 
-3. **Add weather API key (optional but recommended):**
-   - Sign up for a free API key at [weatherapi.com/signup.aspx](https://www.weatherapi.com/signup.aspx)
-   - Add your API key to `WEATHER_CONFIG.API_KEY` in config.js
-   - Update `LOCATION` with your postcode/location
-   - Free tier allows 1 million calls per month (plenty for 15-minute updates)
-
-4. **Open the page:**
+6. **Start the application:**
+   ```bash
+   npm start
    ```
-   index.html
+   This starts:
+   - Vite dev server (port 5173)
+   - Sonos proxy (port 3000)
+   - Tapo proxy (port 3001)
+   - SHIELD proxy (port 8082)
+
+7. **Open in browser:**
+   ```
+   http://localhost:5173
    ```
 
-## Hosting as a PWA
+### 📖 Documentation
+- **QUICK_START.md** - Fast setup guide
+- **REFACTORING.md** - Technical architecture details
+- **IMPLEMENTATION_SUMMARY.md** - Recent improvements
 
-To enable PWA features (offline support, installation), you need to serve the app over HTTP/HTTPS:
+## Development Commands
 
-### Option 1: Using Node.js (Recommended)
 ```bash
-# Install http-server globally (one-time)
-npm install -g http-server
+# Development
+npm start              # Start all services (Vite + proxies)
+npm run dev            # Start only Vite dev server
 
-# Start the server
-http-server -p 8080
+# Individual proxies
+npm run proxy:sonos    # Sonos proxy (port 3000)
+npm run proxy:tapo     # Tapo proxy (port 3001)
+npm run proxy:shield   # SHIELD proxy (port 8082)
+
+# Code quality
+npm run lint           # Check code for issues
+npm run lint:fix       # Auto-fix linting issues
+npm run format         # Format all code
+npm run format:check   # Check code formatting
+
+# Production
+npm run build          # Build for production (outputs to dist/)
+npm run preview        # Preview production build
 ```
 
-### Option 2: Using Python
-```bash
-# Python 3
-python -m http.server 8080
+## Health Checks
 
-# Python 2
-python -m SimpleHTTPServer 8080
+Verify proxy servers are running:
+```bash
+curl http://localhost:3000/health  # Sonos
+curl http://localhost:3001/health  # Tapo
+curl http://localhost:8082/health  # SHIELD
 ```
 
-### Option 3: Using PHP
-```bash
-php -S localhost:8080
-```
+## Installing as PWA
 
-### Installing the PWA
-
-1. Open `http://localhost:8080` in Chrome, Edge, or Safari
-2. Look for the install button (⊕ or download icon) in the address bar
-3. Click install to add the app to your device
-4. The app will work offline once installed
-
-**Note:** The service worker requires a web server to function. Opening `index.html` directly from the filesystem will not enable PWA features.
+1. Start the dev server: `npm start`
+2. Open `http://localhost:5173` in Chrome, Edge, or Safari
+3. Look for the install button (⊕) in the address bar
+4. Click install to add the app to your device
+5. Works offline once installed
 
 ## Room Layout
 
@@ -132,14 +198,35 @@ php -S localhost:8080
 
 ## Technologies
 
-- Vanilla JavaScript
-- SVG graphics
+### Frontend
+- Vanilla JavaScript (ES6+ modules)
+- SVG graphics for house visualization
 - Web Speech API (voice announcements)
-- Philips Hue Bridge API
-- WeatherAPI.com (outdoor weather data)
-- LocalStorage for 24-hour history
+- Vite (development server and build tool)
 - Service Workers (offline support)
 - Web App Manifest (PWA installation)
+
+### Backend
+- Node.js proxy servers
+- Philips Hue Bridge API
+- Sonos SOAP/UPnP protocol
+- TP-Link Tapo smart plug API
+- NVIDIA SHIELD ADB control
+- Google Nest API
+- WeatherAPI.com
+
+### Development
+- ESLint (code linting)
+- Prettier (code formatting)
+- dotenv (environment variables)
+- Concurrently (run multiple servers)
+
+### Architecture
+- Modular code structure (feature-based)
+- Centralized configuration
+- DRY middleware for proxies
+- Health check endpoints
+- CORS security
 
 ## Generated with
 

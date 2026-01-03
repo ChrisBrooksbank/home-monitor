@@ -2,6 +2,9 @@
 config.js
 nest-config.js
 nest-config.json
+.env
+.env.local
+.env.*.local
 
 # Development/testing utilities (kept in repo under scripts/)
 # Note: Setup and testing scripts are now organized in scripts/ folder

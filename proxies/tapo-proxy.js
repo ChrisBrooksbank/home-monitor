@@ -1,19 +1,30 @@
 // Tapo Smart Plug Proxy Server
 // Allows web interface to control Tapo devices
-const http = require('http');
-const { loginDeviceByIp } = require('tp-link-tapo-connect');
+import http from 'http';
+import dotenv from 'dotenv';
+import { loginDeviceByIp } from 'tp-link-tapo-connect';
+import { PLUGS } from '../scripts/control/tapo-control.js';
+
+// Load environment variables
+dotenv.config();
 
 const PORT = 3001;
+const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
 
-// Load configuration from tapo-control.js
-const tapoControl = require('../scripts/control/tapo-control.js');
-const TAPO_EMAIL = process.env.TAPO_EMAIL || 'chrisbrooksbank@gmail.com';
-const TAPO_PASSWORD = process.env.TAPO_PASSWORD || 'Monty@28';
-const PLUGS = tapoControl.PLUGS;
+// Load credentials from environment - REQUIRED
+const TAPO_EMAIL = process.env.TAPO_EMAIL;
+const TAPO_PASSWORD = process.env.TAPO_PASSWORD;
+
+if (!TAPO_EMAIL || !TAPO_PASSWORD) {
+    console.error('ERROR: TAPO_EMAIL and TAPO_PASSWORD environment variables are required');
+    console.error('Please create a .env file with your Tapo credentials');
+    console.error('See .env.example for template');
+    process.exit(1);
+}
 
 const server = http.createServer(async (req, res) => {
-    // Enable CORS
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    // Enable CORS with restricted origin
+    res.setHeader('Access-Control-Allow-Origin', FRONTEND_ORIGIN);
     res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
@@ -27,6 +38,18 @@ const server = http.createServer(async (req, res) => {
     // Parse URL
     const url = new URL(req.url, `http://localhost:${PORT}`);
     const path = url.pathname;
+
+    // GET /health - Health check endpoint
+    if (req.method === 'GET' && path === '/health') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+            status: 'ok',
+            service: 'tapo-proxy',
+            uptime: process.uptime(),
+            timestamp: new Date().toISOString()
+        }));
+        return;
+    }
 
     // GET /plugs - List all configured plugs
     if (req.method === 'GET' && path === '/plugs') {

@@ -1,7 +1,11 @@
 // NVIDIA SHIELD Control Library
 // Uses Google Cast protocol to control SHIELD Android TV
 
-const http = require('http');
+import http from 'http';
+import { exec as execCallback } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(execCallback);
 
 const SHIELD_IP = '192.168.68.63';
 const SHIELD_PORT = 8008;
@@ -23,10 +27,6 @@ const APPS = {
  * Requires: ADB installed and SHIELD with debugging enabled
  */
 async function launchApp(appName) {
-    const { exec } = require('child_process');
-    const { promisify } = require('util');
-    const execAsync = promisify(exec);
-
     const appPackages = {
         netflix: 'com.netflix.ninja/.MainActivity',
         youtube: 'com.google.android.youtube.tv/com.google.android.apps.youtube.tv.activity.ShellActivity',
@@ -85,10 +85,6 @@ async function launchApp(appName) {
  * Stop the currently running app / Go to home screen
  */
 async function stopApp() {
-    const { exec } = require('child_process');
-    const { promisify } = require('util');
-    const execAsync = promisify(exec);
-
     console.log('📺 Returning to home screen...');
 
     try {
@@ -146,7 +142,7 @@ async function sendNotification(message) {
 }
 
 // Export functions
-module.exports = {
+export {
     launchApp,
     stopApp,
     getDeviceInfo,
@@ -155,7 +151,7 @@ module.exports = {
 };
 
 // CLI usage
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1].replace(/\\/g, '/')}`) {
     const args = process.argv.slice(2);
 
     if (args.length === 0) {

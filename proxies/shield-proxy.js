@@ -1,14 +1,19 @@
 // NVIDIA SHIELD Proxy Server
 // Provides HTTP API for SHIELD control from the web UI
 
-const http = require('http');
-const shieldControl = require('../scripts/control/shield-control');
+import http from 'http';
+import dotenv from 'dotenv';
+import * as shieldControl from '../scripts/control/shield-control.js';
+
+// Load environment variables
+dotenv.config();
 
 const PORT = 8082; // Different from Sonos proxy (8081)
+const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
 
 const server = http.createServer(async (req, res) => {
-    // Enable CORS for local development
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    // Enable CORS with restricted origin
+    res.setHeader('Access-Control-Allow-Origin', FRONTEND_ORIGIN);
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-App-Name');
 
@@ -72,7 +77,12 @@ const server = http.createServer(async (req, res) => {
         // Health check
         if (req.url === '/health' && req.method === 'GET') {
             res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ status: 'ok', service: 'shield-proxy' }));
+            res.end(JSON.stringify({
+                status: 'ok',
+                service: 'shield-proxy',
+                uptime: process.uptime(),
+                timestamp: new Date().toISOString()
+            }));
             return;
         }
 

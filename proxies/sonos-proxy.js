@@ -1,9 +1,14 @@
 // Simple CORS proxy for Sonos controls
-const http = require('http');
-const url = require('url');
+import http from 'http';
+import url from 'url';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
 
 const PORT = 3000;
 const SONOS_PORT = 1400;
+const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
 
 // Known Sonos speakers
 const SPEAKERS = {
@@ -13,8 +18,8 @@ const SPEAKERS = {
 };
 
 const server = http.createServer((req, res) => {
-    // Enable CORS
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    // Enable CORS with restricted origin
+    res.setHeader('Access-Control-Allow-Origin', FRONTEND_ORIGIN);
     res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, SOAPAction, X-Sonos-IP');
 
@@ -28,6 +33,18 @@ const server = http.createServer((req, res) => {
     // Parse request URL
     const parsedUrl = url.parse(req.url, true);
     const path = parsedUrl.pathname;
+
+    // GET /health - Health check endpoint
+    if (req.method === 'GET' && path === '/health') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+            status: 'ok',
+            service: 'sonos-proxy',
+            uptime: process.uptime(),
+            timestamp: new Date().toISOString()
+        }));
+        return;
+    }
 
     // Get target Sonos IP from custom header
     const targetIP = req.headers['x-sonos-ip'];

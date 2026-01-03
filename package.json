@@ -9,13 +9,23 @@
     "preview": "vite preview",
     "proxy:sonos": "node proxies/sonos-proxy.js",
     "proxy:tapo": "node proxies/tapo-proxy.js",
-    "proxy:shield": "node proxies/shield-proxy.js"
+    "proxy:shield": "node proxies/shield-proxy.js",
+    "start": "concurrently \"npm:dev\" \"npm:proxy:*\" --names \"vite,sonos,tapo,shield\" --prefix-colors \"cyan,green,yellow,magenta\"",
+    "lint": "eslint . --ext .js",
+    "lint:fix": "eslint . --ext .js --fix",
+    "format": "prettier --write \"**/*.{js,json,md}\"",
+    "format:check": "prettier --check \"**/*.{js,json,md}\""
   },
   "dependencies": {
     "canvas": "^3.2.0",
+    "dotenv": "^17.2.3",
     "tp-link-tapo-connect": "^2.0.8"
   },
   "devDependencies": {
+    "concurrently": "^9.2.1",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.7.4",
     "vite": "^5.0.0"
   },
   "engines": {

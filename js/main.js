@@ -744,7 +744,16 @@
             const savedPosition = localStorage.getItem(storageKey);
             if (savedPosition) {
                 const position = JSON.parse(savedPosition);
-                element.setAttribute('transform', `translate(${position.x}, ${position.y})`);
+                // Preserve any existing scale/rotate in the transform
+                const currentTransform = element.getAttribute('transform') || '';
+                const scaleMatch = currentTransform.match(/scale\([^)]+\)/);
+                const rotateMatch = currentTransform.match(/rotate\([^)]+\)/);
+
+                let newTransform = `translate(${position.x}, ${position.y})`;
+                if (scaleMatch) newTransform += ` ${scaleMatch[0]}`;
+                if (rotateMatch) newTransform += ` ${rotateMatch[0]}`;
+
+                element.setAttribute('transform', newTransform);
             }
         }
 
@@ -788,11 +797,14 @@
                 startX = clientX;
                 startY = clientY;
 
-                const transform = element.getAttribute('transform');
+                const transform = element.getAttribute('transform') || '';
                 const match = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
                 currentTransform = {
                     x: parseFloat(match[1]),
-                    y: parseFloat(match[2])
+                    y: parseFloat(match[2]),
+                    // Preserve any scale/rotate transforms
+                    scale: transform.match(/scale\([^)]+\)/)?.[0] || '',
+                    rotate: transform.match(/rotate\([^)]+\)/)?.[0] || ''
                 };
 
                 element.style.opacity = '0.7';
@@ -817,10 +829,13 @@
                 if (onMove) {
                     onMove({ dx, dy, clientX, clientY, startX, startY, currentTransform, element });
                 } else {
-                    // Default behavior: update position
+                    // Default behavior: update position while preserving scale/rotate
                     const newX = currentTransform.x + dx;
                     const newY = currentTransform.y + dy;
-                    element.setAttribute('transform', `translate(${newX}, ${newY})`);
+                    let newTransform = `translate(${newX}, ${newY})`;
+                    if (currentTransform.scale) newTransform += ` ${currentTransform.scale}`;
+                    if (currentTransform.rotate) newTransform += ` ${currentTransform.rotate}`;
+                    element.setAttribute('transform', newTransform);
                 }
             }
 
@@ -3962,7 +3977,10 @@ ${paramsXml.trimEnd()}
 
         function setupSonosRoom(config) {
             const panel = document.getElementById(config.controlsId);
-            if (!panel) return;
+            if (!panel) {
+                Logger.error(`Panel not found: ${config.controlsId}`);
+                return;
+            }
 
             // Load saved position from localStorage
             loadSavedPosition(panel, config.storageKey);
@@ -3975,6 +3993,8 @@ ${paramsXml.trimEnd()}
             const pauseBtn = document.getElementById(`sonos-${config.name}-pause`);
             const volUpBtn = document.getElementById(`sonos-${config.name}-volup`);
             const volDownBtn = document.getElementById(`sonos-${config.name}-voldown`);
+
+            Logger.info(`Setting up ${config.name}: play=${!!playBtn}, pause=${!!pauseBtn}, volUp=${!!volUpBtn}, volDown=${!!volDownBtn}`);
 
             if (playBtn) {
                 playBtn.addEventListener('click', async (e) => {

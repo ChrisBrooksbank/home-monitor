@@ -1,7 +1,7 @@
 // Tapo P105 Smart Plug Control
 // Install: npm install tp-link-tapo-connect
 
-const { loginDeviceByIp } = require('tp-link-tapo-connect');
+import { loginDeviceByIp } from 'tp-link-tapo-connect';
 
 // ========================================
 // CONFIGURATION - UPDATE THESE VALUES
@@ -13,6 +13,8 @@ const TAPO_PASSWORD = 'Monty@28';
 // Define your Tapo P105 plugs
 const PLUGS = {
     'tree': '192.168.68.77',
+    'winter': '192.168.68.72',
+    'extension': '192.168.68.80'
 };
 
 // ========================================
@@ -155,7 +157,7 @@ async function getAllStatus() {
 // CLI INTERFACE
 // ========================================
 
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1].replace(/\\/g, '/')}`) {
     const args = process.argv.slice(2);
 
     if (args.length === 0) {
@@ -219,7 +221,7 @@ if (require.main === module) {
 }
 
 // Export functions for use in other scripts
-module.exports = {
+export {
     turnOn,
     turnOff,
     toggle,
