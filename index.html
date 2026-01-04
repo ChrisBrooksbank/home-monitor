@@ -648,18 +648,27 @@
 
     </div>
 
+    <!-- Global Configuration (must load before modules) -->
     <script src="config.js"></script>
     <script src="nest-config.js"></script>
 
-    <!-- Refactored Modular Architecture -->
-    <!-- Load in dependency order: config → utils → API → main app -->
+    <!-- Shared utilities needed by non-module scripts -->
     <script src="js/config.js"></script>
     <script src="js/utils/logger.js"></script>
     <script src="js/utils/helpers.js"></script>
     <script src="js/api/sonos.js"></script>
     <script src="js/api/tapo.js"></script>
-    <script src="js/main.js"></script>
 
+    <!-- Main Application - NEW MODULAR VERSION -->
+    <script src="js/app.js"></script>
+
+    <!--
+    ==========================================================================
+    LEGACY main.js (kept for reference, can be deleted once app.js is verified)
+    To revert: comment out app.js above, uncomment main.js below
+    <script src="js/main.js"></script>
+    ==========================================================================
+    -->
 
     <!-- Service Worker Registration -->
     <script>
@@ -667,10 +676,10 @@
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('/service-worker.js')
                     .then((registration) => {
-                        Logger.info('Service Worker registered successfully:', registration.scope);
+                        console.log('Service Worker registered:', registration.scope);
                     })
                     .catch((error) => {
-                        Logger.info('Service Worker registration failed:', error);
+                        console.log('Service Worker registration failed:', error);
                     });
             });
         }
