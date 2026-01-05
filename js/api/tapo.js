@@ -95,7 +95,7 @@ const TapoAPI = {
     },
 
     /**
-     * Get list of configured plugs
+     * Get list of discovered plugs
      */
     async getPlugs() {
         try {
@@ -106,7 +106,29 @@ const TapoAPI = {
             return await response.json();
         } catch (error) {
             Logger.error('Failed to get Tapo plugs:', error.message);
-            return { plugs: {} };
+            return { plugs: {}, count: 0 };
+        }
+    },
+
+    /**
+     * Trigger network discovery for Tapo plugs
+     * Scans network and updates the plug list
+     */
+    async discover() {
+        Logger.info('Starting Tapo plug discovery...');
+        try {
+            const response = await fetch(`${this.proxyUrl}/discover`, {
+                method: 'POST',
+                signal: AbortSignal.timeout(60000) // 60s timeout for discovery
+            });
+            const result = await response.json();
+            if (result.success) {
+                Logger.success(`Discovered ${result.count} Tapo plugs`);
+            }
+            return result;
+        } catch (error) {
+            Logger.error('Discovery failed:', error.message);
+            throw error;
         }
     },
 

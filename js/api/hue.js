@@ -164,6 +164,60 @@ const HueAPI = {
             }
         }
         return lightSensors;
+    },
+
+    /**
+     * Discover Hue bridge on the network
+     * Probes /api/config endpoint which requires no auth
+     * @param {string} baseIp - Base IP (e.g., '192.168.68')
+     * @param {number} start - Start of range
+     * @param {number} end - End of range
+     * @returns {Promise<Object|null>} - Bridge info or null
+     */
+    async discover(baseIp = '192.168.68', start = 50, end = 90) {
+        Logger.info('Scanning for Hue bridges...');
+
+        for (let i = start; i <= end; i++) {
+            const ip = `${baseIp}.${i}`;
+            try {
+                const response = await fetch(`http://${ip}/api/config`, {
+                    signal: AbortSignal.timeout(1500)
+                });
+                if (response.ok) {
+                    const config = await response.json();
+                    if (config.bridgeid && config.modelid) {
+                        Logger.success(`Found Hue bridge: ${config.name} @ ${ip}`);
+                        return {
+                            ip,
+                            name: config.name,
+                            model: config.modelid,
+                            bridgeId: config.bridgeid,
+                            apiVersion: config.apiversion
+                        };
+                    }
+                }
+            } catch {
+                // Continue scanning
+            }
+        }
+        Logger.warn('No Hue bridge found');
+        return null;
+    },
+
+    /**
+     * Get bridge info (no auth required)
+     * @returns {Promise<Object|null>} - Bridge config or null
+     */
+    async getBridgeInfo() {
+        try {
+            const config = getBridgeConfig();
+            const response = await fetch(`http://${config.ip}/api/config`);
+            if (!response.ok) return null;
+            return await response.json();
+        } catch (error) {
+            Logger.error('Error getting bridge info:', error);
+            return null;
+        }
     }
 };
 

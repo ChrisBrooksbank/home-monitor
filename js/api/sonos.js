@@ -146,11 +146,48 @@ ${paramsXml.trimEnd()}
     },
 
     /**
+     * Get list of discovered speakers
+     */
+    async getSpeakers() {
+        try {
+            const response = await fetch(`${this.proxyUrl}/speakers`, {
+                method: 'GET',
+                signal: AbortSignal.timeout(APP_CONFIG.timeouts.proxyCheck)
+            });
+            return await response.json();
+        } catch (error) {
+            Logger.error('Failed to get Sonos speakers:', error.message);
+            return { speakers: {}, count: 0 };
+        }
+    },
+
+    /**
+     * Trigger network discovery for Sonos speakers
+     */
+    async discover() {
+        Logger.info('Starting Sonos speaker discovery...');
+        try {
+            const response = await fetch(`${this.proxyUrl}/discover`, {
+                method: 'POST',
+                signal: AbortSignal.timeout(60000)
+            });
+            const result = await response.json();
+            if (result.success) {
+                Logger.success(`Discovered ${result.count} Sonos speakers`);
+            }
+            return result;
+        } catch (error) {
+            Logger.error('Discovery failed:', error.message);
+            throw error;
+        }
+    },
+
+    /**
      * Check if Sonos proxy is available
      */
     async checkAvailability() {
         return await checkProxyAvailability(
-            `${this.proxyUrl}/MediaRenderer/AVTransport/Control`,
+            `${this.proxyUrl}/speakers`,
             'Sonos'
         );
     }

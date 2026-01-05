@@ -4,17 +4,26 @@
 import { loginDeviceByIp } from 'tp-link-tapo-connect';
 
 // ========================================
-// CONFIGURATION - UPDATE THESE VALUES
+// CONFIGURATION - Set in .env file
 // ========================================
+import dotenv from 'dotenv';
+dotenv.config();
 
-const TAPO_EMAIL = 'chrisbrooksbank@gmail.com';
-const TAPO_PASSWORD = 'Monty@28';
+const TAPO_EMAIL = process.env.TAPO_EMAIL;
+const TAPO_PASSWORD = process.env.TAPO_PASSWORD;
 
-// Define your Tapo P105 plugs
+if (!TAPO_EMAIL || !TAPO_PASSWORD) {
+    console.error('ERROR: Set TAPO_EMAIL and TAPO_PASSWORD in .env file');
+}
+
+// Define your Tapo P105 plugs (auto-discovered 2025-01-05)
 const PLUGS = {
-    'tree': '192.168.68.77',
-    'winter': '192.168.68.72',
-    'extension': '192.168.68.80'
+    'tree': '192.168.68.62',
+    'winter-lights': '192.168.68.59',
+    'extension-plug': '192.168.68.50',
+    'tv-plug': '192.168.68.60',
+    'office-plug-1': '192.168.68.76',
+    'bedroom-plug': '192.168.68.78'
 };
 
 // ========================================
