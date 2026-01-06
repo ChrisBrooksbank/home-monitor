@@ -679,6 +679,23 @@
             });
         }
 
+        // Setup weather panel dragging
+        const weatherPanel = document.getElementById('weather-info-panel');
+        if (weatherPanel && typeof createDraggable === 'function') {
+            loadSavedPosition(weatherPanel, 'weatherPanelPosition');
+            createDraggable(weatherPanel, { storageKey: 'weatherPanelPosition' });
+        }
+
+        // Setup jukebox (light effects) dragging
+        const jukebox = document.getElementById('jukebox');
+        if (jukebox && typeof createDraggable === 'function') {
+            loadSavedPosition(jukebox, 'jukeboxPosition');
+            createDraggable(jukebox, {
+                storageKey: 'jukeboxPosition',
+                excludeSelector: '.jukebox-button'
+            });
+        }
+
         // Register polling intervals
         IntervalManager.register(loadMotionSensors, APP_CONFIG.intervals.motionSensors);
         IntervalManager.register(loadLights, APP_CONFIG.intervals.lights);
