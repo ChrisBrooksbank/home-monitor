@@ -76,11 +76,14 @@ async function restoreLightStates(onComplete) {
         await setLightState(lightId, state);
         await new Promise(resolve => setTimeout(resolve, 50));
     }
-    effectInProgress = false;
 
-    if (onComplete) {
-        setTimeout(onComplete, 500);
-    }
+    // Keep effectInProgress true for a bit longer to suppress voice announcements
+    // during the next polling cycle (lights poll every 10 seconds)
+    setTimeout(() => {
+        effectInProgress = false;
+        window.effectInProgress = false;
+        if (onComplete) onComplete();
+    }, 12000);
 }
 
 /**
@@ -279,25 +282,52 @@ async function sunsetMode(onComplete) {
 }
 
 /**
- * Initialize effects and expose to window
+ * Initialize effects and wire up jukebox buttons
  */
 function initEffects() {
+    // Expose to window
     window.redAlert = redAlert;
     window.partyMode = partyMode;
     window.discoMode = discoMode;
     window.waveEffect = waveEffect;
     window.sunsetMode = sunsetMode;
     window.effectInProgress = false;
+
+    // Wire up jukebox buttons
+    const buttonMap = {
+        'jukebox-btn-1': redAlert,      // Red Alert
+        'jukebox-btn-2': partyMode,     // Party
+        'jukebox-btn-3': discoMode,     // Disco
+        'jukebox-btn-4': waveEffect,    // Wave
+        'jukebox-btn-5': sunsetMode     // Sunset
+    };
+
+    for (const [btnId, effectFn] of Object.entries(buttonMap)) {
+        const btn = document.getElementById(btnId);
+        if (btn) {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                effectFn();
+            });
+        }
+    }
+
+    Logger.info('Light effects initialized');
 }
 
-// Export for ES6 modules
-export {
-    initEffects,
+// Expose for other scripts
+window.LightEffects = {
     redAlert,
     partyMode,
     discoMode,
     waveEffect,
     sunsetMode,
-    isEffectInProgress,
-    runLightEffect
+    isEffectInProgress
 };
+
+// Auto-initialize when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initEffects);
+} else {
+    initEffects();
+}
