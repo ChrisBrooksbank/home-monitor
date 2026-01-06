@@ -127,6 +127,7 @@
     // =============================================================================
 
     function mapLightToRoom(lightName) {
+        if (!lightName) return null;
         const nameLower = lightName.toLowerCase();
         for (const [pattern, room] of Object.entries(lightMappings)) {
             if (new RegExp(pattern, 'i').test(nameLower)) {
@@ -137,6 +138,7 @@
     }
 
     function mapMotionSensorToRoom(sensorName) {
+        if (!sensorName) return null;
         const nameLower = sensorName.toLowerCase();
         for (const [pattern, room] of Object.entries(motionSensorMappings)) {
             if (new RegExp(pattern, 'i').test(nameLower)) {

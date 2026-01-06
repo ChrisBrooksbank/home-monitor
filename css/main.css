@@ -784,3 +784,36 @@
                 transform: scale(0.9) translateY(-5px);
             }
         }
+
+        /* Tapo Smart Plug Controls */
+        .tapo-plug-control {
+            cursor: move;
+        }
+
+        .tapo-plug-control .faceplate {
+            transition: filter 0.2s ease;
+        }
+
+        .tapo-plug-control:hover .faceplate {
+            filter: brightness(1.05);
+        }
+
+        .tapo-toggle {
+            transition: transform 0.1s ease;
+        }
+
+        .tapo-toggle:hover {
+            transform: translate(0, -18) scale(1.05);
+        }
+
+        .tapo-toggle:active {
+            transform: translate(0, -18) scale(0.95);
+        }
+
+        .toggle-knob {
+            transition: transform 0.2s ease;
+        }
+
+        .tapo-plug-control .plug-title {
+            pointer-events: none;
+        }

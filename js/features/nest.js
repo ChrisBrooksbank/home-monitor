@@ -449,14 +449,20 @@ function getDevices() {
     return nestDevices;
 }
 
-// Export for ES6 modules
-export {
-    initNestIntegration,
-    fetchNestDevices,
-    setNestTemperature,
-    updateNestDisplay,
-    updateNestVisualDisplay,
-    getThermostatStatus,
-    makeNestDraggable,
-    getDevices
+// Expose for other scripts
+window.NestIntegration = {
+    init: initNestIntegration,
+    fetchDevices: fetchNestDevices,
+    setTemperature: setNestTemperature,
+    updateDisplay: updateNestDisplay,
+    getDevices: getDevices
 };
+
+// Auto-initialize when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        initNestIntegration(IntervalManager, APP_CONFIG.intervals.nest);
+    });
+} else {
+    initNestIntegration(IntervalManager, APP_CONFIG.intervals.nest);
+}
