@@ -250,19 +250,14 @@
         }
 
         .thermometer:hover {
-            animation: thermometer-pulse 1.5s ease-in-out infinite;
-        }
-
-        @keyframes thermometer-pulse {
-            0%, 100% { transform: scale(1) translateY(0); }
-            50% { transform: scale(1.05) translateY(-2px); filter: brightness(1.1); }
+            filter: brightness(1.1);
         }
 
         /* Touch-friendly improvements */
         @media (hover: none) and (pointer: coarse) {
             /* Remove hover effects on touch devices */
             .thermometer:hover {
-                animation: none;
+                filter: none;
             }
 
             .refresh-btn:hover {

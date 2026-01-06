@@ -358,6 +358,13 @@
         const container = document.getElementById(containerId);
         if (container) container.appendChild(group);
 
+        // Make thermometer draggable
+        if (typeof createDraggable === 'function') {
+            const storageKey = `thermometer-${elementId}`;
+            loadSavedPosition(group, storageKey);
+            createDraggable(group, { storageKey: storageKey });
+        }
+
         return tempText;
     }
 

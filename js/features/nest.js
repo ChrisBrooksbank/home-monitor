@@ -318,18 +318,7 @@ function makeNestDraggable(group) {
         startY = clientY;
 
         if (e.shiftKey) {
-            // Position dragging mode
-            isDragging = true;
-            const transform = group.getAttribute('transform') || 'translate(0,0)';
-            const match = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
-            currentTransform = {
-                x: match ? parseFloat(match[1]) : 0,
-                y: match ? parseFloat(match[2]) : 0
-            };
-            group.style.cursor = 'move';
-            group.style.opacity = '0.7';
-        } else {
-            // Temperature adjustment mode
+            // Shift+drag = Temperature adjustment mode
             isAdjustingTemp = true;
             startTemp = getCurrentTargetTemp();
             currentAdjustedTemp = startTemp;
@@ -339,6 +328,17 @@ function makeNestDraggable(group) {
                 statusRing.setAttribute('stroke', '#4A90E2');
                 statusRing.setAttribute('opacity', '0.8');
             }
+        } else {
+            // Normal drag = Position dragging mode
+            isDragging = true;
+            const transform = group.getAttribute('transform') || 'translate(0,0)';
+            const match = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
+            currentTransform = {
+                x: match ? parseFloat(match[1]) : 0,
+                y: match ? parseFloat(match[2]) : 0
+            };
+            group.style.cursor = 'move';
+            group.style.opacity = '0.7';
         }
 
         e.preventDefault();
