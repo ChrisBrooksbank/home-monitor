@@ -442,10 +442,10 @@ function getMooseState() {
     return { ...mooseState };
 }
 
-// Export for ES6 modules
-export {
-    initMooseSystem,
-    showMoose,
-    getMooseState,
-    MOOSE_CONFIG
+// Expose to window for script tag usage
+window.MooseSystem = {
+    init: initMooseSystem,
+    show: showMoose,
+    getState: getMooseState,
+    config: MOOSE_CONFIG
 };

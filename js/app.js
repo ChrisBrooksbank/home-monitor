@@ -339,6 +339,89 @@
         return '#FF4500';
     }
 
+    /**
+     * Convert Hue light state to hex color
+     * Supports hue/sat mode and color temperature mode
+     */
+    function hueStateToColor(state) {
+        if (state.colormode === 'hs' && state.hue !== undefined) {
+            // Convert Hue's HSB to RGB
+            // Hue: 0-65535 -> 0-360, Sat: 0-254 -> 0-1, Bri: 0-254 -> 0-1
+            const h = (state.hue / 65535) * 360;
+            const s = state.sat / 254;
+            const v = state.bri / 254;
+            return hsvToHex(h, s, v);
+        } else if (state.colormode === 'ct' && state.ct !== undefined) {
+            // Color temperature (mireds): 153 (cold) to 500 (warm)
+            // Map to color: blue-white-yellow-orange
+            const ct = state.ct;
+            if (ct < 250) return '#E0EFFF'; // Cool white
+            if (ct < 350) return '#FFF5E0'; // Warm white
+            return '#FFE4C4'; // Very warm
+        } else if (state.colormode === 'xy' && state.xy) {
+            // CIE xy color - approximate conversion
+            return xyToHex(state.xy[0], state.xy[1], state.bri);
+        }
+        return '#FFD700'; // Default yellow for on lights
+    }
+
+    /**
+     * Convert HSV to hex color
+     */
+    function hsvToHex(h, s, v) {
+        const c = v * s;
+        const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+        const m = v - c;
+        let r, g, b;
+
+        if (h < 60) { r = c; g = x; b = 0; }
+        else if (h < 120) { r = x; g = c; b = 0; }
+        else if (h < 180) { r = 0; g = c; b = x; }
+        else if (h < 240) { r = 0; g = x; b = c; }
+        else if (h < 300) { r = x; g = 0; b = c; }
+        else { r = c; g = 0; b = x; }
+
+        const toHex = (n) => Math.round((n + m) * 255).toString(16).padStart(2, '0');
+        return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+    }
+
+    /**
+     * Convert CIE xy to hex (approximate)
+     */
+    function xyToHex(x, y, bri) {
+        // Simplified xy to RGB conversion
+        const z = 1 - x - y;
+        const Y = bri / 254;
+        const X = (Y / y) * x;
+        const Z = (Y / y) * z;
+
+        // Convert to RGB (sRGB)
+        let r = X * 1.656492 - Y * 0.354851 - Z * 0.255038;
+        let g = -X * 0.707196 + Y * 1.655397 + Z * 0.036152;
+        let b = X * 0.051713 - Y * 0.121364 + Z * 1.011530;
+
+        // Clamp and gamma correct
+        const gamma = (n) => n <= 0.0031308 ? 12.92 * n : 1.055 * Math.pow(n, 1/2.4) - 0.055;
+        r = Math.max(0, Math.min(1, gamma(r)));
+        g = Math.max(0, Math.min(1, gamma(g)));
+        b = Math.max(0, Math.min(1, gamma(b)));
+
+        const toHex = (n) => Math.round(n * 255).toString(16).padStart(2, '0');
+        return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+    }
+
+    /**
+     * Darken a hex color for stroke/border
+     */
+    function darkenColor(hex) {
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        const factor = 0.7;
+        const toHex = (n) => Math.round(n * factor).toString(16).padStart(2, '0');
+        return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+    }
+
     // =============================================================================
     // HISTORY MANAGEMENT
     // =============================================================================
@@ -650,8 +733,16 @@
                         announceLight(room, currentState);
                     }
                     previousLightStates[id] = currentState;
+
+                    // Extract color info for colored bulbs
+                    let color = null;
+                    if (light.state.on && light.state.colormode) {
+                        color = hueStateToColor(light.state);
+                    }
+
                     roomLights[room].push({
-                        id, name: light.name, on: currentState, reachable: light.state.reachable
+                        id, name: light.name, on: currentState, reachable: light.state.reachable,
+                        color: color
                     });
                 }
             }
@@ -688,6 +779,10 @@
                         if (sensor.state.presence && !wasDetected) {
                             logMotionEvent(room);
                             announceMotion(room);
+                            // Show monkey motion indicator
+                            if (window.MotionIndicators) {
+                                window.MotionIndicators.show(room);
+                            }
                         }
                         motionSensors[room].previousDetected = wasDetected;
                     }
@@ -734,8 +829,11 @@
                 bulb.setAttribute('cx', pos.x + offsetX);
                 bulb.setAttribute('cy', pos.y);
                 bulb.setAttribute('r', 6);
-                bulb.setAttribute('fill', light.on ? '#FFD700' : '#666');
-                bulb.setAttribute('stroke', light.on ? '#FFA500' : '#333');
+                // Use actual bulb color if available, otherwise default yellow/grey
+                const fillColor = light.on ? (light.color || '#FFD700') : '#666';
+                const strokeColor = light.on ? (light.color ? darkenColor(light.color) : '#FFA500') : '#333';
+                bulb.setAttribute('fill', fillColor);
+                bulb.setAttribute('stroke', strokeColor);
                 bulb.setAttribute('stroke-width', '1.5');
                 bulb.style.cursor = 'pointer';
                 if (light.on) bulb.setAttribute('filter', 'url(#glow)');
@@ -973,6 +1071,12 @@
         // External data
         IntervalManager.register(fetchSunTimes, APP_CONFIG.intervals.sunTimes);
         IntervalManager.register(updateWeatherDisplay, APP_CONFIG.intervals.weather);
+
+        // Initialize Moose (Monty) character system
+        if (window.MooseSystem) {
+            window.MooseSystem.init(false); // Set true for debug mode (30-60 sec intervals)
+            Logger.info('Moose system initialized - Monty will appear every 10-20 minutes');
+        }
 
         Logger.success('Home Monitor initialized!');
     }
