@@ -79,12 +79,20 @@ function tokenNeedsRefresh() {
  * @returns {Promise<Array|null>} - Array of devices or null
  */
 async function fetchNestDevices() {
+    Logger.info('Checking if token needs refresh...');
     if (tokenNeedsRefresh()) {
+        Logger.info('Token needs refresh, refreshing...');
         const refreshed = await refreshNestToken();
-        if (!refreshed) return null;
+        if (!refreshed) {
+            Logger.error('Token refresh failed');
+            return null;
+        }
+    } else {
+        Logger.info('Token still valid');
     }
 
     const config = getNestConfig();
+    Logger.info(`Calling Nest API for project: ${config.projectId}`);
 
     try {
         const response = await fetch(
@@ -95,12 +103,14 @@ async function fetchNestDevices() {
         );
 
         if (!response.ok) {
-            Logger.error('Nest API error:', response.status);
+            const errorText = await response.text();
+            Logger.error(`Nest API error ${response.status}: ${errorText}`);
             return null;
         }
 
         const data = await response.json();
         nestDevices = data.devices || [];
+        Logger.info(`Nest API returned ${nestDevices.length} devices`);
         return nestDevices;
     } catch (error) {
         Logger.error('Error fetching Nest devices:', error);
@@ -263,11 +273,15 @@ function updateNestVisualDisplay(currentTemp, targetTemp, status, statusColor) {
  * Update Nest display with fresh data
  */
 async function updateNestDisplay() {
+    Logger.info('Fetching Nest devices...');
     const devices = await fetchNestDevices();
 
     if (!devices || devices.length === 0) {
+        Logger.warn('No Nest devices returned from API');
         return;
     }
+
+    Logger.info(`Found ${devices.length} Nest device(s)`);
 
     devices.forEach((device) => {
         const status = getThermostatStatus(device);
@@ -413,15 +427,17 @@ function makeNestDraggable(group) {
  * @param {number} pollInterval - Polling interval in ms
  */
 function initNestIntegration(intervalManager, pollInterval = 15 * 60 * 1000) {
+    Logger.info('initNestIntegration called');
     const config = getNestConfig();
 
     if (!config.accessToken) {
-        Logger.info('Nest not configured. Run nest-auth.js to set up.');
+        Logger.warn('Nest not configured - no access token. Run nest-auth.js to set up.');
         return;
     }
 
+    Logger.info(`Nest config loaded: projectId=${config.projectId}, hasToken=${!!config.accessToken}`);
     initTokens();
-    Logger.info('Nest integration initialized');
+    Logger.info(`Token initialized, expires at: ${new Date(nestTokenExpiry).toISOString()}`);
 
     // Make thermostat draggable
     const nestDisplay = document.getElementById('nest-thermostat-display');
