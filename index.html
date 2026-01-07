@@ -27,7 +27,34 @@
     <div class="bird bird2">🕊️</div>
 
     <div class="container">
-        <h1>🏡 28 Barn Green 🌡️</h1>
+        <div class="header-row">
+            <h1>🏡 28 Barn Green 🌡️</h1>
+            <div class="header-controls">
+                <div class="connection-status" id="connectionStatus" title="Connection status">
+                    <span class="status-indicator" id="status-hue" data-service="hue">
+                        <span class="status-dot"></span>
+                        <span class="status-name">Hue</span>
+                    </span>
+                    <span class="status-divider">|</span>
+                    <span class="status-indicator" id="status-sonos" data-service="sonos">
+                        <span class="status-dot"></span>
+                        <span class="status-name">Sonos</span>
+                    </span>
+                    <span class="status-indicator" id="status-tapo" data-service="tapo">
+                        <span class="status-dot"></span>
+                        <span class="status-name">Tapo</span>
+                    </span>
+                    <span class="status-indicator" id="status-shield" data-service="shield">
+                        <span class="status-dot"></span>
+                        <span class="status-name">SHIELD</span>
+                    </span>
+                </div>
+                <button id="viewModeToggle" class="view-toggle" onclick="toggleViewMode()" title="Toggle between Simple and Full view">
+                    <span class="toggle-icon">👁️</span>
+                    <span class="toggle-label" id="viewModeLabel">Full</span>
+                </button>
+            </div>
+        </div>
         <div class="last-update" id="lastUpdate">Loading magical temperatures...</div>
 
         <div class="house-container">
@@ -471,6 +498,9 @@
                 <!-- Sonos Controls (dynamically generated) -->
                 <g id="sonos-controls-container"></g>
 
+                <!-- SHIELD TV Controls (dynamically generated) -->
+                <g id="shield-controls-container"></g>
+
                 <!-- Light Effects Jukebox - Extension Room -->
                 <g id="jukebox" transform="translate(800, 500)">
                     <!-- Jukebox Body -->
@@ -659,11 +689,13 @@
     <script src="js/ui/draggable.js"></script>
     <script src="js/api/sonos.js"></script>
     <script src="js/api/tapo.js"></script>
+    <script src="js/api/shield.js"></script>
 
     <!-- Feature Modules -->
     <script src="js/features/tapo.js"></script>
     <script src="js/features/nest.js"></script>
     <script src="js/features/sonos.js"></script>
+    <script src="js/features/shield.js"></script>
     <script src="js/features/effects.js"></script>
 
     <!-- Main Application - NEW MODULAR VERSION -->

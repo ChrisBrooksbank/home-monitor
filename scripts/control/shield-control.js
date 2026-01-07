@@ -4,11 +4,39 @@
 import http from 'http';
 import { exec as execCallback } from 'child_process';
 import { promisify } from 'util';
+import { existsSync } from 'fs';
+import { join } from 'path';
 
 const execAsync = promisify(execCallback);
 
 const SHIELD_IP = '192.168.68.63';
 const SHIELD_PORT = 8008;
+
+// Find ADB executable
+function findAdb() {
+    // Common ADB locations on Windows
+    const possiblePaths = [
+        // Winget installation
+        join(process.env.LOCALAPPDATA || '', 'Microsoft', 'WinGet', 'Packages', 'Google.PlatformTools_Microsoft.Winget.Source_8wekyb3d8bbwe', 'platform-tools', 'adb.exe'),
+        // Standard Android SDK location
+        join(process.env.LOCALAPPDATA || '', 'Android', 'Sdk', 'platform-tools', 'adb.exe'),
+        // Chocolatey
+        'C:\\ProgramData\\chocolatey\\bin\\adb.exe',
+        // Manual install
+        'C:\\platform-tools\\adb.exe'
+    ];
+
+    for (const adbPath of possiblePaths) {
+        if (existsSync(adbPath)) {
+            return `"${adbPath}"`;
+        }
+    }
+
+    // Fall back to hoping it's in PATH
+    return 'adb';
+}
+
+const ADB_PATH = findAdb();
 
 // Common app IDs for Google Cast
 const APPS = {
@@ -48,13 +76,20 @@ async function launchApp(appName) {
     console.log(`📺 Launching ${appName} on SHIELD via ADB...`);
 
     try {
+        console.log(`Using ADB: ${ADB_PATH}`);
+
         // Launch app using ADB
         const { stdout, stderr } = await execAsync(
-            `adb connect ${SHIELD_IP}:5555 && adb shell am start -n ${component}`
+            `${ADB_PATH} connect ${SHIELD_IP}:5555 && ${ADB_PATH} shell am start -n ${component}`
         );
 
         if (stderr && !stderr.includes('already connected')) {
             console.error('ADB stderr:', stderr);
+        }
+
+        // Check for connection refused errors
+        if (stdout.includes('refused') || stdout.includes('10061')) {
+            throw new Error('SHIELD connection refused - enable Network Debugging on SHIELD');
         }
 
         console.log(`✓ ${appName} launched successfully`);
@@ -71,10 +106,10 @@ async function launchApp(appName) {
         console.error(`✗ Failed to launch ${appName}:`, error.message);
 
         // Provide helpful error messages
-        if (error.message.includes('command not found')) {
-            throw new Error('ADB not installed. Install Android Platform Tools: https://developer.android.com/studio/releases/platform-tools');
-        } else if (error.message.includes('unable to connect')) {
-            throw new Error(`Cannot connect to SHIELD at ${SHIELD_IP}. Enable ADB debugging: Settings → Device Preferences → Developer Options → Network Debugging`);
+        if (error.message.includes('command not found') || error.message.includes('not recognized')) {
+            throw new Error('ADB not installed. Run: winget install Google.PlatformTools');
+        } else if (error.message.includes('refused') || error.message.includes('10061') || error.message.includes('unable to connect')) {
+            throw new Error(`SHIELD connection refused. Enable Network Debugging: Settings → Device Preferences → Developer Options → Network Debugging`);
         } else {
             throw error;
         }
@@ -89,8 +124,13 @@ async function stopApp() {
 
     try {
         const { stdout } = await execAsync(
-            `adb connect ${SHIELD_IP}:5555 && adb shell input keyevent KEYCODE_HOME`
+            `${ADB_PATH} connect ${SHIELD_IP}:5555 && ${ADB_PATH} shell input keyevent KEYCODE_HOME`
         );
+
+        // Check for connection refused errors
+        if (stdout.includes('refused') || stdout.includes('10061')) {
+            throw new Error('SHIELD connection refused - enable Network Debugging on SHIELD');
+        }
 
         console.log('✓ Returned to home screen');
 
@@ -102,6 +142,9 @@ async function stopApp() {
 
     } catch (error) {
         console.error('✗ Failed to go home:', error.message);
+        if (error.message.includes('refused') || error.message.includes('10061')) {
+            throw new Error(`SHIELD connection refused. Enable Network Debugging: Settings → Device Preferences → Developer Options → Network Debugging`);
+        }
         throw error;
     }
 }

@@ -812,3 +812,199 @@
         .tapo-plug-control .plug-title {
             pointer-events: none;
         }
+
+        /* ======================================================================
+           VIEW MODE TOGGLE (Compact/Full)
+           ====================================================================== */
+
+        .header-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .view-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Fredoka', sans-serif;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .view-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .view-toggle:active {
+            transform: translateY(0);
+        }
+
+        .view-toggle .toggle-icon {
+            font-size: 14px;
+        }
+
+        /* Compact mode - hide complex controls */
+        body.compact-mode #sonos-controls-container,
+        body.compact-mode #shield-controls-container,
+        body.compact-mode #tapo-plugs-container,
+        body.compact-mode #jukebox,
+        body.compact-mode #nest-thermostat-display {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Compact mode - simplify weather panel */
+        body.compact-mode #weather-feels-svg,
+        body.compact-mode #weather-humidity-svg,
+        body.compact-mode #weather-uv-svg,
+        body.compact-mode #weather-wind-svg,
+        body.compact-mode #weather-wind-dir-svg {
+            display: none;
+        }
+
+        body.compact-mode #weather-info-panel rect {
+            height: 65px;
+        }
+
+        /* Full mode (default) - show everything */
+        body:not(.compact-mode) #sonos-controls-container,
+        body:not(.compact-mode) #shield-controls-container,
+        body:not(.compact-mode) #tapo-plugs-container,
+        body:not(.compact-mode) #jukebox,
+        body:not(.compact-mode) #nest-thermostat-display {
+            opacity: 1;
+            pointer-events: auto;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Toggle button state indicator */
+        body.compact-mode .view-toggle {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+        }
+
+        body.compact-mode .view-toggle:hover {
+            box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+        }
+
+        /* ======================================================================
+           PROXY STATUS INDICATORS
+           ====================================================================== */
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        /* Connection Status Indicators - Always visible in header */
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            background: rgba(0, 0, 0, 0.08);
+            border-radius: 15px;
+            font-size: 11px;
+            flex-shrink: 0;
+        }
+
+        .status-divider {
+            color: rgba(0, 0, 0, 0.2);
+            font-weight: 300;
+            margin: 0 2px;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            cursor: help;
+            transition: opacity 0.2s ease;
+        }
+
+        .status-indicator:hover {
+            opacity: 0.8;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #999;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .status-indicator.online .status-dot {
+            background: #4CAF50;
+            box-shadow: 0 0 6px rgba(76, 175, 80, 0.6);
+        }
+
+        .status-indicator.offline .status-dot {
+            background: #f44336;
+            box-shadow: 0 0 6px rgba(244, 67, 54, 0.6);
+            animation: pulse-offline 1.5s ease-in-out infinite;
+        }
+
+        .status-indicator.checking .status-dot {
+            background: #FF9800;
+            animation: pulse-checking 0.8s ease-in-out infinite;
+        }
+
+        @keyframes pulse-offline {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes pulse-checking {
+            0%, 100% { opacity: 0.4; transform: scale(0.9); }
+            50% { opacity: 1; transform: scale(1.1); }
+        }
+
+        .status-name {
+            color: var(--text-secondary);
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .status-indicator.online .status-name {
+            color: #4CAF50;
+        }
+
+        .status-indicator.offline .status-name {
+            color: #f44336;
+        }
+
+        /* Hue bridge specific styling */
+        .status-indicator[data-service="hue"] .status-name {
+            font-weight: 600;
+        }
+
+        /* Responsive - hide names on small screens, keep dots */
+        @media (max-width: 600px) {
+            .status-name {
+                display: none;
+            }
+            .status-divider {
+                display: none;
+            }
+            .connection-status {
+                gap: 6px;
+                padding: 6px 10px;
+            }
+        }

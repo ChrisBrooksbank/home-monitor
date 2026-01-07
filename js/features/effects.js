@@ -325,9 +325,11 @@ window.LightEffects = {
     isEffectInProgress
 };
 
-// Auto-initialize when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initEffects);
-} else {
-    initEffects();
-}
+// Auto-initialize with consistent timing
+(function onReady(fn) {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => setTimeout(fn, 50));
+    } else {
+        setTimeout(fn, 50);
+    }
+})(initEffects);

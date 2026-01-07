@@ -394,10 +394,20 @@
             return;
         }
 
-        // Check if proxy is available
-        const available = await TapoAPI.checkAvailability();
+        // Check if proxy is available with retry
+        // Proxy may take a moment to respond on page load
+        let available = false;
+        for (let attempt = 1; attempt <= 3; attempt++) {
+            available = await TapoAPI.checkAvailability();
+            if (available) break;
+            if (attempt < 3) {
+                Logger.info(`Tapo proxy check attempt ${attempt} failed, retrying in 500ms...`);
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+        }
+
         if (!available) {
-            Logger.warn('Tapo proxy not available - controls disabled');
+            Logger.warn('Tapo proxy not available after retries - controls disabled');
             return;
         }
 
@@ -447,12 +457,7 @@
         togglePlug
     };
 
-    // Auto-initialize after DOM ready
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        // Small delay to ensure TapoAPI is loaded
-        setTimeout(init, 100);
-    }
+    // NOTE: Auto-initialization removed - app.js now calls TapoControls.init()
+    // This ensures proper initialization order and avoids race conditions
 
 })();

@@ -9,11 +9,22 @@ import * as shieldControl from '../scripts/control/shield-control.js';
 dotenv.config();
 
 const PORT = 8082; // Different from Sonos proxy (8081)
+// Allow any localhost port for development flexibility
 const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
+const ALLOWED_ORIGINS = [FRONTEND_ORIGIN, /^http:\/\/localhost:\d+$/];
+
+function isAllowedOrigin(origin) {
+    if (!origin) return true;
+    return ALLOWED_ORIGINS.some(allowed =>
+        allowed instanceof RegExp ? allowed.test(origin) : allowed === origin
+    );
+}
 
 const server = http.createServer(async (req, res) => {
-    // Enable CORS with restricted origin
-    res.setHeader('Access-Control-Allow-Origin', FRONTEND_ORIGIN);
+    // Enable CORS - allow any localhost port for dev flexibility
+    const origin = req.headers.origin || FRONTEND_ORIGIN;
+    const allowedOrigin = isAllowedOrigin(origin) ? origin : FRONTEND_ORIGIN;
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-App-Name');
 

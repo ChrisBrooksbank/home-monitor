@@ -8,8 +8,17 @@ import { loginDeviceByIp } from 'tp-link-tapo-connect';
 dotenv.config();
 
 const PORT = 3001;
+// Allow any localhost port for development flexibility
 const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
+const ALLOWED_ORIGINS = [FRONTEND_ORIGIN, /^http:\/\/localhost:\d+$/];
 const BASE_IP = process.env.TAPO_BASE_IP || '192.168.68';
+
+function isAllowedOrigin(origin) {
+    if (!origin) return true;
+    return ALLOWED_ORIGINS.some(allowed =>
+        allowed instanceof RegExp ? allowed.test(origin) : allowed === origin
+    );
+}
 const SCAN_START = parseInt(process.env.TAPO_SCAN_START || '50');
 const SCAN_END = parseInt(process.env.TAPO_SCAN_END || '90');
 
@@ -150,8 +159,10 @@ function getPlugIP(plugName) {
 }
 
 const server = http.createServer(async (req, res) => {
-    // Enable CORS with restricted origin
-    res.setHeader('Access-Control-Allow-Origin', FRONTEND_ORIGIN);
+    // Enable CORS - allow any localhost port for dev flexibility
+    const origin = req.headers.origin || FRONTEND_ORIGIN;
+    const allowedOrigin = isAllowedOrigin(origin) ? origin : FRONTEND_ORIGIN;
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
     res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 

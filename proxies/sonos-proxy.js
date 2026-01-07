@@ -8,7 +8,9 @@ dotenv.config();
 
 const PORT = 3000;
 const SONOS_PORT = 1400;
+// Allow any localhost port for development flexibility
 const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
+const ALLOWED_ORIGINS = [FRONTEND_ORIGIN, /^http:\/\/localhost:\d+$/];
 const BASE_IP = process.env.SONOS_BASE_IP || '192.168.68';
 const SCAN_START = parseInt(process.env.SONOS_SCAN_START || '50');
 const SCAN_END = parseInt(process.env.SONOS_SCAN_END || '90');
@@ -130,9 +132,18 @@ function getSpeakerIP(roomName) {
     return speaker ? speaker.ip : null;
 }
 
+function isAllowedOrigin(origin) {
+    if (!origin) return true; // Allow requests with no origin (e.g., curl)
+    return ALLOWED_ORIGINS.some(allowed =>
+        allowed instanceof RegExp ? allowed.test(origin) : allowed === origin
+    );
+}
+
 const server = http.createServer(async (req, res) => {
-    // Enable CORS with restricted origin
-    res.setHeader('Access-Control-Allow-Origin', FRONTEND_ORIGIN);
+    // Enable CORS - allow any localhost port for dev flexibility
+    const origin = req.headers.origin || FRONTEND_ORIGIN;
+    const allowedOrigin = isAllowedOrigin(origin) ? origin : FRONTEND_ORIGIN;
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
     res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, SOAPAction, X-Sonos-IP');
 

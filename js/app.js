@@ -93,6 +93,189 @@
     };
 
     // =============================================================================
+    // VIEW MODE (Compact/Full Toggle)
+    // =============================================================================
+
+    const VIEW_MODE_KEY = 'homeMonitorViewMode';
+
+    function initViewMode() {
+        const savedMode = localStorage.getItem(VIEW_MODE_KEY);
+        if (savedMode === 'compact') {
+            document.body.classList.add('compact-mode');
+            updateViewModeLabel(true);
+        } else {
+            updateViewModeLabel(false);
+        }
+    }
+
+    function toggleViewMode() {
+        const isCompact = document.body.classList.toggle('compact-mode');
+        localStorage.setItem(VIEW_MODE_KEY, isCompact ? 'compact' : 'full');
+        updateViewModeLabel(isCompact);
+        Logger.info(`View mode: ${isCompact ? 'Simple' : 'Full'}`);
+    }
+
+    function updateViewModeLabel(isCompact) {
+        const label = document.getElementById('viewModeLabel');
+        const icon = document.querySelector('.view-toggle .toggle-icon');
+        if (label) label.textContent = isCompact ? 'Simple' : 'Full';
+        if (icon) icon.textContent = isCompact ? '👁️' : '👁️';
+    }
+
+    // Expose globally for onclick handler
+    window.toggleViewMode = toggleViewMode;
+
+    // =============================================================================
+    // CONNECTION STATUS MONITORING (Hue Bridge + Proxy Servers)
+    // =============================================================================
+
+    const connectionStatus = {
+        hue: { online: false, lastCheck: null, name: null, apiVersion: null },
+        sonos: { online: false, lastCheck: null, uptime: null },
+        tapo: { online: false, lastCheck: null, uptime: null },
+        shield: { online: false, lastCheck: null, uptime: null }
+    };
+
+    // Guard flags to prevent overlapping operations
+    let isCheckingConnections = false;
+
+    /**
+     * Check Hue bridge connectivity
+     * Uses /api/config endpoint which requires no authentication
+     */
+    async function checkHueBridgeHealth() {
+        const indicator = document.getElementById('status-hue');
+        if (indicator) {
+            indicator.classList.remove('online', 'offline');
+            indicator.classList.add('checking');
+        }
+
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), APP_CONFIG.timeouts.proxyCheck);
+
+            const response = await fetch(`http://${BRIDGE_IP}/api/config`, {
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+
+            if (response.ok) {
+                const data = await response.json();
+                // Verify it's actually a Hue bridge by checking for bridgeid
+                if (data.bridgeid) {
+                    connectionStatus.hue = {
+                        online: true,
+                        lastCheck: new Date(),
+                        name: data.name,
+                        apiVersion: data.apiversion
+                    };
+                    if (indicator) {
+                        indicator.classList.remove('checking', 'offline');
+                        indicator.classList.add('online');
+                        indicator.title = `Hue Bridge: ${data.name} (API v${data.apiversion})`;
+                    }
+                    return true;
+                }
+            }
+        } catch (error) {
+            // Bridge is offline or unreachable
+        }
+
+        connectionStatus.hue = {
+            online: false,
+            lastCheck: new Date(),
+            name: null,
+            apiVersion: null
+        };
+        if (indicator) {
+            indicator.classList.remove('checking', 'online');
+            indicator.classList.add('offline');
+            indicator.title = `Hue Bridge: Offline - check connection to ${BRIDGE_IP}`;
+        }
+        return false;
+    }
+
+    async function checkProxyHealth(proxyName, url) {
+        const indicator = document.getElementById(`status-${proxyName}`);
+        if (indicator) {
+            indicator.classList.remove('online', 'offline');
+            indicator.classList.add('checking');
+        }
+
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), APP_CONFIG.timeouts.proxyCheck);
+
+            const response = await fetch(`${url}/health`, { signal: controller.signal });
+            clearTimeout(timeoutId);
+
+            if (response.ok) {
+                const data = await response.json();
+                connectionStatus[proxyName] = {
+                    online: true,
+                    lastCheck: new Date(),
+                    uptime: data.uptime
+                };
+                if (indicator) {
+                    indicator.classList.remove('checking', 'offline');
+                    indicator.classList.add('online');
+                    indicator.title = `${proxyName}: Online (uptime: ${formatUptime(data.uptime)})`;
+                }
+                return true;
+            }
+        } catch (error) {
+            // Proxy is offline or unreachable
+        }
+
+        connectionStatus[proxyName] = {
+            online: false,
+            lastCheck: new Date(),
+            uptime: null
+        };
+        if (indicator) {
+            indicator.classList.remove('checking', 'online');
+            indicator.classList.add('offline');
+            indicator.title = `${proxyName}: Offline - run 'npm start' to start proxies`;
+        }
+        return false;
+    }
+
+    function formatUptime(seconds) {
+        if (!seconds) return 'unknown';
+        if (seconds < 60) return `${Math.floor(seconds)}s`;
+        if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
+        if (seconds < 86400) return `${Math.floor(seconds / 3600)}h`;
+        return `${Math.floor(seconds / 86400)}d`;
+    }
+
+    /**
+     * Check all connections (Hue bridge + proxies) in parallel
+     * Uses guard flag to prevent overlapping checks
+     */
+    async function checkAllConnections() {
+        // Prevent overlapping connection checks
+        if (isCheckingConnections) {
+            Logger.warn('Connection check already in progress, skipping...');
+            return;
+        }
+
+        isCheckingConnections = true;
+        try {
+            await Promise.all([
+                checkHueBridgeHealth(),
+                checkProxyHealth('sonos', APP_CONFIG.proxies.sonos),
+                checkProxyHealth('tapo', APP_CONFIG.proxies.tapo),
+                checkProxyHealth('shield', APP_CONFIG.proxies.shield)
+            ]);
+        } finally {
+            isCheckingConnections = false;
+        }
+    }
+
+    // Legacy alias for backwards compatibility
+    const checkAllProxies = checkAllConnections;
+
+    // =============================================================================
     // STATE
     // =============================================================================
 
@@ -393,7 +576,24 @@
     // DATA LOADING
     // =============================================================================
 
+    // Guard flags to prevent overlapping data loads
+    let isLoadingTemperatures = false;
+    let isLoadingLights = false;
+    let isLoadingMotion = false;
+
     async function loadTemperatures(showSparkles = true) {
+        // Prevent overlapping temperature loads
+        if (isLoadingTemperatures) {
+            return;
+        }
+
+        // Skip if Hue bridge is offline
+        if (!connectionStatus.hue.online && connectionStatus.hue.lastCheck) {
+            Logger.warn('Hue bridge offline, skipping temperature load');
+            return;
+        }
+
+        isLoadingTemperatures = true;
         try {
             const response = await fetch(`http://${BRIDGE_IP}/api/${USERNAME}/sensors`);
             if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
@@ -427,10 +627,23 @@
             }
         } catch (error) {
             Logger.error('Error loading temperatures:', error);
+        } finally {
+            isLoadingTemperatures = false;
         }
     }
 
     async function loadLights() {
+        // Prevent overlapping light loads
+        if (isLoadingLights) {
+            return;
+        }
+
+        // Skip if Hue bridge is offline
+        if (!connectionStatus.hue.online && connectionStatus.hue.lastCheck) {
+            return;
+        }
+
+        isLoadingLights = true;
         try {
             const response = await fetch(`http://${BRIDGE_IP}/api/${USERNAME}/lights`);
             if (!response.ok) return;
@@ -458,10 +671,23 @@
             updateOutdoorLamppost();
         } catch (error) {
             Logger.error('Error loading lights:', error);
+        } finally {
+            isLoadingLights = false;
         }
     }
 
     async function loadMotionSensors() {
+        // Prevent overlapping motion sensor loads
+        if (isLoadingMotion) {
+            return;
+        }
+
+        // Skip if Hue bridge is offline
+        if (!connectionStatus.hue.online && connectionStatus.hue.lastCheck) {
+            return;
+        }
+
+        isLoadingMotion = true;
         try {
             const response = await fetch(`http://${BRIDGE_IP}/api/${USERNAME}/sensors`);
             if (!response.ok) return;
@@ -485,6 +711,8 @@
             }
         } catch (error) {
             Logger.error('Error loading motion sensors:', error);
+        } finally {
+            isLoadingMotion = false;
         }
     }
 
@@ -661,17 +889,46 @@
     // INITIALIZATION
     // =============================================================================
 
-    function init() {
+    async function init() {
         Logger.info('Initializing Home Monitor (app.js)...');
 
-        // Initialize history
+        // Initialize view mode (compact/full) from localStorage
+        initViewMode();
+
+        // Initialize history from localStorage
         initTempHistory();
         initMotionHistory();
 
-        // Initial data load
-        loadTemperatures();
-        loadLights();
-        loadMotionSensors();
+        // CRITICAL: Check ALL connection statuses first and WAIT for completion
+        // This includes Hue bridge + all proxy servers, running in parallel
+        Logger.info('Checking connection status...');
+        await checkAllConnections();
+
+        // Initialize Tapo controls AFTER connection check completes
+        // This ensures the proxy is confirmed available before Tapo tries to connect
+        if (typeof TapoControls !== 'undefined' && TapoControls.init) {
+            if (connectionStatus.tapo.online) {
+                Logger.info('Initializing Tapo controls...');
+                await TapoControls.init();
+            } else {
+                Logger.warn('Tapo proxy offline, skipping Tapo initialization');
+            }
+        }
+
+        // Initial data load - only if Hue bridge is online
+        // These run concurrently but have internal guards against overlap
+        if (connectionStatus.hue.online) {
+            Logger.info('Loading initial data from Hue bridge...');
+            await Promise.all([
+                loadTemperatures(),
+                loadLights(),
+                loadMotionSensors()
+            ]);
+        } else {
+            Logger.warn('Hue bridge offline, skipping initial sensor data load');
+        }
+
+        // These don't depend on Hue bridge
         fetchSunTimes();
         updateWeatherDisplay();
 
@@ -704,11 +961,19 @@
         }
 
         // Register polling intervals
+        // Connection status is checked frequently to update header indicators
+        IntervalManager.register(checkAllConnections, APP_CONFIG.intervals.connectionStatus || 30000);
+
+        // Hue data polling (these will skip if Hue is offline)
         IntervalManager.register(loadMotionSensors, APP_CONFIG.intervals.motionSensors);
         IntervalManager.register(loadLights, APP_CONFIG.intervals.lights);
         IntervalManager.register(() => loadTemperatures(false), APP_CONFIG.intervals.temperatures);
+
+        // UI/display updates
         IntervalManager.register(updateMotionLogDisplay, APP_CONFIG.intervals.motionLog);
         IntervalManager.register(updateSky, APP_CONFIG.intervals.sky);
+
+        // External data
         IntervalManager.register(fetchSunTimes, APP_CONFIG.intervals.sunTimes);
         IntervalManager.register(updateWeatherDisplay, APP_CONFIG.intervals.weather);
 
@@ -722,14 +987,30 @@
         loadLights,
         loadMotionSensors,
         updateWeatherDisplay,
-        toggleLight
+        toggleLight,
+        checkAllConnections,
+        getConnectionStatus: () => connectionStatus
     };
 
-    // Auto-initialize
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
+    // Auto-initialize when DOM is ready
+    // Uses a single, consistent approach for all refresh types
+    function onReady(fn) {
+        const run = () => {
+            try {
+                fn();
+            } catch (e) {
+                Logger.error('Init error:', e);
+            }
+        };
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', run);
+        } else {
+            // DOM already ready, run immediately
+            run();
+        }
     }
+
+    onReady(init);
 
 })();

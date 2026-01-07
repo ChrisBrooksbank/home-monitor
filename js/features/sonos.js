@@ -245,9 +245,11 @@ window.SonosUI = {
     updateVolumes: updateSpeakerVolumes
 };
 
-// Auto-initialize when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initSonosUI);
-} else {
-    initSonosUI();
-}
+// Auto-initialize with consistent timing
+(function onReady(fn) {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => setTimeout(fn, 50));
+    } else {
+        setTimeout(fn, 50);
+    }
+})(initSonosUI);
