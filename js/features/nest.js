@@ -25,6 +25,7 @@ function initTokens() {
     const config = getNestConfig();
     nestAccessToken = config.accessToken;
     nestTokenExpiry = config.expiresAt || 0;
+    Logger.info(`initTokens: token length=${nestAccessToken?.length}, expiry=${nestTokenExpiry}`);
 }
 
 /**
@@ -33,7 +34,14 @@ function initTokens() {
  */
 async function refreshNestToken() {
     const config = getNestConfig();
-    Logger.info('Refreshing Nest access token...');
+
+    // Debug: check what credentials we have
+    Logger.info(`Refresh token config: clientId=${config.clientId?.substring(0,20)}..., hasSecret=${!!config.clientSecret}, hasRefreshToken=${!!config.refreshToken}`);
+
+    if (!config.clientId || !config.clientSecret || !config.refreshToken) {
+        Logger.error('Missing OAuth credentials for token refresh');
+        return false;
+    }
 
     const tokenData = new URLSearchParams({
         client_id: config.clientId,
@@ -50,14 +58,15 @@ async function refreshNestToken() {
         });
 
         const tokens = await response.json();
+        Logger.info('Token refresh response:', JSON.stringify(tokens));
 
         if (tokens.access_token) {
             nestAccessToken = tokens.access_token;
             nestTokenExpiry = Date.now() + (tokens.expires_in * 1000);
-            Logger.success('Nest token refreshed');
+            Logger.success('Nest token refreshed successfully');
             return true;
         } else {
-            Logger.error('Failed to refresh Nest token:', tokens);
+            Logger.error('Failed to refresh Nest token:', JSON.stringify(tokens));
             return false;
         }
     } catch (error) {
@@ -79,16 +88,12 @@ function tokenNeedsRefresh() {
  * @returns {Promise<Array|null>} - Array of devices or null
  */
 async function fetchNestDevices() {
-    Logger.info('Checking if token needs refresh...');
-    if (tokenNeedsRefresh()) {
-        Logger.info('Token needs refresh, refreshing...');
-        const refreshed = await refreshNestToken();
-        if (!refreshed) {
-            Logger.error('Token refresh failed');
-            return null;
-        }
-    } else {
-        Logger.info('Token still valid');
+    // Always refresh token - Google access tokens only last 1 hour
+    Logger.info('Refreshing Nest access token...');
+    const refreshed = await refreshNestToken();
+    if (!refreshed) {
+        Logger.error('Token refresh failed');
+        return null;
     }
 
     const config = getNestConfig();
@@ -109,6 +114,7 @@ async function fetchNestDevices() {
         }
 
         const data = await response.json();
+        Logger.info('Nest API raw response:', JSON.stringify(data));
         nestDevices = data.devices || [];
         Logger.info(`Nest API returned ${nestDevices.length} devices`);
         return nestDevices;

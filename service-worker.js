@@ -1,4 +1,4 @@
-const CACHE_NAME = 'home-monitor-v4';
+const CACHE_NAME = 'home-monitor-v5';
 const urlsToCache = [
   '/',
   '/index.html',
