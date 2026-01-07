@@ -25,7 +25,6 @@ function initTokens() {
     const config = getNestConfig();
     nestAccessToken = config.accessToken;
     nestTokenExpiry = config.expiresAt || 0;
-    Logger.info(`initTokens: token length=${nestAccessToken?.length}, expiry=${nestTokenExpiry}`);
 }
 
 /**
@@ -34,9 +33,6 @@ function initTokens() {
  */
 async function refreshNestToken() {
     const config = getNestConfig();
-
-    // Debug: check what credentials we have
-    Logger.info(`Refresh token config: clientId=${config.clientId?.substring(0,20)}..., hasSecret=${!!config.clientSecret}, hasRefreshToken=${!!config.refreshToken}`);
 
     if (!config.clientId || !config.clientSecret || !config.refreshToken) {
         Logger.error('Missing OAuth credentials for token refresh');
@@ -58,15 +54,14 @@ async function refreshNestToken() {
         });
 
         const tokens = await response.json();
-        Logger.info('Token refresh response:', JSON.stringify(tokens));
 
         if (tokens.access_token) {
             nestAccessToken = tokens.access_token;
             nestTokenExpiry = Date.now() + (tokens.expires_in * 1000);
-            Logger.success('Nest token refreshed successfully');
+            Logger.success('Nest token refreshed');
             return true;
         } else {
-            Logger.error('Failed to refresh Nest token:', JSON.stringify(tokens));
+            Logger.error('Failed to refresh Nest token:', tokens.error || 'Unknown error');
             return false;
         }
     } catch (error) {
@@ -89,15 +84,12 @@ function tokenNeedsRefresh() {
  */
 async function fetchNestDevices() {
     // Always refresh token - Google access tokens only last 1 hour
-    Logger.info('Refreshing Nest access token...');
     const refreshed = await refreshNestToken();
     if (!refreshed) {
-        Logger.error('Token refresh failed');
         return null;
     }
 
     const config = getNestConfig();
-    Logger.info(`Calling Nest API for project: ${config.projectId}`);
 
     try {
         const response = await fetch(
@@ -108,15 +100,12 @@ async function fetchNestDevices() {
         );
 
         if (!response.ok) {
-            const errorText = await response.text();
-            Logger.error(`Nest API error ${response.status}: ${errorText}`);
+            Logger.error('Nest API error:', response.status);
             return null;
         }
 
         const data = await response.json();
-        Logger.info('Nest API raw response:', JSON.stringify(data));
         nestDevices = data.devices || [];
-        Logger.info(`Nest API returned ${nestDevices.length} devices`);
         return nestDevices;
     } catch (error) {
         Logger.error('Error fetching Nest devices:', error);
@@ -279,15 +268,11 @@ function updateNestVisualDisplay(currentTemp, targetTemp, status, statusColor) {
  * Update Nest display with fresh data
  */
 async function updateNestDisplay() {
-    Logger.info('Fetching Nest devices...');
     const devices = await fetchNestDevices();
 
     if (!devices || devices.length === 0) {
-        Logger.warn('No Nest devices returned from API');
         return;
     }
-
-    Logger.info(`Found ${devices.length} Nest device(s)`);
 
     devices.forEach((device) => {
         const status = getThermostatStatus(device);
@@ -433,17 +418,15 @@ function makeNestDraggable(group) {
  * @param {number} pollInterval - Polling interval in ms
  */
 function initNestIntegration(intervalManager, pollInterval = 15 * 60 * 1000) {
-    Logger.info('initNestIntegration called');
     const config = getNestConfig();
 
     if (!config.accessToken) {
-        Logger.warn('Nest not configured - no access token. Run nest-auth.js to set up.');
+        Logger.info('Nest not configured. Run: node scripts/setup/nest-auth.cjs');
         return;
     }
 
-    Logger.info(`Nest config loaded: projectId=${config.projectId}, hasToken=${!!config.accessToken}`);
     initTokens();
-    Logger.info(`Token initialized, expires at: ${new Date(nestTokenExpiry).toISOString()}`);
+    Logger.info('Nest integration initialized');
 
     // Make thermostat draggable
     const nestDisplay = document.getElementById('nest-thermostat-display');

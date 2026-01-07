@@ -68,6 +68,7 @@ API calls should use `retryWithBackoff(fn)` for resilience. Config controls atte
 - **Sonos Speakers** - SOAP/UPnP protocol via sonos-proxy
 - **TP-Link Tapo Plugs** - tp-link-tapo-connect library via tapo-proxy
 - **NVIDIA SHIELD** - ADB over TCP via shield-proxy
+- **Google Nest Thermostat** - Google Smart Device Management API (OAuth2)
 - **WeatherAPI.com** - Weather data (API key in config.js)
 - **Sunrise-Sunset API** - Day/night sky transitions
 
@@ -77,3 +78,30 @@ API calls should use `retryWithBackoff(fn)` for resilience. Config controls atte
 2. Copy `.env.example` to `.env` and add Tapo credentials
 3. Run `npm install`
 4. Run `npm start`
+
+## Nest Thermostat Setup
+
+The Nest integration uses Google's Smart Device Management API with OAuth2.
+
+### Initial Setup
+1. Create a Google Cloud project and enable the Smart Device Management API
+2. Create OAuth2 credentials (Web application type)
+3. Create `nest-config.json` with your credentials:
+   ```json
+   {
+     "CLIENT_ID": "your-client-id",
+     "CLIENT_SECRET": "your-client-secret",
+     "PROJECT_ID": "your-sdm-project-id",
+     "REDIRECT_URI": "http://localhost:8080/auth/callback"
+   }
+   ```
+4. Run `node scripts/setup/nest-auth.cjs` to authorize and get tokens
+
+### Refreshing Expired Tokens
+If you see "Token has been expired or revoked" error in the console:
+```bash
+node scripts/setup/nest-auth.cjs
+```
+This opens a browser for Google login, gets new tokens, and saves them to `nest-config.js` and `nest-config.json`.
+
+**Note:** Google refresh tokens can expire if unused for 6 months or if revoked in Google Account settings.
