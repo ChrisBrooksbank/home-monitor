@@ -587,12 +587,6 @@
             return;
         }
 
-        // Skip if Hue bridge is offline
-        if (!connectionStatus.hue.online && connectionStatus.hue.lastCheck) {
-            Logger.warn('Hue bridge offline, skipping temperature load');
-            return;
-        }
-
         isLoadingTemperatures = true;
         try {
             const response = await fetch(`http://${BRIDGE_IP}/api/${USERNAME}/sensors`);
@@ -638,11 +632,6 @@
             return;
         }
 
-        // Skip if Hue bridge is offline
-        if (!connectionStatus.hue.online && connectionStatus.hue.lastCheck) {
-            return;
-        }
-
         isLoadingLights = true;
         try {
             const response = await fetch(`http://${BRIDGE_IP}/api/${USERNAME}/lights`);
@@ -679,11 +668,6 @@
     async function loadMotionSensors() {
         // Prevent overlapping motion sensor loads
         if (isLoadingMotion) {
-            return;
-        }
-
-        // Skip if Hue bridge is offline
-        if (!connectionStatus.hue.online && connectionStatus.hue.lastCheck) {
             return;
         }
 
@@ -915,18 +899,13 @@
             }
         }
 
-        // Initial data load - only if Hue bridge is online
-        // These run concurrently but have internal guards against overlap
-        if (connectionStatus.hue.online) {
-            Logger.info('Loading initial data from Hue bridge...');
-            await Promise.all([
-                loadTemperatures(),
-                loadLights(),
-                loadMotionSensors()
-            ]);
-        } else {
-            Logger.warn('Hue bridge offline, skipping initial sensor data load');
-        }
+        // Initial data load - run concurrently, each has error handling
+        Logger.info('Loading initial data...');
+        await Promise.all([
+            loadTemperatures(),
+            loadLights(),
+            loadMotionSensors()
+        ]);
 
         // These don't depend on Hue bridge
         fetchSunTimes();
