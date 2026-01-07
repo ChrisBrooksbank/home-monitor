@@ -111,7 +111,12 @@ A real-time, interactive dashboard for monitoring Philips Hue sensors throughout
    - Add your API key to `WEATHER_CONFIG.API_KEY` in `config.js`
    - Free tier: 1 million calls/month
 
-6. **Start the application:**
+6. **Configure Nest Thermostat (optional):**
+   - Create `nest-config.json` with your Google Cloud OAuth credentials
+   - Run `node scripts/setup/nest-auth.cjs` to authorize
+   - See [Nest Thermostat Setup](#nest-thermostat-setup) below for details
+
+7. **Start the application:**
    ```bash
    npm start
    ```
@@ -121,10 +126,40 @@ A real-time, interactive dashboard for monitoring Philips Hue sensors throughout
    - Tapo proxy (port 3001)
    - SHIELD proxy (port 8082)
 
-7. **Open in browser:**
+8. **Open in browser:**
    ```
    http://localhost:5173
    ```
+
+### Nest Thermostat Setup
+
+The Nest integration uses Google's Smart Device Management API with OAuth2.
+
+1. **Create a Google Cloud project** and enable the Smart Device Management API
+2. **Create OAuth2 credentials** (Web application type) with redirect URI: `http://localhost:8080/auth/callback`
+3. **Create `nest-config.json`** in the project root:
+   ```json
+   {
+     "CLIENT_ID": "your-client-id.apps.googleusercontent.com",
+     "CLIENT_SECRET": "your-client-secret",
+     "PROJECT_ID": "your-sdm-project-id",
+     "REDIRECT_URI": "http://localhost:8080/auth/callback"
+   }
+   ```
+4. **Run the auth script:**
+   ```bash
+   node scripts/setup/nest-auth.cjs
+   ```
+   This opens a browser for Google login and saves tokens to `nest-config.js`.
+
+#### Refreshing Expired Tokens
+
+If you see "Token has been expired or revoked" in the browser console:
+```bash
+node scripts/setup/nest-auth.cjs
+```
+
+**Note:** Google refresh tokens expire if unused for 6 months or if revoked in Google Account settings.
 
 ### 📖 Documentation
 - **QUICK_START.md** - Fast setup guide
