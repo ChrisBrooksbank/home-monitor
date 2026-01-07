@@ -37,6 +37,11 @@ if (!TAPO_EMAIL || !TAPO_PASSWORD) {
 let discoveredPlugs = {};
 let lastDiscovery = null;
 
+// Manual plug overrides for devices that don't respond to probe correctly
+const MANUAL_PLUGS = {
+    'office-plug-2': { ip: '192.168.68.64', nickname: 'office plug 2', model: 'P105' }
+};
+
 // ========================================
 // DISCOVERY FUNCTIONS
 // ========================================
@@ -138,6 +143,14 @@ async function discoverAndIdentifyPlugs() {
                 mac: info.mac
             };
             console.log(`   ✓ ${info.nickname} @ ${ip}`);
+        }
+    }
+
+    // Merge manual plugs that weren't discovered
+    for (const [key, plug] of Object.entries(MANUAL_PLUGS)) {
+        if (!plugs[key]) {
+            plugs[key] = plug;
+            console.log(`   + ${plug.nickname} @ ${plug.ip} (manual)`);
         }
     }
 

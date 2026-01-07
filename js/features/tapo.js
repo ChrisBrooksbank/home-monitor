@@ -14,7 +14,8 @@
         'extension plug': { x: 580, y: 410 },
         'bedroom plug': { x: 180, y: 320 },
         'tv plug': { x: 470, y: 520 },
-        'office plug 1': { x: 520, y: 320 }
+        'office plug 1': { x: 520, y: 320 },
+        'office plug 2': { x: 620, y: 320 }
     };
 
     // Track plug states
