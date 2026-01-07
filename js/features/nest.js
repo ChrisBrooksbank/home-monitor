@@ -458,11 +458,11 @@ window.NestIntegration = {
     getDevices: getDevices
 };
 
-// Auto-initialize with consistent timing
-(function onReady(fn) {
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => setTimeout(fn, 50));
-    } else {
-        setTimeout(fn, 50);
-    }
-})(() => initNestIntegration(IntervalManager, APP_CONFIG.intervals.nest));
+// Auto-initialize when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        initNestIntegration(IntervalManager, APP_CONFIG.intervals.nest);
+    });
+} else {
+    initNestIntegration(IntervalManager, APP_CONFIG.intervals.nest);
+}
