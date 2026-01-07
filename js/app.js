@@ -1074,8 +1074,10 @@
 
         // Initialize Moose (Monty) character system
         if (window.MooseSystem) {
-            window.MooseSystem.init(false); // Set true for debug mode (30-60 sec intervals)
-            Logger.info('Moose system initialized - Monty will appear every 10-20 minutes');
+            window.MooseSystem.init(true); // Debug mode: 30-60 sec intervals
+            Logger.info('Moose system initialized - DEBUG MODE: Monty will appear every 30-60 seconds');
+        } else {
+            Logger.error('MooseSystem not found - check if moose.js loaded correctly');
         }
 
         Logger.success('Home Monitor initialized!');
