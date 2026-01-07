@@ -876,6 +876,24 @@
     async function init() {
         Logger.info('Initializing Home Monitor (app.js)...');
 
+        // Initialize and validate configuration
+        if (window.AppConfig) {
+            const config = await window.AppConfig.init();
+            if (!config.isValid) {
+                Logger.error('Configuration has errors - some features may not work');
+            }
+            // Log feature availability
+            const features = ['hue', 'weather', 'nest', 'sonos', 'tapo', 'shield'];
+            const available = features.filter(f => config.hasFeature(f));
+            const unavailable = features.filter(f => !config.hasFeature(f));
+            if (available.length > 0) {
+                Logger.info(`Available features: ${available.join(', ')}`);
+            }
+            if (unavailable.length > 0) {
+                Logger.warn(`Unavailable features: ${unavailable.join(', ')}`);
+            }
+        }
+
         // Initialize view mode (compact/full) from localStorage
         initViewMode();
 
