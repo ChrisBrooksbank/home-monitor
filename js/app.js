@@ -1,9 +1,18 @@
 /**
- * Home Monitor Application Entry Point
- * Initializes and coordinates all feature modules
+ * Home Monitor Application
+ * Main application logic for Hue sensor data, lights, and UI
  *
- * This is a hybrid approach that works with the existing global scripts
- * while the codebase is incrementally migrated to ES6 modules.
+ * This module handles:
+ * - Hue sensor/light data loading and processing
+ * - Temperature and motion history management
+ * - Thermometer and light indicator UI
+ * - Voice announcements
+ * - Sky/weather display
+ *
+ * Core infrastructure is provided by:
+ * - js/core/connection-monitor.js - Health checks
+ * - js/core/poller.js - Polling scheduler
+ * - js/core/initializer.js - App bootstrap
  */
 
 (function() {
@@ -56,7 +65,6 @@
         'Hue outdoor temp. sensor 1': '#7AE582'
     };
 
-    // Room positions for thermometers
     const roomPositions = {
         'temp-main-bedroom': { x: 180, y: 220 },
         'temp-landing': { x: 340, y: 220 },
@@ -70,7 +78,6 @@
         'temp-outdoor': { x: 60, y: 10, isOutdoor: true }
     };
 
-    // Light mapping patterns
     const lightMappings = {
         'outdoor|outside|garden': 'Outdoor',
         'guest': 'Guest Bedroom',
@@ -84,7 +91,6 @@
         'kitchen': 'Kitchen'
     };
 
-    // Motion sensor mappings
     const motionSensorMappings = {
         'outdoor|outside|garden': 'Outdoor',
         'hall|frontdoor|front door': 'Hall',
@@ -93,203 +99,12 @@
     };
 
     // =============================================================================
-    // VIEW MODE (Compact/Full Toggle)
-    // =============================================================================
-
-    const VIEW_MODE_KEY = 'homeMonitorViewMode';
-
-    function initViewMode() {
-        const savedMode = localStorage.getItem(VIEW_MODE_KEY);
-        if (savedMode === 'compact') {
-            document.body.classList.add('compact-mode');
-            updateViewModeLabel(true);
-        } else {
-            updateViewModeLabel(false);
-        }
-    }
-
-    function toggleViewMode() {
-        const isCompact = document.body.classList.toggle('compact-mode');
-        localStorage.setItem(VIEW_MODE_KEY, isCompact ? 'compact' : 'full');
-        updateViewModeLabel(isCompact);
-        Logger.info(`View mode: ${isCompact ? 'Simple' : 'Full'}`);
-    }
-
-    function updateViewModeLabel(isCompact) {
-        const label = document.getElementById('viewModeLabel');
-        const icon = document.querySelector('.view-toggle .toggle-icon');
-        if (label) label.textContent = isCompact ? 'Simple' : 'Full';
-        if (icon) icon.textContent = isCompact ? '👁️' : '👁️';
-    }
-
-    // Expose globally for onclick handler
-    window.toggleViewMode = toggleViewMode;
-
-    // =============================================================================
-    // CONNECTION STATUS MONITORING (Hue Bridge + Proxy Servers)
-    // =============================================================================
-
-    const connectionStatus = {
-        hue: { online: false, lastCheck: null, name: null, apiVersion: null },
-        sonos: { online: false, lastCheck: null, uptime: null },
-        tapo: { online: false, lastCheck: null, uptime: null },
-        shield: { online: false, lastCheck: null, uptime: null }
-    };
-
-    // Guard flags to prevent overlapping operations
-    let isCheckingConnections = false;
-
-    /**
-     * Check Hue bridge connectivity
-     * Uses /api/config endpoint which requires no authentication
-     */
-    async function checkHueBridgeHealth() {
-        const indicator = document.getElementById('status-hue');
-        if (indicator) {
-            indicator.classList.remove('online', 'offline');
-            indicator.classList.add('checking');
-        }
-
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), APP_CONFIG.timeouts.proxyCheck);
-
-            const response = await fetch(`http://${BRIDGE_IP}/api/config`, {
-                signal: controller.signal
-            });
-            clearTimeout(timeoutId);
-
-            if (response.ok) {
-                const data = await response.json();
-                // Verify it's actually a Hue bridge by checking for bridgeid
-                if (data.bridgeid) {
-                    connectionStatus.hue = {
-                        online: true,
-                        lastCheck: new Date(),
-                        name: data.name,
-                        apiVersion: data.apiversion
-                    };
-                    if (indicator) {
-                        indicator.classList.remove('checking', 'offline');
-                        indicator.classList.add('online');
-                        indicator.title = `Hue Bridge: ${data.name} (API v${data.apiversion})`;
-                    }
-                    return true;
-                }
-            }
-        } catch (error) {
-            // Bridge is offline or unreachable
-        }
-
-        connectionStatus.hue = {
-            online: false,
-            lastCheck: new Date(),
-            name: null,
-            apiVersion: null
-        };
-        if (indicator) {
-            indicator.classList.remove('checking', 'online');
-            indicator.classList.add('offline');
-            indicator.title = `Hue Bridge: Offline - check connection to ${BRIDGE_IP}`;
-        }
-        return false;
-    }
-
-    async function checkProxyHealth(proxyName, url) {
-        const indicator = document.getElementById(`status-${proxyName}`);
-        if (indicator) {
-            indicator.classList.remove('online', 'offline');
-            indicator.classList.add('checking');
-        }
-
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), APP_CONFIG.timeouts.proxyCheck);
-
-            const response = await fetch(`${url}/health`, { signal: controller.signal });
-            clearTimeout(timeoutId);
-
-            if (response.ok) {
-                const data = await response.json();
-                connectionStatus[proxyName] = {
-                    online: true,
-                    lastCheck: new Date(),
-                    uptime: data.uptime
-                };
-                if (indicator) {
-                    indicator.classList.remove('checking', 'offline');
-                    indicator.classList.add('online');
-                    indicator.title = `${proxyName}: Online (uptime: ${formatUptime(data.uptime)})`;
-                }
-                return true;
-            }
-        } catch (error) {
-            // Proxy is offline or unreachable
-        }
-
-        connectionStatus[proxyName] = {
-            online: false,
-            lastCheck: new Date(),
-            uptime: null
-        };
-        if (indicator) {
-            indicator.classList.remove('checking', 'online');
-            indicator.classList.add('offline');
-            indicator.title = `${proxyName}: Offline - run 'npm start' to start proxies`;
-        }
-        return false;
-    }
-
-    function formatUptime(seconds) {
-        if (!seconds) return 'unknown';
-        if (seconds < 60) return `${Math.floor(seconds)}s`;
-        if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
-        if (seconds < 86400) return `${Math.floor(seconds / 3600)}h`;
-        return `${Math.floor(seconds / 86400)}d`;
-    }
-
-    /**
-     * Check all connections (Hue bridge + proxies) in parallel
-     * Uses guard flag to prevent overlapping checks
-     */
-    async function checkAllConnections() {
-        // Prevent overlapping connection checks
-        if (isCheckingConnections) {
-            Logger.warn('Connection check already in progress, skipping...');
-            return;
-        }
-
-        isCheckingConnections = true;
-        try {
-            await Promise.all([
-                checkHueBridgeHealth(),
-                checkProxyHealth('sonos', APP_CONFIG.proxies.sonos),
-                checkProxyHealth('tapo', APP_CONFIG.proxies.tapo),
-                checkProxyHealth('shield', APP_CONFIG.proxies.shield)
-            ]);
-        } finally {
-            isCheckingConnections = false;
-        }
-    }
-
-    // Legacy alias for backwards compatibility
-    const checkAllProxies = checkAllConnections;
-
-    // =============================================================================
     // STATE
     // =============================================================================
 
     const roomLights = {
-        'Main Bedroom': [],
-        'Guest Bedroom': [],
-        'Landing': [],
-        'Home Office': [],
-        'Bathroom': [],
-        'Lounge': [],
-        'Hall': [],
-        'Extension': [],
-        'Kitchen': [],
-        'Outdoor': []
+        'Main Bedroom': [], 'Guest Bedroom': [], 'Landing': [], 'Home Office': [],
+        'Bathroom': [], 'Lounge': [], 'Hall': [], 'Extension': [], 'Kitchen': [], 'Outdoor': []
     };
 
     const motionSensors = {
@@ -313,9 +128,7 @@
         if (!lightName) return null;
         const nameLower = lightName.toLowerCase();
         for (const [pattern, room] of Object.entries(lightMappings)) {
-            if (new RegExp(pattern, 'i').test(nameLower)) {
-                return room;
-            }
+            if (new RegExp(pattern, 'i').test(nameLower)) return room;
         }
         return null;
     }
@@ -324,9 +137,7 @@
         if (!sensorName) return null;
         const nameLower = sensorName.toLowerCase();
         for (const [pattern, room] of Object.entries(motionSensorMappings)) {
-            if (new RegExp(pattern, 'i').test(nameLower)) {
-                return room;
-            }
+            if (new RegExp(pattern, 'i').test(nameLower)) return room;
         }
         return null;
     }
@@ -339,80 +150,54 @@
         return '#FF4500';
     }
 
-    /**
-     * Convert Hue light state to hex color
-     * Supports hue/sat mode and color temperature mode
-     */
     function hueStateToColor(state) {
         if (state.colormode === 'hs' && state.hue !== undefined) {
-            // Convert Hue's HSB to RGB
-            // Hue: 0-65535 -> 0-360, Sat: 0-254 -> 0-1, Bri: 0-254 -> 0-1
             const h = (state.hue / 65535) * 360;
             const s = state.sat / 254;
             const v = state.bri / 254;
             return hsvToHex(h, s, v);
         } else if (state.colormode === 'ct' && state.ct !== undefined) {
-            // Color temperature (mireds): 153 (cold) to 500 (warm)
-            // Map to color: blue-white-yellow-orange
             const ct = state.ct;
-            if (ct < 250) return '#E0EFFF'; // Cool white
-            if (ct < 350) return '#FFF5E0'; // Warm white
-            return '#FFE4C4'; // Very warm
+            if (ct < 250) return '#E0EFFF';
+            if (ct < 350) return '#FFF5E0';
+            return '#FFE4C4';
         } else if (state.colormode === 'xy' && state.xy) {
-            // CIE xy color - approximate conversion
             return xyToHex(state.xy[0], state.xy[1], state.bri);
         }
-        return '#FFD700'; // Default yellow for on lights
+        return '#FFD700';
     }
 
-    /**
-     * Convert HSV to hex color
-     */
     function hsvToHex(h, s, v) {
         const c = v * s;
         const x = c * (1 - Math.abs((h / 60) % 2 - 1));
         const m = v - c;
         let r, g, b;
-
         if (h < 60) { r = c; g = x; b = 0; }
         else if (h < 120) { r = x; g = c; b = 0; }
         else if (h < 180) { r = 0; g = c; b = x; }
         else if (h < 240) { r = 0; g = x; b = c; }
         else if (h < 300) { r = x; g = 0; b = c; }
         else { r = c; g = 0; b = x; }
-
         const toHex = (n) => Math.round((n + m) * 255).toString(16).padStart(2, '0');
         return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
     }
 
-    /**
-     * Convert CIE xy to hex (approximate)
-     */
     function xyToHex(x, y, bri) {
-        // Simplified xy to RGB conversion
         const z = 1 - x - y;
         const Y = bri / 254;
         const X = (Y / y) * x;
         const Z = (Y / y) * z;
-
-        // Convert to RGB (sRGB)
         let r = X * 1.656492 - Y * 0.354851 - Z * 0.255038;
         let g = -X * 0.707196 + Y * 1.655397 + Z * 0.036152;
         let b = X * 0.051713 - Y * 0.121364 + Z * 1.011530;
-
-        // Clamp and gamma correct
         const gamma = (n) => n <= 0.0031308 ? 12.92 * n : 1.055 * Math.pow(n, 1/2.4) - 0.055;
         r = Math.max(0, Math.min(1, gamma(r)));
         g = Math.max(0, Math.min(1, gamma(g)));
         b = Math.max(0, Math.min(1, gamma(b)));
-
         const toHex = (n) => Math.round(n * 255).toString(16).padStart(2, '0');
         return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
     }
 
-    /**
-     * Darken a hex color for stroke/border
-     */
     function darkenColor(hex) {
         const r = parseInt(hex.slice(1, 3), 16);
         const g = parseInt(hex.slice(3, 5), 16);
@@ -440,9 +225,7 @@
 
     function saveTempData(room, temp) {
         const now = Date.now();
-        if (!tempHistory[room]) {
-            tempHistory[room] = [];
-        }
+        if (!tempHistory[room]) tempHistory[room] = [];
         tempHistory[room].push({ time: now, temp: parseFloat(temp) });
         const cutoff = now - (24 * 60 * 60 * 1000);
         tempHistory[room] = tempHistory[room].filter(entry => entry.time > cutoff);
@@ -484,7 +267,6 @@
 
         const sortedHistory = [...motionHistory].sort((a, b) => b.time - a.time);
         const groupedByDate = {};
-
         sortedHistory.forEach(entry => {
             const date = new Date(entry.time);
             const dateKey = date.toLocaleDateString();
@@ -625,7 +407,7 @@
         if (container) container.appendChild(group);
 
         // Make thermometer draggable
-        if (typeof createDraggable === 'function') {
+        if (typeof createDraggable === 'function' && typeof loadSavedPosition === 'function') {
             const storageKey = `thermometer-${elementId}`;
             loadSavedPosition(group, storageKey);
             createDraggable(group, { storageKey: storageKey });
@@ -659,18 +441,7 @@
     // DATA LOADING
     // =============================================================================
 
-    // Guard flags to prevent overlapping data loads
-    let isLoadingTemperatures = false;
-    let isLoadingLights = false;
-    let isLoadingMotion = false;
-
     async function loadTemperatures(showSparkles = true) {
-        // Prevent overlapping temperature loads
-        if (isLoadingTemperatures) {
-            return;
-        }
-
-        isLoadingTemperatures = true;
         try {
             const response = await fetch(`http://${BRIDGE_IP}/api/${USERNAME}/sensors`);
             if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
@@ -679,7 +450,6 @@
             document.getElementById('thermometers-container').innerHTML = '';
             document.getElementById('outdoor-thermometer-container').innerHTML = '';
 
-            const temps = [];
             for (const [id, sensor] of Object.entries(sensors)) {
                 if (sensor.type === 'ZLLTemperature') {
                     const elementId = sensorMapping[sensor.name];
@@ -691,9 +461,6 @@
                         if (tempElement && showSparkles) {
                             setTimeout(() => createSparkles(tempElement), 100);
                         }
-                        if (sensor.name !== 'Hue outdoor temp. sensor 1') {
-                            temps.push(parseFloat(tempC));
-                        }
                     }
                 }
             }
@@ -704,18 +471,10 @@
             }
         } catch (error) {
             Logger.error('Error loading temperatures:', error);
-        } finally {
-            isLoadingTemperatures = false;
         }
     }
 
     async function loadLights() {
-        // Prevent overlapping light loads
-        if (isLoadingLights) {
-            return;
-        }
-
-        isLoadingLights = true;
         try {
             const response = await fetch(`http://${BRIDGE_IP}/api/${USERNAME}/lights`);
             if (!response.ok) return;
@@ -730,19 +489,24 @@
                     if (previousLightStates[id] !== undefined &&
                         previousLightStates[id] !== currentState &&
                         light.state.reachable) {
-                        announceLight(room, currentState);
+                        // Emit event - let subscribers handle announcements
+                        AppEvents.emit('light:changed', {
+                            room,
+                            lightId: id,
+                            lightName: light.name,
+                            on: currentState,
+                            reachable: light.state.reachable
+                        });
                     }
                     previousLightStates[id] = currentState;
 
-                    // Extract color info for colored bulbs
                     let color = null;
                     if (light.state.on && light.state.colormode) {
                         color = hueStateToColor(light.state);
                     }
 
                     roomLights[room].push({
-                        id, name: light.name, on: currentState, reachable: light.state.reachable,
-                        color: color
+                        id, name: light.name, on: currentState, reachable: light.state.reachable, color
                     });
                 }
             }
@@ -751,18 +515,10 @@
             updateOutdoorLamppost();
         } catch (error) {
             Logger.error('Error loading lights:', error);
-        } finally {
-            isLoadingLights = false;
         }
     }
 
     async function loadMotionSensors() {
-        // Prevent overlapping motion sensor loads
-        if (isLoadingMotion) {
-            return;
-        }
-
-        isLoadingMotion = true;
         try {
             const response = await fetch(`http://${BRIDGE_IP}/api/${USERNAME}/sensors`);
             if (!response.ok) return;
@@ -778,11 +534,14 @@
 
                         if (sensor.state.presence && !wasDetected) {
                             logMotionEvent(room);
-                            announceMotion(room);
-                            // Show monkey motion indicator
-                            if (window.MotionIndicators) {
-                                window.MotionIndicators.show(room);
-                            }
+
+                            // Emit event - let subscribers handle announcements and indicators
+                            AppEvents.emit('motion:detected', {
+                                room,
+                                sensorId: id,
+                                sensorName: sensor.name,
+                                timestamp: Date.now()
+                            });
                         }
                         motionSensors[room].previousDetected = wasDetected;
                     }
@@ -790,8 +549,6 @@
             }
         } catch (error) {
             Logger.error('Error loading motion sensors:', error);
-        } finally {
-            isLoadingMotion = false;
         }
     }
 
@@ -801,14 +558,10 @@
 
     function updateLightIndicators() {
         const positions = {
-            'Main Bedroom': { x: 180, y: 240 },
-            'Landing': { x: 340, y: 240 },
-            'Home Office': { x: 500, y: 240 },
-            'Bathroom': { x: 660, y: 240 },
-            'Guest Bedroom': { x: 820, y: 240 },
-            'Hall': { x: 200, y: 405 },
-            'Lounge': { x: 400, y: 405 },
-            'Kitchen': { x: 600, y: 405 },
+            'Main Bedroom': { x: 180, y: 240 }, 'Landing': { x: 340, y: 240 },
+            'Home Office': { x: 500, y: 240 }, 'Bathroom': { x: 660, y: 240 },
+            'Guest Bedroom': { x: 820, y: 240 }, 'Hall': { x: 200, y: 405 },
+            'Lounge': { x: 400, y: 405 }, 'Kitchen': { x: 600, y: 405 },
             'Extension': { x: 800, y: 405 }
         };
 
@@ -829,7 +582,6 @@
                 bulb.setAttribute('cx', pos.x + offsetX);
                 bulb.setAttribute('cy', pos.y);
                 bulb.setAttribute('r', 6);
-                // Use actual bulb color if available, otherwise default yellow/grey
                 const fillColor = light.on ? (light.color || '#FFD700') : '#666';
                 const strokeColor = light.on ? (light.color ? darkenColor(light.color) : '#FFA500') : '#333';
                 bulb.setAttribute('fill', fillColor);
@@ -873,9 +625,7 @@
                     body: JSON.stringify({ on: !currentState })
                 }
             );
-            if (response.ok) {
-                setTimeout(loadLights, 500);
-            }
+            if (response.ok) setTimeout(loadLights, 500);
         } catch (error) {
             Logger.error('Error toggling light:', error);
         }
@@ -968,46 +718,79 @@
     }
 
     // =============================================================================
+    // EVENT SUBSCRIPTIONS
+    // =============================================================================
+
+    /**
+     * Setup event subscriptions to decouple data loading from side effects
+     * This allows features to react to events without direct coupling
+     */
+    function setupEventSubscriptions() {
+        // Motion detection -> voice announcement + visual indicator
+        AppEvents.on('motion:detected', (data) => {
+            announceMotion(data.room);
+            if (window.MotionIndicators) {
+                window.MotionIndicators.show(data.room);
+            }
+        });
+
+        // Light state change -> voice announcement
+        AppEvents.on('light:changed', (data) => {
+            announceLight(data.room, data.on);
+        });
+
+        // Connection status changes -> logging
+        AppEvents.on('connection:hue:online', (data) => {
+            Logger.success(`Hue Bridge connected: ${data.name}`);
+        });
+
+        AppEvents.on('connection:hue:offline', () => {
+            Logger.warn('Hue Bridge disconnected');
+        });
+
+        AppEvents.on('connection:proxy:online', (data) => {
+            Logger.success(`${data.proxy} proxy connected`);
+        });
+
+        AppEvents.on('connection:proxy:offline', (data) => {
+            Logger.warn(`${data.proxy} proxy disconnected`);
+        });
+
+        // Debug: log all events in debug mode
+        if (APP_CONFIG.debug) {
+            AppEvents.on('*', (data, meta) => {
+                Logger.debug(`Event: ${meta.event}`, data);
+            });
+        }
+    }
+
+    // =============================================================================
     // INITIALIZATION
     // =============================================================================
 
     async function init() {
-        Logger.info('Initializing Home Monitor (app.js)...');
+        Logger.info('Initializing Home Monitor...');
 
-        // Initialize and validate configuration
-        if (window.AppConfig) {
-            const config = await window.AppConfig.init();
-            if (!config.isValid) {
-                Logger.error('Configuration has errors - some features may not work');
-            }
-            // Log feature availability
-            const features = ['hue', 'weather', 'nest', 'sonos', 'tapo', 'shield'];
-            const available = features.filter(f => config.hasFeature(f));
-            const unavailable = features.filter(f => !config.hasFeature(f));
-            if (available.length > 0) {
-                Logger.info(`Available features: ${available.join(', ')}`);
-            }
-            if (unavailable.length > 0) {
-                Logger.warn(`Unavailable features: ${unavailable.join(', ')}`);
-            }
-        }
+        // Setup event subscriptions (decouple data loading from side effects)
+        setupEventSubscriptions();
 
-        // Initialize view mode (compact/full) from localStorage
-        initViewMode();
+        // Initialize configuration
+        await AppInitializer.initConfiguration();
 
-        // Initialize history from localStorage
+        // Initialize view mode
+        AppInitializer.initViewMode();
+
+        // Initialize history
         initTempHistory();
         initMotionHistory();
 
-        // CRITICAL: Check ALL connection statuses first and WAIT for completion
-        // This includes Hue bridge + all proxy servers, running in parallel
+        // Check all connections first
         Logger.info('Checking connection status...');
-        await checkAllConnections();
+        const status = await ConnectionMonitor.checkAll();
 
-        // Initialize Tapo controls AFTER connection check completes
-        // This ensures the proxy is confirmed available before Tapo tries to connect
+        // Initialize Tapo if proxy is online
         if (typeof TapoControls !== 'undefined' && TapoControls.init) {
-            if (connectionStatus.tapo.online) {
+            if (ConnectionMonitor.isOnline('tapo')) {
                 Logger.info('Initializing Tapo controls...');
                 await TapoControls.init();
             } else {
@@ -1015,75 +798,58 @@
             }
         }
 
-        // Initial data load - run concurrently, each has error handling
+        // Initial data load
         Logger.info('Loading initial data...');
-        await Promise.all([
-            loadTemperatures(),
-            loadLights(),
-            loadMotionSensors()
-        ]);
+        await Promise.all([loadTemperatures(), loadLights(), loadMotionSensors()]);
 
-        // These don't depend on Hue bridge
+        // Fetch external data
         fetchSunTimes();
         updateWeatherDisplay();
 
-        // Setup lamppost click
-        const lampHousing = document.getElementById('lamp-housing');
-        if (lampHousing) {
-            lampHousing.style.cursor = 'pointer';
-            lampHousing.addEventListener('dblclick', () => {
-                if (roomLights['Outdoor'] && roomLights['Outdoor'].length > 0) {
-                    toggleLight(roomLights['Outdoor'][0].id, roomLights['Outdoor'][0].on);
-                }
-            });
-        }
+        // Setup UI handlers
+        AppInitializer.setupDraggables();
+        AppInitializer.setupLamppostHandler(toggleLight, (room) => roomLights[room]);
 
-        // Setup weather panel dragging
-        const weatherPanel = document.getElementById('weather-info-panel');
-        if (weatherPanel && typeof createDraggable === 'function') {
-            loadSavedPosition(weatherPanel, 'weatherPanelPosition');
-            createDraggable(weatherPanel, { storageKey: 'weatherPanelPosition' });
-        }
+        // Register polling tasks using the Poller module
+        Poller.register('connectionStatus', ConnectionMonitor.checkAll,
+            APP_CONFIG.intervals.connectionStatus || 30000);
+        Poller.register('motionSensors', loadMotionSensors, APP_CONFIG.intervals.motionSensors);
+        Poller.register('lights', loadLights, APP_CONFIG.intervals.lights);
+        Poller.register('temperatures', () => loadTemperatures(false), APP_CONFIG.intervals.temperatures);
+        Poller.register('motionLog', updateMotionLogDisplay, APP_CONFIG.intervals.motionLog);
+        Poller.register('sky', updateSky, APP_CONFIG.intervals.sky);
+        Poller.register('sunTimes', fetchSunTimes, APP_CONFIG.intervals.sunTimes);
+        Poller.register('weather', updateWeatherDisplay, APP_CONFIG.intervals.weather);
 
-        // Setup jukebox (light effects) dragging
-        const jukebox = document.getElementById('jukebox');
-        if (jukebox && typeof createDraggable === 'function') {
-            loadSavedPosition(jukebox, 'jukeboxPosition');
-            createDraggable(jukebox, {
-                storageKey: 'jukeboxPosition',
-                excludeSelector: '.jukebox-button'
-            });
-        }
+        // Start all polling
+        Poller.startAll();
 
-        // Register polling intervals
-        // Connection status is checked frequently to update header indicators
-        IntervalManager.register(checkAllConnections, APP_CONFIG.intervals.connectionStatus || 30000);
-
-        // Hue data polling (these will skip if Hue is offline)
-        IntervalManager.register(loadMotionSensors, APP_CONFIG.intervals.motionSensors);
-        IntervalManager.register(loadLights, APP_CONFIG.intervals.lights);
-        IntervalManager.register(() => loadTemperatures(false), APP_CONFIG.intervals.temperatures);
-
-        // UI/display updates
-        IntervalManager.register(updateMotionLogDisplay, APP_CONFIG.intervals.motionLog);
-        IntervalManager.register(updateSky, APP_CONFIG.intervals.sky);
-
-        // External data
-        IntervalManager.register(fetchSunTimes, APP_CONFIG.intervals.sunTimes);
-        IntervalManager.register(updateWeatherDisplay, APP_CONFIG.intervals.weather);
-
-        // Initialize Moose (Monty) character system
+        // Initialize Moose system
         if (window.MooseSystem) {
-            window.MooseSystem.init(true); // Debug mode: 30-60 sec intervals
-            Logger.info('Moose system initialized - DEBUG MODE: Monty will appear every 30-60 seconds');
+            window.MooseSystem.init(true);
+            Logger.info('Moose system initialized - DEBUG MODE');
         } else {
-            Logger.error('MooseSystem not found - check if moose.js loaded correctly');
+            Logger.error('MooseSystem not found');
         }
 
         Logger.success('Home Monitor initialized!');
+
+        // Emit app ready event
+        AppEvents.emit('app:ready', {
+            timestamp: Date.now(),
+            features: {
+                hue: ConnectionMonitor.isOnline('hue'),
+                sonos: ConnectionMonitor.isOnline('sonos'),
+                tapo: ConnectionMonitor.isOnline('tapo'),
+                shield: ConnectionMonitor.isOnline('shield')
+            }
+        });
     }
 
-    // Expose to window
+    // =============================================================================
+    // EXPOSE MODULE
+    // =============================================================================
+
     window.HomeMonitor = {
         init,
         loadTemperatures,
@@ -1091,29 +857,11 @@
         loadMotionSensors,
         updateWeatherDisplay,
         toggleLight,
-        checkAllConnections,
-        getConnectionStatus: () => connectionStatus
+        getRoomLights: (room) => roomLights[room],
+        getMotionSensors: () => motionSensors
     };
 
-    // Auto-initialize when DOM is ready
-    // Uses a single, consistent approach for all refresh types
-    function onReady(fn) {
-        const run = () => {
-            try {
-                fn();
-            } catch (e) {
-                Logger.error('Init error:', e);
-            }
-        };
-
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', run);
-        } else {
-            // DOM already ready, run immediately
-            run();
-        }
-    }
-
-    onReady(init);
+    // Auto-initialize
+    AppInitializer.onReady(init);
 
 })();
