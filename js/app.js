@@ -13,17 +13,12 @@
  * - js/core/connection-monitor.js - Health checks
  * - js/core/poller.js - Polling scheduler
  * - js/core/initializer.js - App bootstrap
+ *
+ * Uses HueAPI from js/api/hue.js for all Hue Bridge communication.
  */
 
 (function() {
     'use strict';
-
-    // =============================================================================
-    // CONFIGURATION
-    // =============================================================================
-
-    const BRIDGE_IP = window.HUE_CONFIG?.BRIDGE_IP || '192.168.68.51';
-    const USERNAME = window.HUE_CONFIG?.USERNAME || '';
 
     // Sensor mappings
     const sensorMapping = {
@@ -99,26 +94,19 @@
     };
 
     // =============================================================================
-    // STATE
+    // STATE (uses centralized AppState)
     // =============================================================================
 
-    const roomLights = {
-        'Main Bedroom': [], 'Guest Bedroom': [], 'Landing': [], 'Home Office': [],
-        'Bathroom': [], 'Lounge': [], 'Hall': [], 'Extension': [], 'Kitchen': [], 'Outdoor': []
-    };
-
-    const motionSensors = {
-        'Outdoor': { detected: false, lastUpdated: null, previousDetected: false },
-        'Hall': { detected: false, lastUpdated: null, previousDetected: false },
-        'Landing': { detected: false, lastUpdated: null, previousDetected: false },
-        'Bathroom': { detected: false, lastUpdated: null, previousDetected: false }
-    };
-
-    let tempHistory = {};
-    let motionHistory = [];
+    // Local variables for non-shared state
     let sunriseTime = null;
     let sunsetTime = null;
-    let previousLightStates = {};
+
+    // Helper functions to access AppState
+    const getRoomLights = () => AppState.get('lights') || {};
+    const getMotionSensors = () => AppState.get('motion') || {};
+    const getTempHistory = () => AppState.get('tempHistory') || {};
+    const getMotionHistory = () => AppState.get('motionHistory') || [];
+    const getPreviousLightStates = () => AppState.get('previousLightStates') || {};
 
     // =============================================================================
     // UTILITY FUNCTIONS
@@ -212,44 +200,46 @@
     // =============================================================================
 
     function initTempHistory() {
-        const stored = localStorage.getItem('tempHistory');
-        if (stored) {
-            tempHistory = JSON.parse(stored);
-            const now = Date.now();
-            const cutoff = now - (24 * 60 * 60 * 1000);
-            for (let room in tempHistory) {
-                tempHistory[room] = tempHistory[room].filter(entry => entry.time > cutoff);
-            }
+        // AppState handles loading from localStorage automatically
+        // Just clean up old entries
+        const tempHistory = getTempHistory();
+        const now = Date.now();
+        const cutoff = now - (24 * 60 * 60 * 1000);
+        const cleaned = {};
+        for (let room in tempHistory) {
+            cleaned[room] = tempHistory[room].filter(entry => entry.time > cutoff);
         }
+        AppState.set('tempHistory', cleaned);
     }
 
     function saveTempData(room, temp) {
         const now = Date.now();
+        const tempHistory = getTempHistory();
         if (!tempHistory[room]) tempHistory[room] = [];
         tempHistory[room].push({ time: now, temp: parseFloat(temp) });
         const cutoff = now - (24 * 60 * 60 * 1000);
         tempHistory[room] = tempHistory[room].filter(entry => entry.time > cutoff);
-        localStorage.setItem('tempHistory', JSON.stringify(tempHistory));
+        AppState.set('tempHistory', tempHistory);
     }
 
     function initMotionHistory() {
-        const stored = localStorage.getItem('motionHistory');
-        if (stored) {
-            motionHistory = JSON.parse(stored);
-            const now = Date.now();
-            const cutoff = now - (48 * 60 * 60 * 1000);
-            motionHistory = motionHistory.filter(entry => entry.time > cutoff);
-            localStorage.setItem('motionHistory', JSON.stringify(motionHistory));
-        }
+        // AppState handles loading from localStorage automatically
+        // Just clean up old entries
+        const motionHistory = getMotionHistory();
+        const now = Date.now();
+        const cutoff = now - (48 * 60 * 60 * 1000);
+        const cleaned = motionHistory.filter(entry => entry.time > cutoff);
+        AppState.set('motionHistory', cleaned);
         updateMotionLogDisplay();
     }
 
     function logMotionEvent(room) {
         const now = Date.now();
+        const motionHistory = getMotionHistory();
         motionHistory.push({ type: 'motion', location: room, room: room, time: now });
         const cutoff = now - (48 * 60 * 60 * 1000);
-        motionHistory = motionHistory.filter(entry => entry.time > cutoff);
-        localStorage.setItem('motionHistory', JSON.stringify(motionHistory));
+        const cleaned = motionHistory.filter(entry => entry.time > cutoff);
+        AppState.set('motionHistory', cleaned);
         updateMotionLogDisplay();
     }
 
@@ -257,6 +247,8 @@
         const logContainer = document.getElementById('motion-log');
         const countDisplay = document.getElementById('motion-log-count');
         if (!logContainer) return;
+
+        const motionHistory = getMotionHistory();
 
         if (countDisplay) countDisplay.textContent = motionHistory.length;
 
@@ -443,13 +435,13 @@
 
     async function loadTemperatures(showSparkles = true) {
         try {
-            const response = await fetch(`http://${BRIDGE_IP}/api/${USERNAME}/sensors`);
-            if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
-            const sensors = await response.json();
+            const sensors = await HueAPI.getAllSensors();
+            if (!sensors) throw new Error('Failed to fetch sensors');
 
             document.getElementById('thermometers-container').innerHTML = '';
             document.getElementById('outdoor-thermometer-container').innerHTML = '';
 
+            const temperatureReadings = [];
             for (const [id, sensor] of Object.entries(sensors)) {
                 if (sensor.type === 'ZLLTemperature') {
                     const elementId = sensorMapping[sensor.name];
@@ -458,11 +450,28 @@
                         const roomName = roomNames[sensor.name] || sensor.name;
                         const tempElement = createThermometer(elementId, parseFloat(tempC), roomName);
                         saveTempData(sensor.name, tempC);
+
+                        // Collect for event
+                        temperatureReadings.push({
+                            sensorId: id,
+                            room: roomName,
+                            temp: parseFloat(tempC),
+                            lastUpdated: sensor.state.lastupdated
+                        });
+
                         if (tempElement && showSparkles) {
                             setTimeout(() => createSparkles(tempElement), 100);
                         }
                     }
                 }
+            }
+
+            // Emit temperature batch update event
+            if (temperatureReadings.length > 0) {
+                AppEvents.emit('temperature:updated', {
+                    readings: temperatureReadings,
+                    timestamp: Date.now()
+                });
             }
 
             const lastUpdateEl = document.getElementById('lastUpdate');
@@ -476,11 +485,17 @@
 
     async function loadLights() {
         try {
-            const response = await fetch(`http://${BRIDGE_IP}/api/${USERNAME}/lights`);
-            if (!response.ok) return;
-            const lights = await response.json();
+            const lights = await HueAPI.getAllLights();
+            if (!lights) return;
 
-            for (let room in roomLights) roomLights[room] = [];
+            const previousLightStates = getPreviousLightStates();
+            const newPreviousStates = { ...previousLightStates };
+
+            // Initialize room lights structure
+            const roomLights = {
+                'Main Bedroom': [], 'Guest Bedroom': [], 'Landing': [], 'Home Office': [],
+                'Bathroom': [], 'Lounge': [], 'Hall': [], 'Extension': [], 'Kitchen': [], 'Outdoor': []
+            };
 
             for (const [id, light] of Object.entries(lights)) {
                 const room = mapLightToRoom(light.name);
@@ -498,7 +513,7 @@
                             reachable: light.state.reachable
                         });
                     }
-                    previousLightStates[id] = currentState;
+                    newPreviousStates[id] = currentState;
 
                     let color = null;
                     if (light.state.on && light.state.colormode) {
@@ -511,6 +526,10 @@
                 }
             }
 
+            // Update state
+            AppState.set('lights', roomLights);
+            AppState.set('previousLightStates', newPreviousStates);
+
             updateLightIndicators();
             updateOutdoorLamppost();
         } catch (error) {
@@ -520,17 +539,22 @@
 
     async function loadMotionSensors() {
         try {
-            const response = await fetch(`http://${BRIDGE_IP}/api/${USERNAME}/sensors`);
-            if (!response.ok) return;
-            const sensors = await response.json();
+            const sensors = await HueAPI.getAllSensors();
+            if (!sensors) return;
+
+            const motionSensors = getMotionSensors();
+            const updatedMotion = { ...motionSensors };
 
             for (const [id, sensor] of Object.entries(sensors)) {
                 if (sensor.type === 'ZLLPresence') {
                     const room = mapMotionSensorToRoom(sensor.name);
-                    if (room && motionSensors[room]) {
-                        const wasDetected = motionSensors[room].detected;
-                        motionSensors[room].detected = sensor.state.presence;
-                        motionSensors[room].lastUpdated = new Date();
+                    if (room && updatedMotion[room]) {
+                        const wasDetected = updatedMotion[room].detected;
+                        updatedMotion[room] = {
+                            ...updatedMotion[room],
+                            detected: sensor.state.presence,
+                            lastUpdated: new Date()
+                        };
 
                         if (sensor.state.presence && !wasDetected) {
                             logMotionEvent(room);
@@ -543,10 +567,11 @@
                                 timestamp: Date.now()
                             });
                         }
-                        motionSensors[room].previousDetected = wasDetected;
                     }
                 }
             }
+
+            AppState.set('motion', updatedMotion);
         } catch (error) {
             Logger.error('Error loading motion sensors:', error);
         }
@@ -569,6 +594,7 @@
         if (!container) return;
         container.innerHTML = '';
 
+        const roomLights = getRoomLights();
         const ns = 'http://www.w3.org/2000/svg';
         for (const [room, lights] of Object.entries(roomLights)) {
             if (lights.length === 0) continue;
@@ -602,7 +628,9 @@
     }
 
     function updateOutdoorLamppost() {
-        const outdoorLightsOn = roomLights['Outdoor'].some(l => l.on);
+        const roomLights = getRoomLights();
+        const outdoorLights = roomLights['Outdoor'] || [];
+        const outdoorLightsOn = outdoorLights.some(l => l.on);
         const bulb = document.getElementById('lamp-bulb');
         if (!bulb) return;
 
@@ -617,15 +645,8 @@
 
     async function toggleLight(lightId, currentState) {
         try {
-            const response = await fetch(
-                `http://${BRIDGE_IP}/api/${USERNAME}/lights/${lightId}/state`,
-                {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ on: !currentState })
-                }
-            );
-            if (response.ok) setTimeout(loadLights, 500);
+            const success = await HueAPI.setLightState(lightId, { on: !currentState });
+            if (success) setTimeout(loadLights, 500);
         } catch (error) {
             Logger.error('Error toggling light:', error);
         }
@@ -724,14 +745,15 @@
     /**
      * Setup event subscriptions to decouple data loading from side effects
      * This allows features to react to events without direct coupling
+     *
+     * Note: MotionIndicators now subscribes to motion:detected internally,
+     * so we only handle voice announcements here.
      */
     function setupEventSubscriptions() {
-        // Motion detection -> voice announcement + visual indicator
+        // Motion detection -> voice announcement
+        // (MotionIndicators handles its own subscription for visual indicators)
         AppEvents.on('motion:detected', (data) => {
             announceMotion(data.room);
-            if (window.MotionIndicators) {
-                window.MotionIndicators.show(data.room);
-            }
         });
 
         // Light state change -> voice announcement
@@ -784,9 +806,14 @@
         initTempHistory();
         initMotionHistory();
 
-        // Check all connections first
-        Logger.info('Checking connection status...');
-        const status = await ConnectionMonitor.checkAll();
+        // Wait for connections with rapid retries during startup
+        // Proxies may take a moment to start when using 'npm start'
+        Logger.info('Waiting for services to come online...');
+        const status = await ConnectionMonitor.waitForConnections({
+            maxAttempts: 10,
+            retryInterval: 2000,
+            timeout: 20000
+        });
 
         // Initialize Tapo if proxy is online
         if (typeof TapoControls !== 'undefined' && TapoControls.init) {
@@ -808,7 +835,7 @@
 
         // Setup UI handlers
         AppInitializer.setupDraggables();
-        AppInitializer.setupLamppostHandler(toggleLight, (room) => roomLights[room]);
+        AppInitializer.setupLamppostHandler(toggleLight, (room) => getRoomLights()[room]);
 
         // Register polling tasks using the Poller module
         Poller.register('connectionStatus', ConnectionMonitor.checkAll,
@@ -824,17 +851,10 @@
         // Start all polling
         Poller.startAll();
 
-        // Initialize Moose system
-        if (window.MooseSystem) {
-            window.MooseSystem.init(true);
-            Logger.info('Moose system initialized - DEBUG MODE');
-        } else {
-            Logger.error('MooseSystem not found');
-        }
-
         Logger.success('Home Monitor initialized!');
 
         // Emit app ready event
+        // Note: MooseSystem subscribes to this event and auto-initializes
         AppEvents.emit('app:ready', {
             timestamp: Date.now(),
             features: {
@@ -857,8 +877,11 @@
         loadMotionSensors,
         updateWeatherDisplay,
         toggleLight,
-        getRoomLights: (room) => roomLights[room],
-        getMotionSensors: () => motionSensors
+        getRoomLights: (room) => {
+            const lights = getRoomLights();
+            return room ? lights[room] : lights;
+        },
+        getMotionSensors
     };
 
     // Auto-initialize

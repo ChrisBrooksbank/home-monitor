@@ -1,6 +1,8 @@
 /**
  * Lights Feature Module
  * Handles light control, indicators, lamppost, and room mapping
+ *
+ * Uses HueAPI from js/api/hue.js for all Hue Bridge communication.
  */
 
 import { HOUSE_CONFIG } from '../config/house.js';
@@ -62,38 +64,18 @@ function mapLightToRoom(lightName) {
 async function toggleLight(lightId, currentState, onSuccess) {
     try {
         const newState = !currentState;
-        const config = {
-            ip: window.HUE_CONFIG?.BRIDGE_IP,
-            username: window.HUE_CONFIG?.USERNAME
-        };
+        const success = await window.HueAPI.setLightState(lightId, { on: newState });
 
-        const response = await fetch(
-            `http://${config.ip}/api/${config.username}/lights/${lightId}/state`,
-            {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ on: newState })
-            }
-        );
-
-        if (response.ok) {
+        if (success) {
             // Get light name for logging
-            try {
-                const lightResponse = await fetch(
-                    `http://${config.ip}/api/${config.username}/lights/${lightId}`
-                );
-                if (lightResponse.ok) {
-                    const lightData = await lightResponse.json();
-                    const lightName = lightData.name || `Light ${lightId}`;
-                    if (typeof logLightEvent === 'function') {
-                        logLightEvent(lightName, newState);
-                    }
-                }
-            } catch (e) {
-                // If we can't get the name, log with ID
+            const lightData = await window.HueAPI.getLight(lightId);
+            if (lightData) {
+                const lightName = lightData.name || `Light ${lightId}`;
                 if (typeof logLightEvent === 'function') {
-                    logLightEvent(`Light ${lightId}`, newState);
+                    logLightEvent(lightName, newState);
                 }
+            } else if (typeof logLightEvent === 'function') {
+                logLightEvent(`Light ${lightId}`, newState);
             }
 
             if (onSuccess) {
@@ -114,15 +96,8 @@ async function toggleLight(lightId, currentState, onSuccess) {
  */
 async function loadLights(announceLight) {
     try {
-        const config = {
-            ip: window.HUE_CONFIG?.BRIDGE_IP,
-            username: window.HUE_CONFIG?.USERNAME
-        };
-
-        const response = await fetch(`http://${config.ip}/api/${config.username}/lights`);
-        if (!response.ok) return roomLights;
-
-        const lights = await response.json();
+        const lights = await window.HueAPI.getAllLights();
+        if (!lights) return roomLights;
 
         // Clear previous light data
         for (let room in roomLights) {

@@ -1,6 +1,8 @@
 /**
  * Motion Indicators Module
  * Shows animated monkey face when motion is detected in monitored areas
+ *
+ * Subscribes to AppEvents 'motion:detected' for automatic display.
  */
 
 (function() {
@@ -198,12 +200,33 @@
         }
     }
 
-    // Expose to window
+    /**
+     * Initialize module and subscribe to events
+     */
+    function init() {
+        // Subscribe to motion events - this decouples us from app.js
+        if (window.AppEvents) {
+            AppEvents.on('motion:detected', (data) => {
+                showMotionIndicator(data.room);
+            });
+            Logger.info('Motion indicators subscribed to motion:detected events');
+        }
+    }
+
+    // Expose to window (show/clear kept for backwards compatibility)
     window.MotionIndicators = {
+        init,
         show: showMotionIndicator,
         clear: clearAllIndicators,
         update: updateIndicators
     };
+
+    // Auto-initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
 
     Logger.info('Motion indicators module loaded');
 

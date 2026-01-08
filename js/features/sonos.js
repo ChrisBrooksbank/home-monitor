@@ -1,11 +1,19 @@
 /**
  * Sonos Speaker UI Module
  * Renders speaker controls with play, pause, volume up/down buttons
+ *
+ * Uses centralized AppState for speaker state management.
  */
 
-// Speaker state
-let speakers = {};
-let speakerVolumes = {};
+// Helper functions to access AppState
+const getSpeakers = () => (window.AppState ? AppState.get('speakers') : {}) || {};
+const getSpeakerVolumes = () => (window.AppState ? AppState.get('speakerVolumes') : {}) || {};
+const setSpeakers = (speakers) => {
+    if (window.AppState) AppState.set('speakers', speakers);
+};
+const setSpeakerVolume = (id, volume) => {
+    if (window.AppState) AppState.set(`speakerVolumes.${id}`, volume);
+};
 
 /**
  * Fetch speakers from proxy
@@ -13,7 +21,8 @@ let speakerVolumes = {};
 async function fetchSpeakers() {
     try {
         const data = await SonosAPI.getSpeakers();
-        speakers = data.speakers || {};
+        const speakers = data.speakers || {};
+        setSpeakers(speakers);
         return speakers;
     } catch (error) {
         Logger.error('Failed to fetch Sonos speakers:', error);
@@ -99,10 +108,11 @@ function setupSpeakerControl(id, speaker) {
     if (volUpBtn) {
         volUpBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
-            const currentVol = speakerVolumes[id] || 0;
+            const volumes = getSpeakerVolumes();
+            const currentVol = volumes[id] || 0;
             const newVol = Math.min(100, currentVol + 5);
             await SonosAPI.setVolume(speaker.ip, newVol);
-            speakerVolumes[id] = newVol;
+            setSpeakerVolume(id, newVol);
             updateVolumeDisplay(id, newVol);
         });
     }
@@ -110,10 +120,11 @@ function setupSpeakerControl(id, speaker) {
     if (volDownBtn) {
         volDownBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
-            const currentVol = speakerVolumes[id] || 0;
+            const volumes = getSpeakerVolumes();
+            const currentVol = volumes[id] || 0;
             const newVol = Math.max(0, currentVol - 5);
             await SonosAPI.setVolume(speaker.ip, newVol);
-            speakerVolumes[id] = newVol;
+            setSpeakerVolume(id, newVol);
             updateVolumeDisplay(id, newVol);
         });
     }
@@ -169,6 +180,7 @@ async function renderSpeakerControls() {
 
     // Fetch current speakers
     await fetchSpeakers();
+    const speakers = getSpeakers();
 
     if (Object.keys(speakers).length === 0) {
         Logger.info('No Sonos speakers found');
@@ -193,7 +205,7 @@ async function renderSpeakerControls() {
         // Fetch initial volume
         try {
             const volume = await SonosAPI.getVolume(speaker.ip);
-            speakerVolumes[id] = volume;
+            setSpeakerVolume(id, volume);
             updateVolumeDisplay(id, volume);
         } catch (e) {
             Logger.warn(`Could not get volume for ${id}`);
@@ -205,10 +217,11 @@ async function renderSpeakerControls() {
  * Update speaker volumes periodically
  */
 async function updateSpeakerVolumes() {
+    const speakers = getSpeakers();
     for (const [id, speaker] of Object.entries(speakers)) {
         try {
             const volume = await SonosAPI.getVolume(speaker.ip);
-            speakerVolumes[id] = volume;
+            setSpeakerVolume(id, volume);
             updateVolumeDisplay(id, volume);
         } catch (e) {
             // Silently fail on volume update

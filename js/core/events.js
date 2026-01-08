@@ -325,25 +325,30 @@
      * Standard event names used throughout the app:
      *
      * Connection Events:
-     *   connection:hue:online     - Hue bridge came online
+     *   connection:hue:online     - Hue bridge came online { name }
      *   connection:hue:offline    - Hue bridge went offline
      *   connection:proxy:online   - Proxy came online { proxy: 'sonos'|'tapo'|'shield' }
      *   connection:proxy:offline  - Proxy went offline { proxy: 'sonos'|'tapo'|'shield' }
      *
      * Motion Events:
-     *   motion:detected           - Motion detected { room, sensorId, timestamp }
+     *   motion:detected           - Motion detected { room, sensorId, sensorName, timestamp }
      *   motion:cleared            - Motion cleared { room, sensorId }
      *
      * Light Events:
-     *   light:changed             - Light state changed { room, lightId, on, color }
-     *   light:toggled             - Light manually toggled { lightId, newState }
+     *   light:changed             - Light state changed { room, lightId, lightName, on, reachable }
      *
      * Temperature Events:
-     *   temperature:updated       - Temperature reading { room, temp, sensorId }
-     *   temperature:alert         - Temperature threshold crossed { room, temp, threshold }
+     *   temperature:updated       - Batch temperature update { readings: [{sensorId, room, temp, lastUpdated}], timestamp }
+     *
+     * Effect Events:
+     *   effect:started            - Light effect started { effect, timestamp }
+     *   effect:completed          - Light effect completed { effect, timestamp }
+     *
+     * Tapo Events:
+     *   tapo:toggled              - Smart plug toggled { plug, on, timestamp }
      *
      * App Lifecycle:
-     *   app:ready                 - App fully initialized
+     *   app:ready                 - App fully initialized { timestamp, features }
      *   app:error                 - App error occurred { error, context }
      *   poll:started              - Polling started
      *   poll:stopped              - Polling stopped

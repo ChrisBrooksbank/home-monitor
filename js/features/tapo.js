@@ -1,5 +1,6 @@
 // Tapo Smart Plug Feature Module
 // Dynamically generates controls for all discovered Tapo plugs
+// Uses centralized AppState for plug state management
 
 (function() {
     'use strict';
@@ -18,8 +19,13 @@
         'office plug 2': { x: 620, y: 320 }
     };
 
-    // Track plug states
-    let plugStates = {};
+    // Helper to access plug states from AppState
+    const getPlugStates = () => (window.AppState ? AppState.get('plugs') : {}) || {};
+    const setPlugState = (name, isOn) => {
+        if (window.AppState) {
+            AppState.set(`plugs.${name}`, isOn);
+        }
+    };
 
     /**
      * Create SVG element with attributes
@@ -55,6 +61,7 @@
         }
 
         // Fallback: stack vertically on the right side
+        const plugStates = getPlugStates();
         const index = Object.keys(plugStates).length;
         return { x: 850, y: 150 + (index * 80) };
     }
@@ -341,23 +348,35 @@
             knob.setAttribute('transform', 'rotate(5)');
         }
 
-        plugStates[plugName] = isOn;
+        // Update centralized state
+        setPlugState(plugName, isOn);
     }
 
     /**
      * Toggle a plug on/off
      */
     async function togglePlug(plugName) {
+        const plugStates = getPlugStates();
         const currentState = plugStates[plugName];
+        const newState = !currentState;
 
         // Optimistic UI update
-        updatePlugVisual(plugName, !currentState);
+        updatePlugVisual(plugName, newState);
 
         try {
             if (currentState) {
                 await TapoAPI.turnOff(plugName);
             } else {
                 await TapoAPI.turnOn(plugName);
+            }
+
+            // Emit event on successful toggle
+            if (window.AppEvents) {
+                AppEvents.emit('tapo:toggled', {
+                    plug: plugName,
+                    on: newState,
+                    timestamp: Date.now()
+                });
             }
         } catch (error) {
             // Revert on error
@@ -370,6 +389,7 @@
      * Fetch status for all plugs
      */
     async function refreshAllStatuses() {
+        const plugStates = getPlugStates();
         for (const plugName of Object.keys(plugStates)) {
             try {
                 const status = await TapoAPI.getStatus(plugName);
@@ -429,7 +449,7 @@
 
             // Create controls for each plug
             for (const [name, info] of Object.entries(plugs)) {
-                plugStates[name] = false; // Initialize state
+                setPlugState(name, false); // Initialize state in AppState
                 const control = createPlugControl(name, info);
                 container.appendChild(control);
             }

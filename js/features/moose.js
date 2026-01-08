@@ -1,6 +1,8 @@
 /**
  * Moose Character System Module
  * Handles the animated moose character that appears periodically
+ *
+ * Subscribes to AppEvents 'app:ready' for automatic initialization.
  */
 
 // Moose configuration
@@ -449,3 +451,14 @@ window.MooseSystem = {
     getState: getMooseState,
     config: MOOSE_CONFIG
 };
+
+// Subscribe to app:ready event for automatic initialization
+// This decouples MooseSystem from app.js
+if (window.AppEvents) {
+    AppEvents.on('app:ready', () => {
+        // Initialize with debug mode from config if available
+        const debugMode = window.APP_CONFIG?.debug || MOOSE_CONFIG.DEBUG_MODE;
+        initMooseSystem(debugMode);
+        Logger.info(`Moose system auto-initialized via app:ready event (debug: ${debugMode})`);
+    });
+}

@@ -223,6 +223,62 @@
         return { ...connectionStatus };
     }
 
+    /**
+     * Wait for all connections to come online with rapid retries
+     * Used during startup when proxies may still be initializing
+     * @param {Object} options - Configuration options
+     * @param {number} [options.maxAttempts=10] - Maximum retry attempts
+     * @param {number} [options.retryInterval=2000] - Milliseconds between retries
+     * @param {number} [options.timeout=30000] - Total timeout in milliseconds
+     * @returns {Promise<Object>} Final connection status
+     */
+    async function waitForConnections(options = {}) {
+        const maxAttempts = options.maxAttempts || 10;
+        const retryInterval = options.retryInterval || 2000;
+        const timeout = options.timeout || 30000;
+        const startTime = Date.now();
+
+        Logger.info('Waiting for services to come online...');
+
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            // Check if we've exceeded timeout
+            if (Date.now() - startTime > timeout) {
+                Logger.warn(`Connection wait timed out after ${timeout}ms`);
+                break;
+            }
+
+            await checkAllConnections();
+
+            // Check if all services are online
+            const allOnline = Object.values(connectionStatus).every(s => s.online);
+            const onlineCount = Object.values(connectionStatus).filter(s => s.online).length;
+            const totalCount = Object.keys(connectionStatus).length;
+
+            Logger.info(`Connection check ${attempt}/${maxAttempts}: ${onlineCount}/${totalCount} services online`);
+
+            if (allOnline) {
+                Logger.success('All services are online!');
+                return connectionStatus;
+            }
+
+            // Wait before next attempt (unless this was the last attempt)
+            if (attempt < maxAttempts) {
+                await new Promise(resolve => setTimeout(resolve, retryInterval));
+            }
+        }
+
+        // Log which services are still offline
+        const offline = Object.entries(connectionStatus)
+            .filter(([_, status]) => !status.online)
+            .map(([name, _]) => name);
+
+        if (offline.length > 0) {
+            Logger.warn(`Services still offline: ${offline.join(', ')}`);
+        }
+
+        return connectionStatus;
+    }
+
     // =============================================================================
     // EXPOSE MODULE
     // =============================================================================
@@ -231,6 +287,7 @@
         checkAll: checkAllConnections,
         checkHue: checkHueBridgeHealth,
         checkProxy: checkProxyHealth,
+        waitForConnections,
         isOnline,
         getStatus,
         formatUptime

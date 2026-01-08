@@ -1,58 +1,20 @@
 /**
  * Light Effects Module
  * Fun light effects for Philips Hue lights (party, disco, wave, etc.)
+ *
+ * Uses HueAPI from js/api/hue.js for all Hue Bridge communication.
  */
 
 // Effect state
 let originalLightStates = {};
 let effectInProgress = false;
 
-// Get bridge configuration
-const getBridgeConfig = () => ({
-    ip: window.HUE_CONFIG?.BRIDGE_IP,
-    username: window.HUE_CONFIG?.USERNAME
-});
-
-/**
- * Get all lights from Hue Bridge
- * @returns {Promise<Object|null>}
- */
-async function getAllLights() {
-    try {
-        const config = getBridgeConfig();
-        const response = await fetch(`http://${config.ip}/api/${config.username}/lights`);
-        if (!response.ok) return null;
-        return await response.json();
-    } catch (error) {
-        Logger.error('Error getting lights:', error);
-        return null;
-    }
-}
-
-/**
- * Set a light to specific state
- * @param {string} lightId - Light ID
- * @param {Object} state - Light state
- */
-async function setLightState(lightId, state) {
-    try {
-        const config = getBridgeConfig();
-        await fetch(`http://${config.ip}/api/${config.username}/lights/${lightId}/state`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(state)
-        });
-    } catch (error) {
-        Logger.error(`Error setting light ${lightId}:`, error);
-    }
-}
-
 /**
  * Save current state of all lights
  * @returns {Promise<boolean>}
  */
 async function saveLightStates() {
-    const lights = await getAllLights();
+    const lights = await HueAPI.getAllLights();
     if (!lights) return false;
 
     originalLightStates = {};
@@ -73,7 +35,7 @@ async function saveLightStates() {
  */
 async function restoreLightStates(onComplete) {
     for (const [lightId, state] of Object.entries(originalLightStates)) {
-        await setLightState(lightId, state);
+        await HueAPI.setLightState(lightId, state);
         await new Promise(resolve => setTimeout(resolve, 50));
     }
 
@@ -138,6 +100,11 @@ async function runLightEffect(effectName, effectCallback, onComplete) {
     window.effectInProgress = true; // For global access
     disableEffectButtons(true);
 
+    // Emit effect started event
+    if (window.AppEvents) {
+        AppEvents.emit('effect:started', { effect: effectName, timestamp: Date.now() });
+    }
+
     try {
         const success = await saveLightStates();
         if (!success) {
@@ -147,7 +114,7 @@ async function runLightEffect(effectName, effectCallback, onComplete) {
             return;
         }
 
-        const lights = await getAllLights();
+        const lights = await HueAPI.getAllLights();
         if (!lights) {
             effectInProgress = false;
             window.effectInProgress = false;
@@ -156,7 +123,13 @@ async function runLightEffect(effectName, effectCallback, onComplete) {
         }
 
         await effectCallback(lights);
-        await restoreLightStates(onComplete);
+        await restoreLightStates(() => {
+            // Emit effect completed event
+            if (window.AppEvents) {
+                AppEvents.emit('effect:completed', { effect: effectName, timestamp: Date.now() });
+            }
+            if (onComplete) onComplete();
+        });
     } finally {
         effectInProgress = false;
         window.effectInProgress = false;
@@ -171,14 +144,14 @@ async function redAlert(onComplete) {
     return runLightEffect('Red Alert', async (lights) => {
         for (let i = 0; i < 6; i++) {
             for (const lightId of Object.keys(lights)) {
-                await setLightState(lightId, {
+                await HueAPI.setLightState(lightId, {
                     on: true, bri: 254, hue: 0, sat: 254, transitiontime: 0
                 });
             }
             await new Promise(resolve => setTimeout(resolve, 250));
 
             for (const lightId of Object.keys(lights)) {
-                await setLightState(lightId, { on: false, transitiontime: 0 });
+                await HueAPI.setLightState(lightId, { on: false, transitiontime: 0 });
             }
             await new Promise(resolve => setTimeout(resolve, 250));
         }
@@ -196,7 +169,7 @@ async function partyMode(onComplete) {
             const hue = colors[cycle % colors.length];
 
             for (const lightId of Object.keys(lights)) {
-                await setLightState(lightId, {
+                await HueAPI.setLightState(lightId, {
                     on: true, bri: 254, hue: hue, sat: 254, transitiontime: 5
                 });
             }
@@ -217,7 +190,7 @@ async function discoMode(onComplete) {
                 const randomHue = Math.floor(Math.random() * 65535);
                 const randomOn = Math.random() > 0.3;
 
-                await setLightState(lightId, {
+                await HueAPI.setLightState(lightId, {
                     on: randomOn,
                     bri: randomOn ? 254 : 0,
                     hue: randomHue,
@@ -239,18 +212,18 @@ async function waveEffect(onComplete) {
 
         // Turn all off first
         for (const lightId of lightIds) {
-            await setLightState(lightId, { on: false, transitiontime: 0 });
+            await HueAPI.setLightState(lightId, { on: false, transitiontime: 0 });
         }
         await new Promise(resolve => setTimeout(resolve, 300));
 
         // Wave through 3 times
         for (let wave = 0; wave < 3; wave++) {
             for (const lightId of lightIds) {
-                await setLightState(lightId, {
+                await HueAPI.setLightState(lightId, {
                     on: true, bri: 254, hue: 46920, sat: 254, transitiontime: 0
                 });
                 await new Promise(resolve => setTimeout(resolve, 150));
-                await setLightState(lightId, { on: false, transitiontime: 2 });
+                await HueAPI.setLightState(lightId, { on: false, transitiontime: 2 });
             }
         }
         await new Promise(resolve => setTimeout(resolve, 500));
@@ -264,7 +237,7 @@ async function sunsetMode(onComplete) {
     return runLightEffect('Sunset', async (lights) => {
         // Fade to warm sunset orange
         for (const lightId of Object.keys(lights)) {
-            await setLightState(lightId, {
+            await HueAPI.setLightState(lightId, {
                 on: true, bri: 200, hue: 5000, sat: 200, transitiontime: 30
             });
         }
@@ -273,7 +246,7 @@ async function sunsetMode(onComplete) {
 
         // Fade to dim
         for (const lightId of Object.keys(lights)) {
-            await setLightState(lightId, {
+            await HueAPI.setLightState(lightId, {
                 on: true, bri: 1, transitiontime: 30
             });
         }
