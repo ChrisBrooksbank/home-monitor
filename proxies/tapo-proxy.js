@@ -390,14 +390,7 @@ const server = http.createServer(async (req, res) => {
 async function startServer() {
     console.log('🔌 Tapo Smart Plug Proxy starting...\n');
 
-    // Run initial discovery
-    try {
-        await discoverAndIdentifyPlugs();
-    } catch (error) {
-        console.error('⚠️  Initial discovery failed:', error.message);
-        console.log('   Proxy will start anyway - use POST /discover to retry\n');
-    }
-
+    // Start server FIRST so health checks work immediately
     server.listen(PORT, () => {
         console.log(`🔌 Tapo Proxy running on http://localhost:${PORT}`);
         console.log(`\n📡 Endpoints:`);
@@ -407,8 +400,17 @@ async function startServer() {
         console.log(`   POST /on       - Turn plug on`);
         console.log(`   POST /off      - Turn plug off`);
         console.log(`   POST /toggle   - Toggle plug state`);
-        console.log(`\n✅ Ready! Open index.html in your browser.`);
+        console.log(`\n🔍 Running plug discovery in background...`);
     });
+
+    // Run discovery AFTER server starts (so health checks work during discovery)
+    try {
+        await discoverAndIdentifyPlugs();
+        console.log(`\n✅ Ready! Open index.html in your browser.`);
+    } catch (error) {
+        console.error('⚠️  Initial discovery failed:', error.message);
+        console.log('   Use POST /discover to retry\n');
+    }
 }
 
 startServer();

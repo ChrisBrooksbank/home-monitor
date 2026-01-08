@@ -432,13 +432,25 @@
             return;
         }
 
-        // Fetch discovered plugs from proxy
+        // Fetch discovered plugs from proxy (retry if discovery still running)
+        let plugs = {};
         try {
-            const response = await TapoAPI.getPlugs();
-            const plugs = response.plugs || {};
+            for (let attempt = 1; attempt <= 5; attempt++) {
+                const response = await TapoAPI.getPlugs();
+                plugs = response.plugs || {};
+
+                if (Object.keys(plugs).length > 0) {
+                    break;
+                }
+
+                if (attempt < 5) {
+                    Logger.info(`No plugs found yet (attempt ${attempt}/5), waiting for discovery...`);
+                    await new Promise(resolve => setTimeout(resolve, 3000));
+                }
+            }
 
             if (Object.keys(plugs).length === 0) {
-                Logger.warn('No Tapo plugs discovered');
+                Logger.warn('No Tapo plugs discovered after retries');
                 return;
             }
 
