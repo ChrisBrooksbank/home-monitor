@@ -20,78 +20,17 @@
 (function() {
     'use strict';
 
-    // Sensor mappings
-    const sensorMapping = {
-        'landing': 'temp-landing',
-        'main bedroom': 'temp-main-bedroom',
-        'guest room': 'temp-guest-bedroom',
-        'Hue temperature sensor 1': 'temp-office',
-        'bathroom': 'temp-bathroom',
-        'Hall': 'temp-hall',
-        'lounge': 'temp-lounge',
-        'ExtensionDimmer': 'temp-extension',
-        'KitchenSensor': 'temp-kitchen',
-        'Hue outdoor temp. sensor 1': 'temp-outdoor'
-    };
+    // =============================================================================
+    // MAPPINGS (from shared config - see js/config/mappings.js)
+    // =============================================================================
 
-    const roomNames = {
-        'landing': 'Landing',
-        'main bedroom': 'Main Bedroom',
-        'guest room': 'Guest Bedroom',
-        'Hue temperature sensor 1': 'Home Office',
-        'bathroom': 'Bathroom',
-        'Hall': 'Hall',
-        'lounge': 'Lounge',
-        'ExtensionDimmer': 'Extension',
-        'KitchenSensor': 'Kitchen',
-        'Hue outdoor temp. sensor 1': 'Outdoor'
-    };
-
-    const roomColors = {
-        'landing': '#FF6B9D',
-        'main bedroom': '#FFB6C1',
-        'guest room': '#DDA0DD',
-        'Hue temperature sensor 1': '#87CEEB',
-        'bathroom': '#4ECDC4',
-        'Hall': '#95E1D3',
-        'lounge': '#F4A460',
-        'ExtensionDimmer': '#98D8C8',
-        'KitchenSensor': '#FFB347',
-        'Hue outdoor temp. sensor 1': '#7AE582'
-    };
-
-    const roomPositions = {
-        'temp-main-bedroom': { x: 180, y: 220 },
-        'temp-landing': { x: 340, y: 220 },
-        'temp-office': { x: 500, y: 220 },
-        'temp-bathroom': { x: 660, y: 220 },
-        'temp-guest-bedroom': { x: 820, y: 220 },
-        'temp-hall': { x: 200, y: 460 },
-        'temp-lounge': { x: 400, y: 460 },
-        'temp-kitchen': { x: 600, y: 460 },
-        'temp-extension': { x: 800, y: 460 },
-        'temp-outdoor': { x: 60, y: 10, isOutdoor: true }
-    };
-
-    const lightMappings = {
-        'outdoor|outside|garden': 'Outdoor',
-        'guest': 'Guest Bedroom',
-        'main bedroom|mainbedroom|^bedroomlight$|^bedroom$': 'Main Bedroom',
-        'landing': 'Landing',
-        'office': 'Home Office',
-        'bathroom|bath': 'Bathroom',
-        'lounge': 'Lounge',
-        'hall': 'Hall',
-        'extension': 'Extension',
-        'kitchen': 'Kitchen'
-    };
-
-    const motionSensorMappings = {
-        'outdoor|outside|garden': 'Outdoor',
-        'hall|frontdoor|front door': 'Hall',
-        'landing': 'Landing',
-        'bathroom|bath': 'Bathroom'
-    };
+    const {
+        sensorMapping,
+        roomNames,
+        roomPositions,
+        mapLightToRoom,
+        mapMotionSensorToRoom
+    } = window.MAPPINGS;
 
     // =============================================================================
     // STATE (uses centralized AppState)
@@ -111,24 +50,6 @@
     // =============================================================================
     // UTILITY FUNCTIONS
     // =============================================================================
-
-    function mapLightToRoom(lightName) {
-        if (!lightName) return null;
-        const nameLower = lightName.toLowerCase();
-        for (const [pattern, room] of Object.entries(lightMappings)) {
-            if (new RegExp(pattern, 'i').test(nameLower)) return room;
-        }
-        return null;
-    }
-
-    function mapMotionSensorToRoom(sensorName) {
-        if (!sensorName) return null;
-        const nameLower = sensorName.toLowerCase();
-        for (const [pattern, room] of Object.entries(motionSensorMappings)) {
-            if (new RegExp(pattern, 'i').test(nameLower)) return room;
-        }
-        return null;
-    }
 
     function getTemperatureColor(temp) {
         if (temp < 10) return '#4169E1';
@@ -303,7 +224,7 @@
     }
 
     function announceLight(room, isOn) {
-        if (window.effectInProgress) return;
+        if (AppState.get('effect.inProgress')) return;
         if (!('speechSynthesis' in window)) return;
         const utterance = new SpeechSynthesisUtterance();
         utterance.text = `${room} light turned ${isOn ? 'on' : 'off'}`;
@@ -582,14 +503,6 @@
     // =============================================================================
 
     function updateLightIndicators() {
-        const positions = {
-            'Main Bedroom': { x: 180, y: 240 }, 'Landing': { x: 340, y: 240 },
-            'Home Office': { x: 500, y: 240 }, 'Bathroom': { x: 660, y: 240 },
-            'Guest Bedroom': { x: 820, y: 240 }, 'Hall': { x: 200, y: 405 },
-            'Lounge': { x: 400, y: 405 }, 'Kitchen': { x: 600, y: 405 },
-            'Extension': { x: 800, y: 405 }
-        };
-
         const container = document.getElementById('light-indicators-container');
         if (!container) return;
         container.innerHTML = '';
@@ -598,7 +511,7 @@
         const ns = 'http://www.w3.org/2000/svg';
         for (const [room, lights] of Object.entries(roomLights)) {
             if (lights.length === 0) continue;
-            const pos = positions[room];
+            const pos = MAPPINGS.lightPositions[room];
             if (!pos) continue;
 
             const group = document.createElementNS(ns, 'g');

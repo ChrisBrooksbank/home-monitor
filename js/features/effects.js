@@ -3,11 +3,18 @@
  * Fun light effects for Philips Hue lights (party, disco, wave, etc.)
  *
  * Uses HueAPI from js/api/hue.js for all Hue Bridge communication.
+ * Uses AppState for centralized state management.
  */
 
-// Effect state
-let originalLightStates = {};
-let effectInProgress = false;
+// =============================================================================
+// STATE HELPERS (using centralized AppState)
+// =============================================================================
+
+const getEffectInProgress = () => AppState.get('effect.inProgress') || false;
+const setEffectInProgress = (value) => AppState.set('effect.inProgress', value);
+const getOriginalStates = () => AppState.get('effect.originalStates') || {};
+const setOriginalStates = (states) => AppState.set('effect.originalStates', states);
+const setCurrentEffect = (name) => AppState.set('effect.currentEffect', name);
 
 /**
  * Save current state of all lights
@@ -17,15 +24,16 @@ async function saveLightStates() {
     const lights = await HueAPI.getAllLights();
     if (!lights) return false;
 
-    originalLightStates = {};
+    const states = {};
     for (const [lightId, light] of Object.entries(lights)) {
-        originalLightStates[lightId] = {
+        states[lightId] = {
             on: light.state.on,
             bri: light.state.bri,
             hue: light.state.hue,
             sat: light.state.sat
         };
     }
+    setOriginalStates(states);
     return true;
 }
 
@@ -34,7 +42,8 @@ async function saveLightStates() {
  * @param {Function} onComplete - Callback when complete
  */
 async function restoreLightStates(onComplete) {
-    for (const [lightId, state] of Object.entries(originalLightStates)) {
+    const originalStates = getOriginalStates();
+    for (const [lightId, state] of Object.entries(originalStates)) {
         await HueAPI.setLightState(lightId, state);
         await new Promise(resolve => setTimeout(resolve, 50));
     }
@@ -42,8 +51,8 @@ async function restoreLightStates(onComplete) {
     // Keep effectInProgress true for a bit longer to suppress voice announcements
     // during the next polling cycle (lights poll every 10 seconds)
     setTimeout(() => {
-        effectInProgress = false;
-        window.effectInProgress = false;
+        setEffectInProgress(false);
+        setCurrentEffect(null);
         if (onComplete) onComplete();
     }, 12000);
 }
@@ -83,7 +92,7 @@ function confirmEffect(effectName) {
  * @returns {boolean}
  */
 function isEffectInProgress() {
-    return effectInProgress;
+    return getEffectInProgress();
 }
 
 /**
@@ -94,10 +103,10 @@ function isEffectInProgress() {
  */
 async function runLightEffect(effectName, effectCallback, onComplete) {
     if (!confirmEffect(effectName)) return;
-    if (effectInProgress) return;
+    if (getEffectInProgress()) return;
 
-    effectInProgress = true;
-    window.effectInProgress = true; // For global access
+    setEffectInProgress(true);
+    setCurrentEffect(effectName);
     disableEffectButtons(true);
 
     // Emit effect started event
@@ -108,16 +117,16 @@ async function runLightEffect(effectName, effectCallback, onComplete) {
     try {
         const success = await saveLightStates();
         if (!success) {
-            effectInProgress = false;
-            window.effectInProgress = false;
+            setEffectInProgress(false);
+            setCurrentEffect(null);
             disableEffectButtons(false);
             return;
         }
 
         const lights = await HueAPI.getAllLights();
         if (!lights) {
-            effectInProgress = false;
-            window.effectInProgress = false;
+            setEffectInProgress(false);
+            setCurrentEffect(null);
             disableEffectButtons(false);
             return;
         }
@@ -131,8 +140,8 @@ async function runLightEffect(effectName, effectCallback, onComplete) {
             if (onComplete) onComplete();
         });
     } finally {
-        effectInProgress = false;
-        window.effectInProgress = false;
+        setEffectInProgress(false);
+        setCurrentEffect(null);
         disableEffectButtons(false);
     }
 }
@@ -258,13 +267,17 @@ async function sunsetMode(onComplete) {
  * Initialize effects and wire up jukebox buttons
  */
 function initEffects() {
-    // Expose to window
+    // Expose effect functions to window for HTML onclick handlers
     window.redAlert = redAlert;
     window.partyMode = partyMode;
     window.discoMode = discoMode;
     window.waveEffect = waveEffect;
     window.sunsetMode = sunsetMode;
-    window.effectInProgress = false;
+
+    // Initialize effect state in AppState
+    setEffectInProgress(false);
+    setCurrentEffect(null);
+    setOriginalStates({});
 
     // Wire up jukebox buttons
     const buttonMap = {
