@@ -728,9 +728,6 @@
         // Initialize configuration
         await AppInitializer.initConfiguration();
 
-        // Initialize view mode
-        AppInitializer.initViewMode();
-
         // Initialize history
         initTempHistory();
         initMotionHistory();
