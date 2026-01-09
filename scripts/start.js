@@ -7,7 +7,8 @@ import http from 'http';
 const PROXIES = [
     { name: 'sonos', port: 3000, script: 'proxies/sonos-proxy.js', color: '\x1b[32m' },
     { name: 'tapo', port: 3001, script: 'proxies/tapo-proxy.js', color: '\x1b[33m' },
-    { name: 'shield', port: 8082, script: 'proxies/shield-proxy.js', color: '\x1b[35m' }
+    { name: 'shield', port: 8082, script: 'proxies/shield-proxy.js', color: '\x1b[35m' },
+    { name: 'news', port: 3002, script: 'proxies/news-proxy.js', color: '\x1b[34m' }
 ];
 
 const RESET = '\x1b[0m';

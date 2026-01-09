@@ -780,6 +780,60 @@
             }
         }
 
+        /* ======================================================================
+           NEWS PLANE ANIMATIONS
+           ====================================================================== */
+
+        @keyframes fly-plane {
+            0% {
+                transform: translateX(-350px);
+                opacity: 0;
+            }
+            5% {
+                opacity: 1;
+            }
+            95% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateX(calc(100vw + 350px));
+                opacity: 0;
+            }
+        }
+
+        @keyframes propeller-spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes banner-wave {
+            0%, 100% { transform: rotate(-1deg); }
+            50% { transform: rotate(1deg); }
+        }
+
+        .news-plane {
+            position: fixed;
+            top: 6%;
+            left: 0;
+            z-index: 45;
+            cursor: pointer;
+            animation: fly-plane 18s linear forwards;
+            pointer-events: auto;
+        }
+
+        .news-plane:hover .plane-banner {
+            filter: brightness(1.1);
+        }
+
+        .news-plane .propeller {
+            transform-origin: center;
+            animation: propeller-spin 0.1s linear infinite;
+        }
+
+        .news-plane .banner-group {
+            animation: banner-wave 1.5s ease-in-out infinite;
+        }
+
         /* Tapo Smart Plug Controls */
         .tapo-plug-control {
             cursor: move;

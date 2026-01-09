@@ -76,6 +76,12 @@
             icon: '🦌',
             selectors: ['#moose-container'],
             default: true
+        },
+        news: {
+            name: 'News',
+            icon: '📰',
+            selectors: ['.news-plane', '#active-news-plane'],
+            default: true
         }
     };
 
