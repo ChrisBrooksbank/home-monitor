@@ -48,18 +48,18 @@
         'Hue outdoor temp. sensor 1': '#7AE582'
     };
 
-    // Thermometer SVG positions
+    // Thermometer SVG positions (adjusted for compact pixel-art style)
     const roomPositions = {
-        'temp-main-bedroom': { x: 180, y: 220 },
-        'temp-landing': { x: 340, y: 220 },
-        'temp-office': { x: 500, y: 220 },
-        'temp-bathroom': { x: 660, y: 220 },
-        'temp-guest-bedroom': { x: 820, y: 220 },
-        'temp-hall': { x: 200, y: 460 },
-        'temp-lounge': { x: 400, y: 460 },
-        'temp-kitchen': { x: 600, y: 460 },
-        'temp-extension': { x: 800, y: 460 },
-        'temp-outdoor': { x: 60, y: 10, isOutdoor: true }
+        'temp-main-bedroom': { x: 180, y: 280 },
+        'temp-landing': { x: 335, y: 280 },
+        'temp-office': { x: 490, y: 280 },
+        'temp-bathroom': { x: 645, y: 290 },
+        'temp-guest-bedroom': { x: 810, y: 280 },
+        'temp-hall': { x: 200, y: 450 },
+        'temp-lounge': { x: 340, y: 450 },
+        'temp-kitchen': { x: 590, y: 450 },
+        'temp-extension': { x: 790, y: 450 },
+        'temp-outdoor': { x: 55, y: 95, isOutdoor: true }
     };
 
     // Light name patterns to room mapping (regex patterns)

@@ -80,10 +80,13 @@
 
         activeLight = { id: lightId, ...lightData };
 
+        // Find the pixel-bulb group (may have clicked a child element)
+        const bulbGroup = bulbElement.closest('.pixel-bulb') || bulbElement;
+
         // Get position relative to SVG
         const svg = document.querySelector('svg');
         const svgRect = svg.getBoundingClientRect();
-        const bulbRect = bulbElement.getBoundingClientRect();
+        const bulbRect = bulbGroup.getBoundingClientRect();
 
         // Calculate position in SVG coordinates
         const viewBox = svg.viewBox.baseVal;

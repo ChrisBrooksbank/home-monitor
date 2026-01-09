@@ -243,75 +243,119 @@
 
         const ns = 'http://www.w3.org/2000/svg';
         const group = document.createElementNS(ns, 'g');
-        group.setAttribute('class', 'thermometer');
+        group.setAttribute('class', 'thermometer pixel-thermometer');
         group.setAttribute('data-room', elementId);
 
-        const tubeWidth = 24, tubeHeight = 80, bulbRadius = 16;
+        // Compact pixel-art dimensions
+        const tubeWidth = 14;
+        const tubeHeight = 45;
+        const bulbRadius = 9;
+        const frameWidth = tubeWidth + 8;
+        const totalHeight = tubeHeight + bulbRadius * 2;
 
-        // Tube
+        // Colors
+        const mercuryColor = position.isOutdoor ? '#3498DB' : getTemperatureColor(temp);
+        const frameColor = '#8B7355';
+        const frameHighlight = '#A08060';
+        const frameShadow = '#5A4A3A';
+
+        // Wooden/brass frame backing
+        const frameBg = document.createElementNS(ns, 'rect');
+        frameBg.setAttribute('x', -4);
+        frameBg.setAttribute('y', -6);
+        frameBg.setAttribute('width', frameWidth);
+        frameBg.setAttribute('height', totalHeight + 8);
+        frameBg.setAttribute('rx', 3);
+        frameBg.setAttribute('fill', frameColor);
+        frameBg.setAttribute('stroke', frameShadow);
+        frameBg.setAttribute('stroke-width', '1.5');
+        group.appendChild(frameBg);
+
+        // Frame highlight (left edge)
+        const frameHL = document.createElementNS(ns, 'rect');
+        frameHL.setAttribute('x', -3);
+        frameHL.setAttribute('y', -5);
+        frameHL.setAttribute('width', 2);
+        frameHL.setAttribute('height', totalHeight + 6);
+        frameHL.setAttribute('rx', 1);
+        frameHL.setAttribute('fill', frameHighlight);
+        frameHL.setAttribute('opacity', '0.6');
+        group.appendChild(frameHL);
+
+        // Glass tube background
         const tube = document.createElementNS(ns, 'rect');
-        tube.setAttribute('x', 0); tube.setAttribute('y', 0);
-        tube.setAttribute('width', tubeWidth); tube.setAttribute('height', tubeHeight);
-        tube.setAttribute('rx', 12);
-        tube.setAttribute('fill', 'rgba(255, 255, 255, 0.9)');
-        tube.setAttribute('stroke', '#666'); tube.setAttribute('stroke-width', '2');
+        tube.setAttribute('x', 1);
+        tube.setAttribute('y', 0);
+        tube.setAttribute('width', tubeWidth - 2);
+        tube.setAttribute('height', tubeHeight);
+        tube.setAttribute('rx', 6);
+        tube.setAttribute('fill', '#F5F5F0');
+        tube.setAttribute('stroke', '#C8C0B0');
+        tube.setAttribute('stroke-width', '1');
         group.appendChild(tube);
 
-        // Bulb
+        // Bulb background
         const bulb = document.createElementNS(ns, 'circle');
         bulb.setAttribute('cx', tubeWidth / 2);
-        bulb.setAttribute('cy', tubeHeight + bulbRadius - 4);
+        bulb.setAttribute('cy', tubeHeight + bulbRadius - 2);
         bulb.setAttribute('r', bulbRadius);
-        bulb.setAttribute('fill', 'rgba(255, 255, 255, 0.9)');
-        bulb.setAttribute('stroke', '#666'); bulb.setAttribute('stroke-width', '2');
+        bulb.setAttribute('fill', '#F5F5F0');
+        bulb.setAttribute('stroke', '#C8C0B0');
+        bulb.setAttribute('stroke-width', '1');
         group.appendChild(bulb);
 
-        // Mercury
+        // Mercury level (0-30°C range)
         const percentage = Math.max(0, Math.min(1, temp / 30));
-        const mercuryColor = position.isOutdoor ? '#00CED1' : getTemperatureColor(temp);
+        const mercuryHeight = (tubeHeight - 8) * percentage + bulbRadius;
 
+        // Mercury in bulb
         const mercuryBulb = document.createElementNS(ns, 'circle');
         mercuryBulb.setAttribute('cx', tubeWidth / 2);
-        mercuryBulb.setAttribute('cy', tubeHeight + bulbRadius - 4);
-        mercuryBulb.setAttribute('r', bulbRadius - 4);
+        mercuryBulb.setAttribute('cy', tubeHeight + bulbRadius - 2);
+        mercuryBulb.setAttribute('r', bulbRadius - 3);
         mercuryBulb.setAttribute('fill', mercuryColor);
+        mercuryBulb.setAttribute('class', 'mercury-fill');
         group.appendChild(mercuryBulb);
 
-        const mercuryHeight = (tubeHeight - 10) * percentage;
+        // Mercury in tube
         const mercuryTube = document.createElementNS(ns, 'rect');
-        mercuryTube.setAttribute('x', tubeWidth / 2 - 4);
-        mercuryTube.setAttribute('y', tubeHeight - mercuryHeight);
-        mercuryTube.setAttribute('width', 8);
-        mercuryTube.setAttribute('height', mercuryHeight + bulbRadius);
-        mercuryTube.setAttribute('rx', 4);
+        mercuryTube.setAttribute('x', tubeWidth / 2 - 2.5);
+        mercuryTube.setAttribute('y', tubeHeight - mercuryHeight + bulbRadius);
+        mercuryTube.setAttribute('width', 5);
+        mercuryTube.setAttribute('height', Math.max(0, mercuryHeight - bulbRadius + 2));
+        mercuryTube.setAttribute('rx', 2.5);
         mercuryTube.setAttribute('fill', mercuryColor);
+        mercuryTube.setAttribute('class', 'mercury-fill');
         group.appendChild(mercuryTube);
 
-        // Temperature text
+        // Scale markings (3 marks)
+        for (let i = 0; i <= 2; i++) {
+            const y = tubeHeight - (tubeHeight - 8) * (i / 2) + 4;
+            const mark = document.createElementNS(ns, 'line');
+            mark.setAttribute('x1', tubeWidth - 1);
+            mark.setAttribute('y1', y);
+            mark.setAttribute('x2', tubeWidth + 2);
+            mark.setAttribute('y2', y);
+            mark.setAttribute('stroke', frameShadow);
+            mark.setAttribute('stroke-width', '1');
+            group.appendChild(mark);
+        }
+
+        // Temperature text (prominent, easy to read)
         const tempText = document.createElementNS(ns, 'text');
         tempText.setAttribute('x', tubeWidth / 2);
-        tempText.setAttribute('y', tubeHeight + bulbRadius * 2 + 20);
+        tempText.setAttribute('y', totalHeight + 16);
         tempText.setAttribute('text-anchor', 'middle');
-        tempText.setAttribute('font-size', '18');
+        tempText.setAttribute('font-size', '14');
         tempText.setAttribute('font-weight', '700');
-        tempText.setAttribute('fill', 'white');
-        tempText.setAttribute('stroke', '#333');
-        tempText.setAttribute('stroke-width', '3');
+        tempText.setAttribute('font-family', "'Fredoka', sans-serif");
+        tempText.setAttribute('fill', mercuryColor);
+        tempText.setAttribute('stroke', '#FFF');
+        tempText.setAttribute('stroke-width', '2.5');
         tempText.setAttribute('paint-order', 'stroke fill');
         tempText.setAttribute('id', elementId);
-        tempText.textContent = temp.toFixed(1) + '°C';
+        tempText.textContent = temp.toFixed(1) + '°';
         group.appendChild(tempText);
-
-        // Room label
-        const label = document.createElementNS(ns, 'text');
-        label.setAttribute('x', tubeWidth / 2);
-        label.setAttribute('y', -8);
-        label.setAttribute('text-anchor', 'middle');
-        label.setAttribute('font-size', position.isOutdoor ? '12' : '11');
-        label.setAttribute('font-weight', '600');
-        label.setAttribute('fill', position.isOutdoor ? '#0066CC' : '#333');
-        label.textContent = roomName;
-        group.appendChild(label);
 
         group.setAttribute('transform', `translate(${position.x}, ${position.y})`);
 
@@ -524,51 +568,209 @@
             const pos = MAPPINGS.lightPositions[room];
             if (!pos) continue;
 
-            const group = document.createElementNS(ns, 'g');
+            const roomGroup = document.createElementNS(ns, 'g');
             lights.forEach((light, i) => {
-                const offsetX = (i - (lights.length - 1) / 2) * 20;
-                const bulb = document.createElementNS(ns, 'circle');
-                bulb.setAttribute('cx', pos.x + offsetX);
-                bulb.setAttribute('cy', pos.y);
-                bulb.setAttribute('r', 6);
-                const fillColor = light.on ? (light.color || '#FFD700') : '#666';
-                const strokeColor = light.on ? (light.color ? darkenColor(light.color) : '#FFA500') : '#333';
-                bulb.setAttribute('fill', fillColor);
-                bulb.setAttribute('stroke', strokeColor);
-                bulb.setAttribute('stroke-width', '1.5');
-                bulb.style.cursor = 'pointer';
-                if (light.on) bulb.setAttribute('filter', 'url(#glow)');
+                const offsetX = (i - (lights.length - 1) / 2) * 28;
+                const bulbGroup = createPixelBulb(ns, pos.x + offsetX, pos.y, light);
 
+                // Add tooltip
                 const title = document.createElementNS(ns, 'title');
                 title.textContent = `${light.name}: ${light.on ? 'ON' : 'OFF'} (click for color, double-click to toggle)`;
-                bulb.appendChild(title);
+                bulbGroup.appendChild(title);
 
                 // Single click opens color picker, double-click toggles
-                bulb.addEventListener('click', (e) => {
+                bulbGroup.addEventListener('click', (e) => {
                     if (window.ColorPicker) {
                         window.ColorPicker.handleBulbClick(light.id, light, e);
                     }
                 });
-                bulb.addEventListener('dblclick', () => toggleLight(light.id, light.on));
-                group.appendChild(bulb);
+                bulbGroup.addEventListener('dblclick', () => toggleLight(light.id, light.on));
+                roomGroup.appendChild(bulbGroup);
             });
-            container.appendChild(group);
+            container.appendChild(roomGroup);
         }
+    }
+
+    /**
+     * Creates a pixel-art style Edison light bulb
+     * Matches the cozy UK home aesthetic
+     */
+    function createPixelBulb(ns, cx, cy, light) {
+        const group = document.createElementNS(ns, 'g');
+        group.setAttribute('class', 'pixel-bulb');
+        group.style.cursor = 'pointer';
+
+        const isOn = light.on;
+        const bulbColor = isOn ? (light.color || '#FFD700') : '#4A4A4A';
+        const glassColor = isOn ? (light.color || '#FFF8DC') : '#8B8B8B';
+        const filamentColor = isOn ? '#FF8C00' : '#5A5A5A';
+
+        // Glow effect when on
+        if (isOn) {
+            const glow = document.createElementNS(ns, 'ellipse');
+            glow.setAttribute('cx', cx);
+            glow.setAttribute('cy', cy - 4);
+            glow.setAttribute('rx', 14);
+            glow.setAttribute('ry', 12);
+            glow.setAttribute('fill', light.color || '#FFD700');
+            glow.setAttribute('opacity', '0.3');
+            glow.setAttribute('filter', 'url(#glow)');
+            group.appendChild(glow);
+        }
+
+        // Bulb glass (main bulb shape - rounded top)
+        const bulbGlass = document.createElementNS(ns, 'path');
+        const bulbPath = `
+            M ${cx - 7} ${cy + 2}
+            Q ${cx - 9} ${cy - 6} ${cx - 6} ${cy - 12}
+            Q ${cx} ${cy - 18} ${cx + 6} ${cy - 12}
+            Q ${cx + 9} ${cy - 6} ${cx + 7} ${cy + 2}
+            Z
+        `;
+        bulbGlass.setAttribute('d', bulbPath);
+        bulbGlass.setAttribute('fill', glassColor);
+        bulbGlass.setAttribute('stroke', isOn ? darkenColor(bulbColor) : '#666');
+        bulbGlass.setAttribute('stroke-width', '1.5');
+        if (isOn) {
+            bulbGlass.setAttribute('filter', 'url(#glow)');
+        }
+        group.appendChild(bulbGlass);
+
+        // Inner glow / filament area
+        if (isOn) {
+            const innerGlow = document.createElementNS(ns, 'ellipse');
+            innerGlow.setAttribute('cx', cx);
+            innerGlow.setAttribute('cy', cy - 6);
+            innerGlow.setAttribute('rx', 4);
+            innerGlow.setAttribute('ry', 5);
+            innerGlow.setAttribute('fill', bulbColor);
+            innerGlow.setAttribute('opacity', '0.8');
+            group.appendChild(innerGlow);
+        }
+
+        // Filament (zigzag line)
+        const filament = document.createElementNS(ns, 'path');
+        const filamentPath = `
+            M ${cx - 3} ${cy}
+            L ${cx - 2} ${cy - 4}
+            L ${cx} ${cy - 2}
+            L ${cx + 2} ${cy - 5}
+            L ${cx + 3} ${cy}
+        `;
+        filament.setAttribute('d', filamentPath);
+        filament.setAttribute('fill', 'none');
+        filament.setAttribute('stroke', filamentColor);
+        filament.setAttribute('stroke-width', isOn ? '1.5' : '1');
+        filament.setAttribute('stroke-linecap', 'round');
+        group.appendChild(filament);
+
+        // Screw base (brass/metal cap)
+        const baseColor = '#8B7355';
+        const baseHighlight = '#A08060';
+
+        // Base neck
+        const neck = document.createElementNS(ns, 'rect');
+        neck.setAttribute('x', cx - 5);
+        neck.setAttribute('y', cy + 1);
+        neck.setAttribute('width', 10);
+        neck.setAttribute('height', 4);
+        neck.setAttribute('fill', '#2C2C2C');
+        group.appendChild(neck);
+
+        // Screw threads (3 ridges)
+        for (let i = 0; i < 3; i++) {
+            const thread = document.createElementNS(ns, 'rect');
+            thread.setAttribute('x', cx - 6);
+            thread.setAttribute('y', cy + 5 + i * 3);
+            thread.setAttribute('width', 12);
+            thread.setAttribute('height', 2);
+            thread.setAttribute('fill', i % 2 === 0 ? baseColor : baseHighlight);
+            thread.setAttribute('rx', 1);
+            group.appendChild(thread);
+        }
+
+        // Bottom contact
+        const contact = document.createElementNS(ns, 'rect');
+        contact.setAttribute('x', cx - 3);
+        contact.setAttribute('y', cy + 13);
+        contact.setAttribute('width', 6);
+        contact.setAttribute('height', 3);
+        contact.setAttribute('fill', '#5A4A3A');
+        contact.setAttribute('rx', 1);
+        group.appendChild(contact);
+
+        return group;
     }
 
     function updateOutdoorLamppost() {
         const roomLights = getRoomLights();
         const outdoorLights = roomLights['Outdoor'] || [];
         const outdoorLightsOn = outdoorLights.some(l => l.on);
+
         const bulb = document.getElementById('lamp-bulb');
+        const glow = document.getElementById('lamp-glow');
+        const housing = document.getElementById('lamp-housing');
+
         if (!bulb) return;
 
         if (outdoorLightsOn) {
+            // Bulb on - warm glow
             bulb.setAttribute('fill', '#FFD700');
             bulb.setAttribute('filter', 'url(#glow)');
+
+            // Glass panels glow warm
+            if (housing) {
+                const panels = housing.querySelector('rect[opacity]');
+                if (panels) {
+                    panels.setAttribute('fill', '#FFE4B5');
+                    panels.setAttribute('opacity', '0.7');
+                }
+            }
+
+            // Outer glow visible
+            if (glow) {
+                glow.querySelector('animate')?.setAttribute('values', '0.3;0.5;0.3');
+            }
         } else {
+            // Bulb off
             bulb.setAttribute('fill', '#666');
             bulb.removeAttribute('filter');
+
+            // Glass panels dark
+            if (housing) {
+                const panels = housing.querySelector('rect[opacity]');
+                if (panels) {
+                    panels.setAttribute('fill', '#1E3A3A');
+                    panels.setAttribute('opacity', '0.4');
+                }
+            }
+
+            // No outer glow
+            if (glow) {
+                glow.querySelector('animate')?.setAttribute('values', '0;0');
+            }
+        }
+    }
+
+    function initLamppostDraggable() {
+        const lamppost = document.getElementById('outdoor-lamppost');
+        if (lamppost && typeof createDraggable === 'function') {
+            const storageKey = 'lamppost-position';
+            if (typeof loadSavedPosition === 'function') {
+                loadSavedPosition(lamppost, storageKey);
+            }
+            createDraggable(lamppost, { storageKey: storageKey });
+        }
+    }
+
+    function initWheelieBinDraggable() {
+        const bin = document.getElementById('wheelie-bin');
+        if (bin && typeof createDraggable === 'function') {
+            const storageKey = 'wheelie-bin-position';
+            if (typeof loadSavedPosition === 'function') {
+                loadSavedPosition(bin, storageKey);
+            }
+            createDraggable(bin, { storageKey: storageKey });
         }
     }
 
@@ -769,6 +971,8 @@
         // Setup UI handlers
         AppInitializer.setupDraggables();
         AppInitializer.setupLamppostHandler(toggleLight, (room) => getRoomLights()[room]);
+        initLamppostDraggable();
+        initWheelieBinDraggable();
 
         // Register polling tasks using the Poller module
         Poller.register('connectionStatus', ConnectionMonitor.checkAll,
