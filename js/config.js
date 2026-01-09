@@ -4,7 +4,8 @@ const APP_CONFIG = {
     proxies: {
         sonos: 'http://localhost:3000',
         tapo: 'http://localhost:3001',
-        shield: 'http://localhost:8082'
+        shield: 'http://localhost:8082',
+        news: 'http://localhost:3002'
     },
 
     // Update Intervals (in milliseconds)

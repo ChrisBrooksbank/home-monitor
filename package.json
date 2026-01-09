@@ -10,6 +10,7 @@
     "proxy:sonos": "node proxies/sonos-proxy.js",
     "proxy:tapo": "node proxies/tapo-proxy.js",
     "proxy:shield": "node proxies/shield-proxy.js",
+    "proxy:news": "node proxies/news-proxy.js",
     "start": "node scripts/start.js",
     "lint": "eslint . --ext .js",
     "lint:fix": "eslint . --ext .js --fix",
