@@ -1,54 +1,74 @@
         @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Baloo+2:wght@400;700&display=swap');
 
+        /* ============================================
+           UK COZY HOME - CSS CUSTOM PROPERTIES
+           ============================================ */
+
         :root {
-            /* Light mode colors (default) */
-            --bg-gradient: linear-gradient(180deg, #87CEEB 0%, #98D8E8 30%, #F0E68C 70%, #90EE90 100%);
-            --bg-container: rgba(255, 255, 255, 0.95);
-            --bg-card: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --bg-button: linear-gradient(135deg, #FF6B9D 0%, #FFA07A 100%);
-            --bg-graph: rgba(255, 255, 255, 0.9);
+            /* Light mode - Warm British daylight */
+            --bg-gradient: linear-gradient(180deg, #87CEEB 0%, #B4D7E8 25%, #E8DCC8 60%, #C8D8B8 100%);
+            --bg-container: rgba(255, 252, 245, 0.96);
+            --bg-card: linear-gradient(135deg, #C45C3E 0%, #A63D22 100%);
+            --bg-button: linear-gradient(135deg, #2D5A5A 0%, #1E4040 100%);
+            --bg-graph: rgba(255, 252, 245, 0.92);
 
-            --text-primary: #333;
-            --text-secondary: #666;
-            --text-light: #999;
-            --text-heading: linear-gradient(135deg, #FF6B9D 0%, #FFA07A 50%, #FFD700 100%);
+            --text-primary: #3D2A1A;
+            --text-secondary: #6B4423;
+            --text-light: #8B7355;
+            --text-heading: linear-gradient(135deg, #C45C3E 0%, #8B4513 50%, #C9A227 100%);
 
-            --shadow-primary: 0 10px 30px rgba(0, 0, 0, 0.2);
-            --shadow-button: 0 10px 30px rgba(255, 107, 157, 0.4);
-            --shadow-card: 0 10px 30px rgba(102, 126, 234, 0.3);
+            --shadow-primary: 0 8px 24px rgba(59, 42, 26, 0.2);
+            --shadow-button: 0 6px 20px rgba(45, 90, 90, 0.35);
+            --shadow-card: 0 6px 20px rgba(196, 92, 62, 0.25);
 
-            --border-color: rgba(255, 255, 255, 0.3);
+            --border-color: rgba(139, 115, 85, 0.2);
+            --border-accent: #C9A227;
+
+            /* Pixel-art inspired colors */
+            --pixel-brick: #C45C3E;
+            --pixel-roof: #8B4513;
+            --pixel-door: #2D5A5A;
+            --pixel-grass: #5D8A4A;
+            --pixel-stone: #E8E0D0;
 
             /* SVG colors */
             --cloud-color: white;
-            --cloud-opacity: 0.7;
-            --bird-color: #333;
+            --cloud-opacity: 0.75;
+            --bird-color: #4A4A4A;
         }
 
         @media (prefers-color-scheme: dark) {
             :root {
-                /* Dark mode colors */
-                --bg-gradient: linear-gradient(180deg, #0B1026 0%, #1A1A2E 30%, #16213E 70%, #0F3460 100%);
-                --bg-container: rgba(20, 20, 30, 0.95);
-                --bg-card: linear-gradient(135deg, #3A4A6B 0%, #2D3A5C 100%);
-                --bg-button: linear-gradient(135deg, #C84B6D 0%, #9A5F7A 100%);
-                --bg-graph: rgba(25, 25, 35, 0.9);
+                /* Dark mode - Cozy evening */
+                --bg-gradient: linear-gradient(180deg, #0D1B2A 0%, #1B2838 30%, #2A3F54 70%, #1A2A3A 100%);
+                --bg-container: rgba(26, 35, 45, 0.96);
+                --bg-card: linear-gradient(135deg, #8B4513 0%, #5A3010 100%);
+                --bg-button: linear-gradient(135deg, #3D7A7A 0%, #2D5A5A 100%);
+                --bg-graph: rgba(30, 40, 50, 0.92);
 
-                --text-primary: #E0E0E0;
-                --text-secondary: #A0A0A0;
-                --text-light: #707070;
-                --text-heading: linear-gradient(135deg, #FF8FB1 0%, #C89FAA 50%, #FFD700 100%);
+                --text-primary: #E8E0D0;
+                --text-secondary: #C8B898;
+                --text-light: #8B8070;
+                --text-heading: linear-gradient(135deg, #D46A4C 0%, #C9A227 50%, #FFD39B 100%);
 
-                --shadow-primary: 0 10px 30px rgba(0, 0, 0, 0.6);
-                --shadow-button: 0 10px 30px rgba(200, 75, 109, 0.4);
-                --shadow-card: 0 10px 30px rgba(58, 74, 107, 0.5);
+                --shadow-primary: 0 8px 24px rgba(0, 0, 0, 0.5);
+                --shadow-button: 0 6px 20px rgba(61, 122, 122, 0.3);
+                --shadow-card: 0 6px 20px rgba(139, 69, 19, 0.3);
 
-                --border-color: rgba(255, 255, 255, 0.1);
+                --border-color: rgba(200, 184, 152, 0.15);
+                --border-accent: #C9A227;
+
+                /* Pixel-art inspired colors (darker) */
+                --pixel-brick: #8B4513;
+                --pixel-roof: #5A3010;
+                --pixel-door: #1E4040;
+                --pixel-grass: #3D6A2A;
+                --pixel-stone: #C8C0B0;
 
                 /* SVG night theme colors */
-                --cloud-color: #4A5568;
-                --cloud-opacity: 0.4;
-                --bird-color: #718096;
+                --cloud-color: #4A5A6A;
+                --cloud-opacity: 0.35;
+                --bird-color: #6A7A8A;
             }
         }
 
@@ -165,8 +185,8 @@
 
         .container {
             background: var(--bg-container);
-            backdrop-filter: blur(15px);
-            border-radius: 30px;
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
             padding: 20px;
             box-shadow: var(--shadow-primary);
             max-width: 1400px;
@@ -174,7 +194,7 @@
             width: 100%;
             position: relative;
             z-index: 1;
-            border: 4px solid var(--border-color);
+            border: 3px solid var(--border-color);
             overflow-y: auto;
             overflow-x: hidden;
         }
@@ -184,35 +204,40 @@
         }
 
         .container::-webkit-scrollbar-track {
-            background: rgba(0, 0, 0, 0.05);
-            border-radius: 10px;
+            background: rgba(139, 115, 85, 0.1);
+            border-radius: 8px;
         }
 
         .container::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 10px;
+            background: linear-gradient(135deg, var(--pixel-brick) 0%, var(--pixel-roof) 100%);
+            border-radius: 8px;
+            border: 2px solid var(--bg-container);
         }
 
         .container::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(135deg, #5568d3 0%, #653a8a 100%);
+            background: linear-gradient(135deg, #D46A4C 0%, #A0522D 100%);
         }
 
         h1 {
             text-align: center;
-            background: linear-gradient(135deg, #FF6B9D 0%, #FFA07A 50%, #FFD700 100%);
+            background: var(--text-heading);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             margin-bottom: 5px;
-            font-size: 2em;
+            font-size: 1.9em;
             font-weight: 700;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
-            animation: wiggle 3s ease-in-out infinite;
+            letter-spacing: 0.02em;
         }
 
-        @keyframes wiggle {
-            0%, 100% { transform: rotate(-1deg); }
-            50% { transform: rotate(1deg); }
+        /* Subtle hover effect on title */
+        h1:hover {
+            animation: cozy-pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes cozy-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.85; }
         }
 
         .last-update {
@@ -1179,4 +1204,209 @@
             .brightness-slider-handle {
                 r: 14;
             }
+        }
+
+        /* ======================================================================
+           PIXEL ART UK HOUSE - ENHANCED STYLES
+           ====================================================================== */
+
+        /* Pixel window hover effects */
+        .pixel-window {
+            transition: filter 0.2s ease;
+        }
+
+        .pixel-window:hover {
+            filter: brightness(1.08);
+        }
+
+        /* Room overlay hover states */
+        #room-overlays rect {
+            transition: fill 0.3s ease, filter 0.3s ease;
+            cursor: pointer;
+        }
+
+        #room-overlays rect:hover {
+            filter: brightness(1.1) saturate(1.1);
+        }
+
+        /* Bay window special styling */
+        #bay-window {
+            filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.15));
+        }
+
+        /* Front door interaction */
+        #front-door {
+            transition: filter 0.2s ease;
+            cursor: pointer;
+        }
+
+        #front-door:hover {
+            filter: brightness(1.05);
+        }
+
+        /* Chimney smoke enhancement */
+        #smoke circle {
+            filter: blur(1px);
+        }
+
+        /* Flower box subtle animation */
+        #flower-boxes circle {
+            animation: flower-sway 4s ease-in-out infinite;
+        }
+
+        #flower-boxes g:nth-child(2) circle {
+            animation-delay: -2s;
+        }
+
+        @keyframes flower-sway {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(1px); }
+        }
+
+        /* Climbing roses subtle movement */
+        #climbing-roses circle {
+            animation: rose-bloom 6s ease-in-out infinite;
+        }
+
+        @keyframes rose-bloom {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+
+        /* Garden cat idle animation */
+        #garden-cat {
+            animation: cat-idle 8s ease-in-out infinite;
+        }
+
+        @keyframes cat-idle {
+            0%, 90%, 100% { transform: translate(75px, 175px); }
+            92% { transform: translate(75px, 175px) rotate(-3deg); }
+            94% { transform: translate(75px, 175px) rotate(3deg); }
+            96% { transform: translate(75px, 175px) rotate(-2deg); }
+            98% { transform: translate(75px, 175px); }
+        }
+
+        /* Tree leaves rustle */
+        #garden-tree circle {
+            animation: leaves-rustle 5s ease-in-out infinite;
+        }
+
+        #garden-tree circle:nth-child(odd) {
+            animation-delay: -2.5s;
+        }
+
+        @keyframes leaves-rustle {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-1px); }
+            75% { transform: translateX(1px); }
+        }
+
+        /* Jukebox button pixel-art style */
+        .jukebox-button rect {
+            transition: filter 0.15s ease, transform 0.1s ease;
+        }
+
+        .jukebox-button:hover rect {
+            filter: brightness(1.15);
+        }
+
+        .jukebox-button:active rect {
+            transform: scale(0.95);
+            filter: brightness(0.9);
+        }
+
+        /* Garden flowers gentle sway */
+        #garden-flowers-left ellipse,
+        #garden-flowers-right ellipse {
+            animation: gentle-sway 3s ease-in-out infinite;
+            transform-origin: bottom center;
+        }
+
+        #garden-flowers-left ellipse:nth-child(3n),
+        #garden-flowers-right ellipse:nth-child(3n) {
+            animation-delay: -1s;
+        }
+
+        #garden-flowers-left ellipse:nth-child(3n+1),
+        #garden-flowers-right ellipse:nth-child(3n+1) {
+            animation-delay: -2s;
+        }
+
+        @keyframes gentle-sway {
+            0%, 100% { transform: rotate(0deg); }
+            33% { transform: rotate(-2deg); }
+            66% { transform: rotate(2deg); }
+        }
+
+        /* Lamppost glow when on */
+        #lamp-bulb.lamp-on {
+            fill: #FFD700;
+            filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.8));
+            animation: lamp-flicker 4s ease-in-out infinite;
+        }
+
+        @keyframes lamp-flicker {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.92; }
+            52% { opacity: 1; }
+            70% { opacity: 0.95; }
+        }
+
+        /* House number brass shine */
+        #house-number {
+            transition: filter 0.3s ease;
+        }
+
+        #house-number:hover {
+            filter: brightness(1.1) drop-shadow(0 0 4px rgba(201, 162, 39, 0.4));
+        }
+
+        /* Milk bottles subtle shine */
+        #milk-bottles rect {
+            animation: milk-shine 8s ease-in-out infinite;
+        }
+
+        @keyframes milk-shine {
+            0%, 100% { filter: brightness(1); }
+            50% { filter: brightness(1.05); }
+        }
+
+        /* Status indicator refinements for cozy theme */
+        .status-indicator.online .status-dot {
+            background: #5D8A4A;
+            box-shadow: 0 0 6px rgba(93, 138, 74, 0.6);
+        }
+
+        .status-indicator.offline .status-dot {
+            background: #C45C3E;
+            box-shadow: 0 0 6px rgba(196, 92, 62, 0.6);
+        }
+
+        /* Graph container cozy styling */
+        .graph-container {
+            border-color: var(--border-color);
+            background: var(--bg-graph);
+        }
+
+        /* Section headers warm styling */
+        .section-header {
+            color: var(--text-secondary);
+        }
+
+        .section-header:hover {
+            color: var(--text-primary);
+        }
+
+        /* Layers panel cozy update */
+        .layers-panel {
+            background: var(--bg-container);
+            border: 2px solid var(--border-color);
+        }
+
+        .layers-header {
+            border-bottom-color: var(--border-color);
+        }
+
+        .layer-row input[type="checkbox"] {
+            accent-color: var(--pixel-door);
         }
