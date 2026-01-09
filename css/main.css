@@ -1472,3 +1472,39 @@
         #lamp-glow {
             pointer-events: none;
         }
+
+        /* ======================================================================
+           PIXEL ART SMART PLUGS
+           ====================================================================== */
+
+        .pixel-plug {
+            transition: filter 0.2s ease;
+        }
+
+        .pixel-plug:hover {
+            filter: brightness(1.08);
+        }
+
+        .pixel-plug .tapo-toggle {
+            transition: transform 0.1s ease;
+        }
+
+        .pixel-plug .tapo-toggle:hover {
+            transform: scale(1.1);
+        }
+
+        .pixel-plug .tapo-toggle:active {
+            transform: scale(0.95);
+        }
+
+        .pixel-plug .power-led {
+            transition: fill 0.3s ease, opacity 0.3s ease;
+        }
+
+        .pixel-plug .plug-title {
+            pointer-events: none;
+        }
+
+        .pixel-plug .faceplate {
+            transition: fill 0.2s ease;
+        }

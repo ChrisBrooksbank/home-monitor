@@ -75,7 +75,8 @@
     }
 
     /**
-     * Create a UK socket plug control SVG
+     * Create a compact pixel-art UK socket plug control
+     * Matches cozy UK home aesthetic
      */
     function createPlugControl(plugName, plugInfo) {
         const position = getPosition(plugName);
@@ -84,165 +85,149 @@
         const group = createSvgElement('g', {
             'id': `tapo-${safeId}-controls`,
             'transform': `translate(${position.x}, ${position.y})`,
-            'class': 'tapo-plug-control',
+            'class': 'tapo-plug-control pixel-plug',
             'data-plug-name': plugName
         });
 
-        // Title
-        const title = createSvgElement('text', {
-            'x': '0', 'y': '-32',
-            'text-anchor': 'middle',
-            'fill': '#ECF0F1',
-            'font-size': '7',
-            'font-weight': 'bold',
-            'class': 'plug-title'
-        });
-        title.textContent = plugName.toUpperCase();
-        group.appendChild(title);
-
-        // UK Socket Faceplate
+        // Wooden mounting plate (pixel-art style)
         group.appendChild(createSvgElement('rect', {
-            'x': '-35', 'y': '-25',
-            'width': '70', 'height': '60',
-            'rx': '3',
-            'fill': '#F5F5F5',
-            'stroke': '#D0D0D0',
-            'stroke-width': '2',
+            'x': '-22', 'y': '-18',
+            'width': '44', 'height': '42',
+            'rx': '2',
+            'fill': '#8B7355',
+            'stroke': '#5A4A3A',
+            'stroke-width': '1.5'
+        }));
+
+        // Highlight on wood
+        group.appendChild(createSvgElement('rect', {
+            'x': '-21', 'y': '-17',
+            'width': '2', 'height': '40',
+            'fill': '#A08060',
+            'opacity': '0.5',
+            'rx': '1'
+        }));
+
+        // UK Socket Faceplate (compact)
+        group.appendChild(createSvgElement('rect', {
+            'x': '-18', 'y': '-14',
+            'width': '36', 'height': '34',
+            'rx': '2',
+            'fill': '#F5F5F0',
+            'stroke': '#C8C0B0',
+            'stroke-width': '1',
             'class': 'faceplate'
         }));
 
-        // Socket cutout shadow
+        // Socket recess
         group.appendChild(createSvgElement('rect', {
-            'x': '-28', 'y': '-10',
-            'width': '56', 'height': '35',
-            'rx': '2',
-            'fill': '#E0E0E0',
-            'opacity': '0.8'
+            'x': '-14', 'y': '-6',
+            'width': '28', 'height': '20',
+            'rx': '1',
+            'fill': '#E8E0D0'
         }));
 
-        // Socket holes group
+        // Socket holes group (compact UK 3-pin)
         const socketHoles = createSvgElement('g', { 'class': 'socket-holes' });
 
-        // Earth pin (top)
+        // Earth pin (top, horizontal)
         socketHoles.appendChild(createSvgElement('rect', {
-            'x': '-3', 'y': '-8',
-            'width': '6', 'height': '10',
-            'rx': '1',
+            'x': '-2', 'y': '-4',
+            'width': '4', 'height': '6',
+            'rx': '0.5',
             'fill': '#2C2C2C'
         }));
 
         // Live pin (bottom left)
         socketHoles.appendChild(createSvgElement('rect', {
-            'x': '-15', 'y': '8',
-            'width': '6', 'height': '10',
-            'rx': '1',
+            'x': '-10', 'y': '6',
+            'width': '4', 'height': '6',
+            'rx': '0.5',
             'fill': '#2C2C2C'
         }));
 
         // Neutral pin (bottom right)
         socketHoles.appendChild(createSvgElement('rect', {
-            'x': '9', 'y': '8',
-            'width': '6', 'height': '10',
-            'rx': '1',
+            'x': '6', 'y': '6',
+            'width': '4', 'height': '6',
+            'rx': '0.5',
             'fill': '#2C2C2C'
         }));
 
         group.appendChild(socketHoles);
 
-        // Rocker Switch
+        // Power indicator LED
+        const led = createSvgElement('circle', {
+            'id': `tapo-${safeId}-power-led`,
+            'cx': '12', 'cy': '-10',
+            'r': '2',
+            'fill': '#333',
+            'class': 'power-led'
+        });
+        group.appendChild(led);
+
+        // Toggle switch area
         const toggle = createSvgElement('g', {
             'id': `tapo-${safeId}-toggle`,
             'class': 'tapo-toggle',
-            'style': 'cursor: pointer;',
-            'transform': 'translate(0, -18)'
+            'style': 'cursor: pointer;'
         });
 
-        // Switch housing
+        // Switch background
         toggle.appendChild(createSvgElement('rect', {
-            'x': '-12', 'y': '-8',
-            'width': '24', 'height': '16',
-            'rx': '2',
-            'fill': '#333',
-            'stroke': '#222',
-            'stroke-width': '1'
+            'id': `tapo-${safeId}-toggle-bg`,
+            'x': '-12', 'y': '-12',
+            'width': '10', 'height': '8',
+            'rx': '1',
+            'fill': '#666',
+            'stroke': '#444',
+            'stroke-width': '0.5'
         }));
 
-        // Rocker switch knob
+        // Switch rocker
         const knob = createSvgElement('g', {
             'id': `tapo-${safeId}-toggle-knob`,
             'class': 'toggle-knob'
         });
 
         knob.appendChild(createSvgElement('rect', {
-            'id': `tapo-${safeId}-toggle-bg`,
-            'x': '-10', 'y': '-6',
-            'width': '20', 'height': '12',
-            'rx': '1.5',
-            'fill': '#666',
-            'stroke': '#555',
-            'stroke-width': '1'
+            'x': '-11', 'y': '-11',
+            'width': '8', 'height': '6',
+            'rx': '0.5',
+            'fill': '#888'
         }));
-
-        const statusText = createSvgElement('text', {
-            'id': `tapo-${safeId}-status-text`,
-            'x': '0', 'y': '1.5',
-            'text-anchor': 'middle',
-            'fill': 'white',
-            'font-size': '6',
-            'font-weight': 'bold'
-        });
-        statusText.textContent = '--';
-        knob.appendChild(statusText);
 
         toggle.appendChild(knob);
         group.appendChild(toggle);
 
-        // Power LED
-        const led = createSvgElement('circle', {
-            'id': `tapo-${safeId}-power-led`,
-            'cx': '25', 'cy': '-18',
-            'r': '2.5',
-            'fill': '#333',
-            'opacity': '0.5'
-        });
-        group.appendChild(led);
-
-        // ON/OFF labels
-        const onLabel = createSvgElement('text', {
-            'id': `tapo-${safeId}-on-label`,
-            'x': '0', 'y': '-24',
+        // Title below plug
+        const title = createSvgElement('text', {
+            'x': '0', 'y': '28',
             'text-anchor': 'middle',
-            'fill': '#666',
-            'font-size': '4',
-            'font-weight': 'bold',
-            'opacity': '0.5'
+            'fill': '#6B4423',
+            'font-size': '8',
+            'font-weight': '600',
+            'font-family': "'Fredoka', sans-serif",
+            'class': 'plug-title'
         });
-        onLabel.textContent = 'ON';
-        group.appendChild(onLabel);
+        title.textContent = plugName;
+        group.appendChild(title);
 
-        const offLabel = createSvgElement('text', {
-            'id': `tapo-${safeId}-off-label`,
-            'x': '0', 'y': '-12',
-            'text-anchor': 'middle',
-            'fill': '#666',
-            'font-size': '4',
-            'font-weight': 'bold',
-            'opacity': '0.5'
+        // Hidden status text for updates
+        const statusText = createSvgElement('text', {
+            'id': `tapo-${safeId}-status-text`,
+            'x': '0', 'y': '0',
+            'opacity': '0'
         });
-        offLabel.textContent = 'OFF';
-        group.appendChild(offLabel);
+        statusText.textContent = '--';
+        group.appendChild(statusText);
 
-        // 13A rating
-        const rating = createSvgElement('text', {
-            'x': '0', 'y': '32',
-            'text-anchor': 'middle',
-            'fill': '#999',
-            'font-size': '5'
+        // Add click handler for entire plug
+        group.addEventListener('click', (e) => {
+            if (!e.target.closest('.tapo-toggle')) {
+                // Click on plug body also toggles
+            }
         });
-        rating.textContent = '13A';
-        group.appendChild(rating);
-
-        // Add click handler for toggle
         toggle.addEventListener('click', () => togglePlug(plugName));
 
         // Make draggable
@@ -322,30 +307,28 @@
         const toggleBg = document.getElementById(`tapo-${safeId}-toggle-bg`);
         const statusText = document.getElementById(`tapo-${safeId}-status-text`);
         const powerLed = document.getElementById(`tapo-${safeId}-power-led`);
-        const onLabel = document.getElementById(`tapo-${safeId}-on-label`);
-        const offLabel = document.getElementById(`tapo-${safeId}-off-label`);
         const knob = document.getElementById(`tapo-${safeId}-toggle-knob`);
 
         if (!toggleBg) return;
 
         if (isOn) {
-            toggleBg.setAttribute('fill', '#00AA00');
-            toggleBg.setAttribute('stroke', '#008800');
-            statusText.textContent = 'ON';
-            powerLed.setAttribute('fill', '#00FF00');
-            powerLed.setAttribute('opacity', '1');
-            onLabel.setAttribute('opacity', '1');
-            offLabel.setAttribute('opacity', '0.3');
-            knob.setAttribute('transform', 'rotate(-5)');
+            toggleBg.setAttribute('fill', '#228B22');
+            toggleBg.setAttribute('stroke', '#1A6B1A');
+            if (statusText) statusText.textContent = 'ON';
+            if (powerLed) {
+                powerLed.setAttribute('fill', '#00FF00');
+                powerLed.setAttribute('opacity', '1');
+            }
+            if (knob) knob.setAttribute('transform', 'rotate(-5)');
         } else {
-            toggleBg.setAttribute('fill', '#CC0000');
-            toggleBg.setAttribute('stroke', '#AA0000');
-            statusText.textContent = 'OFF';
-            powerLed.setAttribute('fill', '#333');
-            powerLed.setAttribute('opacity', '0.5');
-            onLabel.setAttribute('opacity', '0.3');
-            offLabel.setAttribute('opacity', '1');
-            knob.setAttribute('transform', 'rotate(5)');
+            toggleBg.setAttribute('fill', '#8B4513');
+            toggleBg.setAttribute('stroke', '#6B3410');
+            if (statusText) statusText.textContent = 'OFF';
+            if (powerLed) {
+                powerLed.setAttribute('fill', '#4A3728');
+                powerLed.setAttribute('opacity', '0.6');
+            }
+            if (knob) knob.setAttribute('transform', 'rotate(5)');
         }
 
         // Update centralized state
