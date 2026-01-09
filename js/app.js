@@ -524,36 +524,138 @@
             const pos = MAPPINGS.lightPositions[room];
             if (!pos) continue;
 
-            const group = document.createElementNS(ns, 'g');
+            const roomGroup = document.createElementNS(ns, 'g');
             lights.forEach((light, i) => {
-                const offsetX = (i - (lights.length - 1) / 2) * 20;
-                const bulb = document.createElementNS(ns, 'circle');
-                bulb.setAttribute('cx', pos.x + offsetX);
-                bulb.setAttribute('cy', pos.y);
-                bulb.setAttribute('r', 6);
-                const fillColor = light.on ? (light.color || '#FFD700') : '#666';
-                const strokeColor = light.on ? (light.color ? darkenColor(light.color) : '#FFA500') : '#333';
-                bulb.setAttribute('fill', fillColor);
-                bulb.setAttribute('stroke', strokeColor);
-                bulb.setAttribute('stroke-width', '1.5');
-                bulb.style.cursor = 'pointer';
-                if (light.on) bulb.setAttribute('filter', 'url(#glow)');
+                const offsetX = (i - (lights.length - 1) / 2) * 28;
+                const bulbGroup = createPixelBulb(ns, pos.x + offsetX, pos.y, light);
 
+                // Add tooltip
                 const title = document.createElementNS(ns, 'title');
                 title.textContent = `${light.name}: ${light.on ? 'ON' : 'OFF'} (click for color, double-click to toggle)`;
-                bulb.appendChild(title);
+                bulbGroup.appendChild(title);
 
                 // Single click opens color picker, double-click toggles
-                bulb.addEventListener('click', (e) => {
+                bulbGroup.addEventListener('click', (e) => {
                     if (window.ColorPicker) {
                         window.ColorPicker.handleBulbClick(light.id, light, e);
                     }
                 });
-                bulb.addEventListener('dblclick', () => toggleLight(light.id, light.on));
-                group.appendChild(bulb);
+                bulbGroup.addEventListener('dblclick', () => toggleLight(light.id, light.on));
+                roomGroup.appendChild(bulbGroup);
             });
-            container.appendChild(group);
+            container.appendChild(roomGroup);
         }
+    }
+
+    /**
+     * Creates a pixel-art style Edison light bulb
+     * Matches the cozy UK home aesthetic
+     */
+    function createPixelBulb(ns, cx, cy, light) {
+        const group = document.createElementNS(ns, 'g');
+        group.setAttribute('class', 'pixel-bulb');
+        group.style.cursor = 'pointer';
+
+        const isOn = light.on;
+        const bulbColor = isOn ? (light.color || '#FFD700') : '#4A4A4A';
+        const glassColor = isOn ? (light.color || '#FFF8DC') : '#8B8B8B';
+        const filamentColor = isOn ? '#FF8C00' : '#5A5A5A';
+
+        // Glow effect when on
+        if (isOn) {
+            const glow = document.createElementNS(ns, 'ellipse');
+            glow.setAttribute('cx', cx);
+            glow.setAttribute('cy', cy - 4);
+            glow.setAttribute('rx', 14);
+            glow.setAttribute('ry', 12);
+            glow.setAttribute('fill', light.color || '#FFD700');
+            glow.setAttribute('opacity', '0.3');
+            glow.setAttribute('filter', 'url(#glow)');
+            group.appendChild(glow);
+        }
+
+        // Bulb glass (main bulb shape - rounded top)
+        const bulbGlass = document.createElementNS(ns, 'path');
+        const bulbPath = `
+            M ${cx - 7} ${cy + 2}
+            Q ${cx - 9} ${cy - 6} ${cx - 6} ${cy - 12}
+            Q ${cx} ${cy - 18} ${cx + 6} ${cy - 12}
+            Q ${cx + 9} ${cy - 6} ${cx + 7} ${cy + 2}
+            Z
+        `;
+        bulbGlass.setAttribute('d', bulbPath);
+        bulbGlass.setAttribute('fill', glassColor);
+        bulbGlass.setAttribute('stroke', isOn ? darkenColor(bulbColor) : '#666');
+        bulbGlass.setAttribute('stroke-width', '1.5');
+        if (isOn) {
+            bulbGlass.setAttribute('filter', 'url(#glow)');
+        }
+        group.appendChild(bulbGlass);
+
+        // Inner glow / filament area
+        if (isOn) {
+            const innerGlow = document.createElementNS(ns, 'ellipse');
+            innerGlow.setAttribute('cx', cx);
+            innerGlow.setAttribute('cy', cy - 6);
+            innerGlow.setAttribute('rx', 4);
+            innerGlow.setAttribute('ry', 5);
+            innerGlow.setAttribute('fill', bulbColor);
+            innerGlow.setAttribute('opacity', '0.8');
+            group.appendChild(innerGlow);
+        }
+
+        // Filament (zigzag line)
+        const filament = document.createElementNS(ns, 'path');
+        const filamentPath = `
+            M ${cx - 3} ${cy}
+            L ${cx - 2} ${cy - 4}
+            L ${cx} ${cy - 2}
+            L ${cx + 2} ${cy - 5}
+            L ${cx + 3} ${cy}
+        `;
+        filament.setAttribute('d', filamentPath);
+        filament.setAttribute('fill', 'none');
+        filament.setAttribute('stroke', filamentColor);
+        filament.setAttribute('stroke-width', isOn ? '1.5' : '1');
+        filament.setAttribute('stroke-linecap', 'round');
+        group.appendChild(filament);
+
+        // Screw base (brass/metal cap)
+        const baseColor = '#8B7355';
+        const baseHighlight = '#A08060';
+
+        // Base neck
+        const neck = document.createElementNS(ns, 'rect');
+        neck.setAttribute('x', cx - 5);
+        neck.setAttribute('y', cy + 1);
+        neck.setAttribute('width', 10);
+        neck.setAttribute('height', 4);
+        neck.setAttribute('fill', '#2C2C2C');
+        group.appendChild(neck);
+
+        // Screw threads (3 ridges)
+        for (let i = 0; i < 3; i++) {
+            const thread = document.createElementNS(ns, 'rect');
+            thread.setAttribute('x', cx - 6);
+            thread.setAttribute('y', cy + 5 + i * 3);
+            thread.setAttribute('width', 12);
+            thread.setAttribute('height', 2);
+            thread.setAttribute('fill', i % 2 === 0 ? baseColor : baseHighlight);
+            thread.setAttribute('rx', 1);
+            group.appendChild(thread);
+        }
+
+        // Bottom contact
+        const contact = document.createElementNS(ns, 'rect');
+        contact.setAttribute('x', cx - 3);
+        contact.setAttribute('y', cy + 13);
+        contact.setAttribute('width', 6);
+        contact.setAttribute('height', 3);
+        contact.setAttribute('fill', '#5A4A3A');
+        contact.setAttribute('rx', 1);
+        group.appendChild(contact);
+
+        return group;
     }
 
     function updateOutdoorLamppost() {

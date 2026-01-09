@@ -1410,3 +1410,25 @@
         .layer-row input[type="checkbox"] {
             accent-color: var(--pixel-door);
         }
+
+        /* ======================================================================
+           PIXEL ART LIGHT BULBS
+           ====================================================================== */
+
+        .pixel-bulb {
+            transition: filter 0.2s ease;
+        }
+
+        .pixel-bulb:hover {
+            filter: brightness(1.15);
+        }
+
+        /* Bulb glow pulse when on */
+        .pixel-bulb ellipse[filter] {
+            animation: bulb-glow-pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes bulb-glow-pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.4; }
+        }
