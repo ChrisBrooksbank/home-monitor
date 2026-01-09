@@ -243,75 +243,119 @@
 
         const ns = 'http://www.w3.org/2000/svg';
         const group = document.createElementNS(ns, 'g');
-        group.setAttribute('class', 'thermometer');
+        group.setAttribute('class', 'thermometer pixel-thermometer');
         group.setAttribute('data-room', elementId);
 
-        const tubeWidth = 24, tubeHeight = 80, bulbRadius = 16;
+        // Compact pixel-art dimensions
+        const tubeWidth = 14;
+        const tubeHeight = 45;
+        const bulbRadius = 9;
+        const frameWidth = tubeWidth + 8;
+        const totalHeight = tubeHeight + bulbRadius * 2;
 
-        // Tube
+        // Colors
+        const mercuryColor = position.isOutdoor ? '#3498DB' : getTemperatureColor(temp);
+        const frameColor = '#8B7355';
+        const frameHighlight = '#A08060';
+        const frameShadow = '#5A4A3A';
+
+        // Wooden/brass frame backing
+        const frameBg = document.createElementNS(ns, 'rect');
+        frameBg.setAttribute('x', -4);
+        frameBg.setAttribute('y', -6);
+        frameBg.setAttribute('width', frameWidth);
+        frameBg.setAttribute('height', totalHeight + 8);
+        frameBg.setAttribute('rx', 3);
+        frameBg.setAttribute('fill', frameColor);
+        frameBg.setAttribute('stroke', frameShadow);
+        frameBg.setAttribute('stroke-width', '1.5');
+        group.appendChild(frameBg);
+
+        // Frame highlight (left edge)
+        const frameHL = document.createElementNS(ns, 'rect');
+        frameHL.setAttribute('x', -3);
+        frameHL.setAttribute('y', -5);
+        frameHL.setAttribute('width', 2);
+        frameHL.setAttribute('height', totalHeight + 6);
+        frameHL.setAttribute('rx', 1);
+        frameHL.setAttribute('fill', frameHighlight);
+        frameHL.setAttribute('opacity', '0.6');
+        group.appendChild(frameHL);
+
+        // Glass tube background
         const tube = document.createElementNS(ns, 'rect');
-        tube.setAttribute('x', 0); tube.setAttribute('y', 0);
-        tube.setAttribute('width', tubeWidth); tube.setAttribute('height', tubeHeight);
-        tube.setAttribute('rx', 12);
-        tube.setAttribute('fill', 'rgba(255, 255, 255, 0.9)');
-        tube.setAttribute('stroke', '#666'); tube.setAttribute('stroke-width', '2');
+        tube.setAttribute('x', 1);
+        tube.setAttribute('y', 0);
+        tube.setAttribute('width', tubeWidth - 2);
+        tube.setAttribute('height', tubeHeight);
+        tube.setAttribute('rx', 6);
+        tube.setAttribute('fill', '#F5F5F0');
+        tube.setAttribute('stroke', '#C8C0B0');
+        tube.setAttribute('stroke-width', '1');
         group.appendChild(tube);
 
-        // Bulb
+        // Bulb background
         const bulb = document.createElementNS(ns, 'circle');
         bulb.setAttribute('cx', tubeWidth / 2);
-        bulb.setAttribute('cy', tubeHeight + bulbRadius - 4);
+        bulb.setAttribute('cy', tubeHeight + bulbRadius - 2);
         bulb.setAttribute('r', bulbRadius);
-        bulb.setAttribute('fill', 'rgba(255, 255, 255, 0.9)');
-        bulb.setAttribute('stroke', '#666'); bulb.setAttribute('stroke-width', '2');
+        bulb.setAttribute('fill', '#F5F5F0');
+        bulb.setAttribute('stroke', '#C8C0B0');
+        bulb.setAttribute('stroke-width', '1');
         group.appendChild(bulb);
 
-        // Mercury
+        // Mercury level (0-30°C range)
         const percentage = Math.max(0, Math.min(1, temp / 30));
-        const mercuryColor = position.isOutdoor ? '#00CED1' : getTemperatureColor(temp);
+        const mercuryHeight = (tubeHeight - 8) * percentage + bulbRadius;
 
+        // Mercury in bulb
         const mercuryBulb = document.createElementNS(ns, 'circle');
         mercuryBulb.setAttribute('cx', tubeWidth / 2);
-        mercuryBulb.setAttribute('cy', tubeHeight + bulbRadius - 4);
-        mercuryBulb.setAttribute('r', bulbRadius - 4);
+        mercuryBulb.setAttribute('cy', tubeHeight + bulbRadius - 2);
+        mercuryBulb.setAttribute('r', bulbRadius - 3);
         mercuryBulb.setAttribute('fill', mercuryColor);
+        mercuryBulb.setAttribute('class', 'mercury-fill');
         group.appendChild(mercuryBulb);
 
-        const mercuryHeight = (tubeHeight - 10) * percentage;
+        // Mercury in tube
         const mercuryTube = document.createElementNS(ns, 'rect');
-        mercuryTube.setAttribute('x', tubeWidth / 2 - 4);
-        mercuryTube.setAttribute('y', tubeHeight - mercuryHeight);
-        mercuryTube.setAttribute('width', 8);
-        mercuryTube.setAttribute('height', mercuryHeight + bulbRadius);
-        mercuryTube.setAttribute('rx', 4);
+        mercuryTube.setAttribute('x', tubeWidth / 2 - 2.5);
+        mercuryTube.setAttribute('y', tubeHeight - mercuryHeight + bulbRadius);
+        mercuryTube.setAttribute('width', 5);
+        mercuryTube.setAttribute('height', Math.max(0, mercuryHeight - bulbRadius + 2));
+        mercuryTube.setAttribute('rx', 2.5);
         mercuryTube.setAttribute('fill', mercuryColor);
+        mercuryTube.setAttribute('class', 'mercury-fill');
         group.appendChild(mercuryTube);
 
-        // Temperature text
+        // Scale markings (3 marks)
+        for (let i = 0; i <= 2; i++) {
+            const y = tubeHeight - (tubeHeight - 8) * (i / 2) + 4;
+            const mark = document.createElementNS(ns, 'line');
+            mark.setAttribute('x1', tubeWidth - 1);
+            mark.setAttribute('y1', y);
+            mark.setAttribute('x2', tubeWidth + 2);
+            mark.setAttribute('y2', y);
+            mark.setAttribute('stroke', frameShadow);
+            mark.setAttribute('stroke-width', '1');
+            group.appendChild(mark);
+        }
+
+        // Temperature text (prominent, easy to read)
         const tempText = document.createElementNS(ns, 'text');
         tempText.setAttribute('x', tubeWidth / 2);
-        tempText.setAttribute('y', tubeHeight + bulbRadius * 2 + 20);
+        tempText.setAttribute('y', totalHeight + 16);
         tempText.setAttribute('text-anchor', 'middle');
-        tempText.setAttribute('font-size', '18');
+        tempText.setAttribute('font-size', '14');
         tempText.setAttribute('font-weight', '700');
-        tempText.setAttribute('fill', 'white');
-        tempText.setAttribute('stroke', '#333');
-        tempText.setAttribute('stroke-width', '3');
+        tempText.setAttribute('font-family', "'Fredoka', sans-serif");
+        tempText.setAttribute('fill', mercuryColor);
+        tempText.setAttribute('stroke', '#FFF');
+        tempText.setAttribute('stroke-width', '2.5');
         tempText.setAttribute('paint-order', 'stroke fill');
         tempText.setAttribute('id', elementId);
-        tempText.textContent = temp.toFixed(1) + '°C';
+        tempText.textContent = temp.toFixed(1) + '°';
         group.appendChild(tempText);
-
-        // Room label
-        const label = document.createElementNS(ns, 'text');
-        label.setAttribute('x', tubeWidth / 2);
-        label.setAttribute('y', -8);
-        label.setAttribute('text-anchor', 'middle');
-        label.setAttribute('font-size', position.isOutdoor ? '12' : '11');
-        label.setAttribute('font-weight', '600');
-        label.setAttribute('fill', position.isOutdoor ? '#0066CC' : '#333');
-        label.textContent = roomName;
-        group.appendChild(label);
 
         group.setAttribute('transform', `translate(${position.x}, ${position.y})`);
 
