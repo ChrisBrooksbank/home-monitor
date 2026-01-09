@@ -200,12 +200,24 @@
         toggle.appendChild(knob);
         group.appendChild(toggle);
 
-        // Title below plug
+        // Title label below plug with background for readability
+        const labelBg = createSvgElement('rect', {
+            'x': '-24', 'y': '22',
+            'width': '48', 'height': '12',
+            'rx': '3',
+            'fill': '#FFFEF5',
+            'stroke': '#C8B898',
+            'stroke-width': '0.5',
+            'opacity': '0.95',
+            'class': 'plug-label-bg'
+        });
+        group.appendChild(labelBg);
+
         const title = createSvgElement('text', {
-            'x': '0', 'y': '28',
+            'x': '0', 'y': '31',
             'text-anchor': 'middle',
-            'fill': '#6B4423',
-            'font-size': '8',
+            'fill': '#4A3728',
+            'font-size': '7',
             'font-weight': '600',
             'font-family': "'Fredoka', sans-serif",
             'class': 'plug-title'
