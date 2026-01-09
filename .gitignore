@@ -1,7 +1,7 @@
-# Sensitive configuration - DO NOT COMMIT
-config.js
-nest-config.js
-nest-config.json
+# Sensitive configuration - DO NOT COMMIT (root level only)
+/config.js
+/nest-config.js
+/nest-config.json
 .env
 .env.local
 .env.*.local
