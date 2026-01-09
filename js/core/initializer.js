@@ -8,49 +8,6 @@
     'use strict';
 
     // =============================================================================
-    // VIEW MODE MANAGEMENT
-    // =============================================================================
-
-    const VIEW_MODE_KEY = 'homeMonitorViewMode';
-
-    /**
-     * Initialize view mode (compact/full) from localStorage
-     */
-    function initViewMode() {
-        const savedMode = localStorage.getItem(VIEW_MODE_KEY);
-        if (savedMode === 'compact') {
-            document.body.classList.add('compact-mode');
-            updateViewModeLabel(true);
-        } else {
-            updateViewModeLabel(false);
-        }
-    }
-
-    /**
-     * Toggle between compact and full view modes
-     */
-    function toggleViewMode() {
-        const isCompact = document.body.classList.toggle('compact-mode');
-        localStorage.setItem(VIEW_MODE_KEY, isCompact ? 'compact' : 'full');
-        updateViewModeLabel(isCompact);
-        Logger.info(`View mode: ${isCompact ? 'Simple' : 'Full'}`);
-    }
-
-    /**
-     * Update the view mode toggle label
-     * @param {boolean} isCompact - Whether currently in compact mode
-     */
-    function updateViewModeLabel(isCompact) {
-        const label = document.getElementById('viewModeLabel');
-        const icon = document.querySelector('.view-toggle .toggle-icon');
-        if (label) label.textContent = isCompact ? 'Simple' : 'Full';
-        if (icon) icon.textContent = isCompact ? '👁️' : '👁️';
-    }
-
-    // Expose toggle globally for onclick handler
-    window.toggleViewMode = toggleViewMode;
-
-    // =============================================================================
     // FEATURE REGISTRY
     // =============================================================================
 
@@ -256,10 +213,6 @@
     // =============================================================================
 
     window.AppInitializer = {
-        // View mode
-        initViewMode,
-        toggleViewMode,
-
         // Feature registration
         registerFeature,
         initFeature,
