@@ -960,38 +960,50 @@
                     <circle cx="54" cy="-3" r="2.5" fill="#FF8FA3"/>
                 </g>
 
-                <!-- Wheelie Bin with Proxy Status LEDs -->
-                <g id="wheelie-bin" transform="translate(920, 565)">
-                    <!-- Bin body - UK grey wheelie bin -->
-                    <rect x="-12" y="-35" width="24" height="40" rx="2" fill="#5A5A5A" stroke="#3A3A3A" stroke-width="1"/>
+                <!-- Green Recycling Bin with Proxy Status LEDs -->
+                <g id="wheelie-bin" transform="translate(920, 555)" style="cursor: move;">
+                    <!-- Bin body - UK green recycling bin -->
+                    <rect x="-15" y="-45" width="30" height="50" rx="2" fill="#2E7D32" stroke="#1B5E20" stroke-width="1.5"/>
+                    <!-- Bin front panel detail -->
+                    <rect x="-12" y="-42" width="24" height="44" rx="1" fill="#388E3C" opacity="0.5"/>
                     <!-- Bin lid -->
-                    <rect x="-14" y="-40" width="28" height="6" rx="2" fill="#4A4A4A" stroke="#3A3A3A" stroke-width="1"/>
+                    <rect x="-17" y="-52" width="34" height="8" rx="2" fill="#1B5E20" stroke="#145214" stroke-width="1"/>
                     <!-- Lid handle -->
-                    <rect x="-4" y="-42" width="8" height="3" rx="1" fill="#3A3A3A"/>
+                    <rect x="-5" y="-55" width="10" height="4" rx="1.5" fill="#145214"/>
                     <!-- Wheels -->
-                    <circle cx="-8" cy="6" r="3" fill="#2A2A2A"/>
-                    <circle cx="8" cy="6" r="3" fill="#2A2A2A"/>
-                    <!-- Recycling symbol hint -->
-                    <text x="0" y="-12" text-anchor="middle" font-size="10" fill="#7A7A7A">♻</text>
+                    <circle cx="-10" cy="6" r="4" fill="#2A2A2A"/>
+                    <circle cx="10" cy="6" r="4" fill="#2A2A2A"/>
+                    <circle cx="-10" cy="6" r="2" fill="#1A1A1A"/>
+                    <circle cx="10" cy="6" r="2" fill="#1A1A1A"/>
+                    <!-- Recycling symbol -->
+                    <text x="0" y="-8" text-anchor="middle" font-size="14" fill="#A5D6A7">♻</text>
 
-                    <!-- Status LEDs on bin front -->
+                    <!-- Status LED panel - white background for visibility -->
+                    <rect x="-13" y="-40" width="26" height="22" rx="2" fill="#F5F5F0" stroke="#DDD" stroke-width="0.5"/>
+
+                    <!-- Status LEDs with labels -->
                     <g id="bin-status-leds">
-                        <!-- Hue -->
-                        <circle id="bin-led-hue" cx="-6" cy="-25" r="2.5" fill="#999">
+                        <!-- Row 1 -->
+                        <circle id="bin-led-hue" cx="-5" cy="-33" r="4" fill="#999" stroke="#666" stroke-width="0.5">
                             <title>Hue Bridge</title>
                         </circle>
-                        <!-- Sonos -->
-                        <circle id="bin-led-sonos" cx="0" cy="-25" r="2.5" fill="#999">
+                        <text x="-5" y="-33" text-anchor="middle" dominant-baseline="middle" font-size="4" fill="#333" font-weight="bold">H</text>
+
+                        <circle id="bin-led-sonos" cx="7" cy="-33" r="4" fill="#999" stroke="#666" stroke-width="0.5">
                             <title>Sonos</title>
                         </circle>
-                        <!-- Tapo -->
-                        <circle id="bin-led-tapo" cx="6" cy="-25" r="2.5" fill="#999">
+                        <text x="7" y="-33" text-anchor="middle" dominant-baseline="middle" font-size="4" fill="#333" font-weight="bold">S</text>
+
+                        <!-- Row 2 -->
+                        <circle id="bin-led-tapo" cx="-5" cy="-23" r="4" fill="#999" stroke="#666" stroke-width="0.5">
                             <title>Tapo Plugs</title>
                         </circle>
-                        <!-- SHIELD -->
-                        <circle id="bin-led-shield" cx="0" cy="-18" r="2.5" fill="#999">
+                        <text x="-5" y="-23" text-anchor="middle" dominant-baseline="middle" font-size="4" fill="#333" font-weight="bold">T</text>
+
+                        <circle id="bin-led-shield" cx="7" cy="-23" r="4" fill="#999" stroke="#666" stroke-width="0.5">
                             <title>SHIELD TV</title>
                         </circle>
+                        <text x="7" y="-23" text-anchor="middle" dominant-baseline="middle" font-size="3.5" fill="#333" font-weight="bold">TV</text>
                     </g>
                 </g>
 

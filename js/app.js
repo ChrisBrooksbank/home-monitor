@@ -763,6 +763,17 @@
         }
     }
 
+    function initWheelieBinDraggable() {
+        const bin = document.getElementById('wheelie-bin');
+        if (bin && typeof createDraggable === 'function') {
+            const storageKey = 'wheelie-bin-position';
+            if (typeof loadSavedPosition === 'function') {
+                loadSavedPosition(bin, storageKey);
+            }
+            createDraggable(bin, { storageKey: storageKey });
+        }
+    }
+
     async function toggleLight(lightId, currentState) {
         try {
             const success = await HueAPI.setLightState(lightId, { on: !currentState });
@@ -961,6 +972,7 @@
         AppInitializer.setupDraggables();
         AppInitializer.setupLamppostHandler(toggleLight, (room) => getRoomLights()[room]);
         initLamppostDraggable();
+        initWheelieBinDraggable();
 
         // Register polling tasks using the Poller module
         Poller.register('connectionStatus', ConnectionMonitor.checkAll,
