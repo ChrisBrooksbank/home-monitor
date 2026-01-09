@@ -719,28 +719,35 @@
         initTempHistory();
         initMotionHistory();
 
-        // Wait for connections with rapid retries during startup
-        // Proxies may take a moment to start when using 'npm start'
-        Logger.info('Waiting for services to come online...');
-        const status = await ConnectionMonitor.waitForConnections({
-            maxAttempts: 10,
-            retryInterval: 2000,
-            timeout: 20000
+        // Load Hue data immediately (direct connection, no proxy needed)
+        Logger.info('Loading Hue data...');
+        const hueDataPromise = Promise.all([
+            loadTemperatures(),
+            loadLights(),
+            loadMotionSensors()
+        ]);
+
+        // Check proxy connections in parallel (faster startup)
+        const proxyCheckPromise = ConnectionMonitor.waitForConnections({
+            maxAttempts: 3,
+            retryInterval: 500,
+            timeout: 5000
         });
 
-        // Initialize Tapo if proxy is online
-        if (typeof TapoControls !== 'undefined' && TapoControls.init) {
-            if (ConnectionMonitor.isOnline('tapo')) {
-                Logger.info('Initializing Tapo controls...');
-                await TapoControls.init();
-            } else {
-                Logger.warn('Tapo proxy offline, skipping Tapo initialization');
-            }
-        }
+        // Wait for Hue data (critical) - proxies can finish in background
+        await hueDataPromise;
 
-        // Initial data load
-        Logger.info('Loading initial data...');
-        await Promise.all([loadTemperatures(), loadLights(), loadMotionSensors()]);
+        // Initialize Tapo once proxy check completes
+        proxyCheckPromise.then(async () => {
+            if (typeof TapoControls !== 'undefined' && TapoControls.init) {
+                if (ConnectionMonitor.isOnline('tapo')) {
+                    Logger.info('Initializing Tapo controls...');
+                    await TapoControls.init();
+                } else {
+                    Logger.warn('Tapo proxy offline, skipping Tapo initialization');
+                }
+            }
+        });
 
         // Fetch external data
         fetchSunTimes();

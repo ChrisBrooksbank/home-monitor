@@ -10,7 +10,7 @@
     "proxy:sonos": "node proxies/sonos-proxy.js",
     "proxy:tapo": "node proxies/tapo-proxy.js",
     "proxy:shield": "node proxies/shield-proxy.js",
-    "start": "concurrently \"npm:dev\" \"npm:proxy:*\" --names \"vite,sonos,tapo,shield\" --prefix-colors \"cyan,green,yellow,magenta\"",
+    "start": "node scripts/start.js",
     "lint": "eslint . --ext .js",
     "lint:fix": "eslint . --ext .js --fix",
     "format": "prettier --write \"**/*.{js,json,md}\"",
