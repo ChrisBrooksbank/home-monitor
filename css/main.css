@@ -218,33 +218,31 @@
             background: linear-gradient(135deg, #D46A4C 0%, #A0522D 100%);
         }
 
-        h1 {
-            text-align: center;
-            background: var(--text-heading);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 5px;
-            font-size: 1.9em;
+        /* Compact header - house address pill */
+        .header-compact {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .house-number {
+            background: linear-gradient(135deg, #2D5A5A 0%, #1E4040 100%);
+            color: #F5F5F0;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.1em;
             font-weight: 700;
-            letter-spacing: 0.02em;
+            padding: 4px 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
-        /* Subtle hover effect on title */
-        h1:hover {
-            animation: cozy-pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes cozy-pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.85; }
-        }
-
-        .last-update {
-            text-align: center;
-            color: #666;
-            margin-bottom: 15px;
-            font-size: 0.85em;
+        .house-name {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: var(--text-secondary);
         }
 
         .house-container {

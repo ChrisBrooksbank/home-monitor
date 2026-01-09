@@ -39,18 +39,39 @@
     }
 
     /**
-     * Update a status indicator element
-     * @param {string} id - Element ID
+     * Update a status indicator LED on the wheelie bin
+     * @param {string} id - Element ID (e.g., 'status-hue')
      * @param {string} state - 'checking', 'online', or 'offline'
      * @param {string} [title] - Optional tooltip text
      */
     function updateIndicator(id, state, title) {
-        const indicator = document.getElementById(id);
-        if (!indicator) return;
+        // Extract service name from id (e.g., 'status-hue' -> 'hue')
+        const service = id.replace('status-', '');
+        const led = document.getElementById(`bin-led-${service}`);
 
-        indicator.classList.remove('online', 'offline', 'checking');
-        indicator.classList.add(state);
-        if (title) indicator.title = title;
+        if (!led) return;
+
+        // Update LED color based on state
+        const colors = {
+            online: '#5D8A4A',    // Green
+            offline: '#C45C3E',   // Red
+            checking: '#E6A23C'   // Amber
+        };
+
+        led.setAttribute('fill', colors[state] || '#999');
+
+        // Update tooltip
+        const titleEl = led.querySelector('title');
+        if (titleEl && title) {
+            titleEl.textContent = title;
+        }
+
+        // Add glow effect for online status
+        if (state === 'online') {
+            led.setAttribute('filter', 'url(#glow)');
+        } else {
+            led.removeAttribute('filter');
+        }
     }
 
     // =============================================================================
