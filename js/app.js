@@ -706,15 +706,60 @@
         const roomLights = getRoomLights();
         const outdoorLights = roomLights['Outdoor'] || [];
         const outdoorLightsOn = outdoorLights.some(l => l.on);
+
         const bulb = document.getElementById('lamp-bulb');
+        const glow = document.getElementById('lamp-glow');
+        const housing = document.getElementById('lamp-housing');
+
         if (!bulb) return;
 
         if (outdoorLightsOn) {
+            // Bulb on - warm glow
             bulb.setAttribute('fill', '#FFD700');
             bulb.setAttribute('filter', 'url(#glow)');
+
+            // Glass panels glow warm
+            if (housing) {
+                const panels = housing.querySelector('rect[opacity]');
+                if (panels) {
+                    panels.setAttribute('fill', '#FFE4B5');
+                    panels.setAttribute('opacity', '0.7');
+                }
+            }
+
+            // Outer glow visible
+            if (glow) {
+                glow.querySelector('animate')?.setAttribute('values', '0.3;0.5;0.3');
+            }
         } else {
+            // Bulb off
             bulb.setAttribute('fill', '#666');
             bulb.removeAttribute('filter');
+
+            // Glass panels dark
+            if (housing) {
+                const panels = housing.querySelector('rect[opacity]');
+                if (panels) {
+                    panels.setAttribute('fill', '#1E3A3A');
+                    panels.setAttribute('opacity', '0.4');
+                }
+            }
+
+            // No outer glow
+            if (glow) {
+                glow.querySelector('animate')?.setAttribute('values', '0;0');
+            }
+        }
+    }
+
+    function initLamppostDraggable() {
+        const lamppost = document.getElementById('outdoor-lamppost');
+        if (lamppost && typeof createDraggable === 'function') {
+            const storageKey = 'lamppost-position';
+            if (typeof loadSavedPosition === 'function') {
+                loadSavedPosition(lamppost, storageKey);
+            }
+            createDraggable(lamppost, { storageKey: storageKey });
         }
     }
 
@@ -915,6 +960,7 @@
         // Setup UI handlers
         AppInitializer.setupDraggables();
         AppInitializer.setupLamppostHandler(toggleLight, (room) => getRoomLights()[room]);
+        initLamppostDraggable();
 
         // Register polling tasks using the Poller module
         Poller.register('connectionStatus', ConnectionMonitor.checkAll,
