@@ -442,7 +442,17 @@
                     }
 
                     roomLights[room].push({
-                        id, name: light.name, on: currentState, reachable: light.state.reachable, color
+                        id,
+                        name: light.name,
+                        on: currentState,
+                        reachable: light.state.reachable,
+                        color,
+                        // Color picker needs these properties
+                        colormode: light.state.colormode,
+                        hue: light.state.hue,
+                        sat: light.state.sat,
+                        bri: light.state.bri,
+                        ct: light.state.ct
                     });
                 }
             }
@@ -530,9 +540,15 @@
                 if (light.on) bulb.setAttribute('filter', 'url(#glow)');
 
                 const title = document.createElementNS(ns, 'title');
-                title.textContent = `${light.name}: ${light.on ? 'ON' : 'OFF'} (double-click to toggle)`;
+                title.textContent = `${light.name}: ${light.on ? 'ON' : 'OFF'} (click for color, double-click to toggle)`;
                 bulb.appendChild(title);
 
+                // Single click opens color picker, double-click toggles
+                bulb.addEventListener('click', (e) => {
+                    if (window.ColorPicker) {
+                        window.ColorPicker.handleBulbClick(light.id, light, e);
+                    }
+                });
                 bulb.addEventListener('dblclick', () => toggleLight(light.id, light.on));
                 group.appendChild(bulb);
             });
