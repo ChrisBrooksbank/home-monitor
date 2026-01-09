@@ -1008,3 +1008,58 @@
                 padding: 6px 10px;
             }
         }
+
+        /* ======================================================================
+           COLOR PICKER POPUP
+           ====================================================================== */
+
+        .color-picker-popup {
+            pointer-events: all;
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.4));
+        }
+
+        .color-picker-close {
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+        }
+
+        .color-picker-close:hover {
+            opacity: 0.75;
+        }
+
+        .color-picker-close:active {
+            opacity: 0.5;
+        }
+
+        .color-swatch {
+            cursor: pointer;
+        }
+
+        .color-swatch:active {
+            opacity: 0.7;
+        }
+
+        .brightness-slider-handle {
+            cursor: ew-resize;
+            transition: filter 0.2s ease;
+        }
+
+        .brightness-slider-handle:hover {
+            filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.7));
+        }
+
+        .color-wheel-container {
+            cursor: crosshair;
+        }
+
+        .color-wheel-indicator {
+            pointer-events: none;
+            filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.5));
+        }
+
+        /* Touch-friendly improvements for color picker */
+        @media (hover: none) and (pointer: coarse) {
+            .brightness-slider-handle {
+                r: 14;
+            }
+        }
