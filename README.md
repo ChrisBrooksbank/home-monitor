@@ -117,6 +117,62 @@ A real-time, interactive smart home dashboard for monitoring and controlling Phi
    http://localhost:5173
    ```
 
+## New Machine Setup
+
+When cloning to a new machine, these files are **not in git** and must be created:
+
+### Required Files
+
+| File | Purpose | Template |
+|------|---------|----------|
+| `config.js` | Hue Bridge credentials, Weather API key | `config.example.js` |
+| `.env` | Tapo email/password | `.env.example` |
+
+### Optional Files
+
+| File | Purpose | How to Create |
+|------|---------|---------------|
+| `nest-config.js` | Nest OAuth tokens | Run `node scripts/setup/nest-auth.cjs` |
+| `nest-config.json` | Nest client credentials | See Nest setup below |
+
+### Quick Setup Commands
+
+```bash
+# Clone and install
+git clone https://github.com/ChrisBrooksbank/home-monitor.git
+cd home-monitor
+npm install
+
+# Create config files from templates
+cp config.example.js config.js
+cp .env.example .env
+
+# Edit with your credentials
+# config.js: Add HUE_CONFIG.BRIDGE_IP and USERNAME
+# .env: Add TAPO_EMAIL and TAPO_PASSWORD
+
+# Start
+npm start
+```
+
+### Troubleshooting
+
+**"APP_CONFIG is not defined"** - The `js/config.js` file should be in git. Run `git pull`.
+
+**"Unexpected token '<'"** - Browser cached a bad response. Clear site data:
+1. DevTools (F12) → Application → Storage → Clear site data
+2. Hard refresh (Ctrl+Shift+R)
+
+**Greyed out status indicators** - Check:
+1. Node.js 18+ installed (`node --version`)
+2. `config.js` exists in project root with correct Hue credentials
+3. Devices are on same network (VPN may block local access)
+
+**Proxies not starting** - Ports may be in use. Check with:
+```bash
+netstat -ano | findstr ":3000 :3001 :8082"
+```
+
 ## Configuration
 
 ### Hue Bridge (Required)
