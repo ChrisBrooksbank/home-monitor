@@ -961,7 +961,7 @@
                 </g>
 
                 <!-- Green Recycling Bin with Proxy Status LEDs -->
-                <g id="wheelie-bin" transform="translate(920, 555)" style="cursor: move;">
+                <g id="wheelie-bin" transform="translate(920, 555)" style="cursor: pointer;">
                     <!-- Bin body - UK green recycling bin -->
                     <rect x="-15" y="-45" width="30" height="50" rx="2" fill="#2E7D32" stroke="#1B5E20" stroke-width="1.5"/>
                     <!-- Bin front panel detail -->
@@ -987,23 +987,59 @@
                         <circle id="bin-led-hue" cx="-5" cy="-33" r="4" fill="#999" stroke="#666" stroke-width="0.5">
                             <title>Hue Bridge</title>
                         </circle>
-                        <text x="-5" y="-33" text-anchor="middle" dominant-baseline="middle" font-size="4" fill="#333" font-weight="bold">H</text>
+                        <text x="-5" y="-33" text-anchor="middle" dominant-baseline="middle" font-size="4" fill="#333" font-weight="bold" pointer-events="none">H</text>
 
                         <circle id="bin-led-sonos" cx="7" cy="-33" r="4" fill="#999" stroke="#666" stroke-width="0.5">
                             <title>Sonos</title>
                         </circle>
-                        <text x="7" y="-33" text-anchor="middle" dominant-baseline="middle" font-size="4" fill="#333" font-weight="bold">S</text>
+                        <text x="7" y="-33" text-anchor="middle" dominant-baseline="middle" font-size="4" fill="#333" font-weight="bold" pointer-events="none">S</text>
 
                         <!-- Row 2 -->
                         <circle id="bin-led-tapo" cx="-5" cy="-23" r="4" fill="#999" stroke="#666" stroke-width="0.5">
                             <title>Tapo Plugs</title>
                         </circle>
-                        <text x="-5" y="-23" text-anchor="middle" dominant-baseline="middle" font-size="4" fill="#333" font-weight="bold">T</text>
+                        <text x="-5" y="-23" text-anchor="middle" dominant-baseline="middle" font-size="4" fill="#333" font-weight="bold" pointer-events="none">T</text>
 
                         <circle id="bin-led-shield" cx="7" cy="-23" r="4" fill="#999" stroke="#666" stroke-width="0.5">
                             <title>SHIELD TV</title>
                         </circle>
-                        <text x="7" y="-23" text-anchor="middle" dominant-baseline="middle" font-size="3.5" fill="#333" font-weight="bold">TV</text>
+                        <text x="7" y="-23" text-anchor="middle" dominant-baseline="middle" font-size="3.5" fill="#333" font-weight="bold" pointer-events="none">TV</text>
+                    </g>
+                </g>
+
+                <!-- Proxy Status Popup (shown on bin click) -->
+                <g id="proxy-status-popup" style="display: none;">
+                    <!-- Clipboard/notice board style -->
+                    <rect x="0" y="0" width="130" height="95" rx="4" fill="#DEB887" stroke="#8B7355" stroke-width="2"/>
+                    <!-- Paper -->
+                    <rect x="8" y="12" width="114" height="75" fill="#FFFEF5" stroke="#E8E0D0" stroke-width="1"/>
+                    <!-- Clip at top -->
+                    <rect x="50" y="-4" width="30" height="12" rx="2" fill="#8B7355"/>
+                    <rect x="55" y="-2" width="20" height="8" rx="1" fill="#A08060"/>
+
+                    <!-- Title -->
+                    <text x="65" y="24" text-anchor="middle" font-size="9" font-weight="bold" fill="#4A3728" font-family="'Fredoka', sans-serif">Service Status</text>
+
+                    <!-- Status rows -->
+                    <g id="popup-status-hue" transform="translate(15, 35)">
+                        <circle cx="6" cy="0" r="5" fill="#999" stroke="#666" stroke-width="0.5"/>
+                        <text x="16" y="3" font-size="8" fill="#4A3728" font-family="'Fredoka', sans-serif">Hue Bridge</text>
+                        <text id="popup-status-hue-text" x="105" y="3" text-anchor="end" font-size="7" fill="#666">--</text>
+                    </g>
+                    <g id="popup-status-sonos" transform="translate(15, 50)">
+                        <circle cx="6" cy="0" r="5" fill="#999" stroke="#666" stroke-width="0.5"/>
+                        <text x="16" y="3" font-size="8" fill="#4A3728" font-family="'Fredoka', sans-serif">Sonos</text>
+                        <text id="popup-status-sonos-text" x="105" y="3" text-anchor="end" font-size="7" fill="#666">--</text>
+                    </g>
+                    <g id="popup-status-tapo" transform="translate(15, 65)">
+                        <circle cx="6" cy="0" r="5" fill="#999" stroke="#666" stroke-width="0.5"/>
+                        <text x="16" y="3" font-size="8" fill="#4A3728" font-family="'Fredoka', sans-serif">Tapo Plugs</text>
+                        <text id="popup-status-tapo-text" x="105" y="3" text-anchor="end" font-size="7" fill="#666">--</text>
+                    </g>
+                    <g id="popup-status-shield" transform="translate(15, 80)">
+                        <circle cx="6" cy="0" r="5" fill="#999" stroke="#666" stroke-width="0.5"/>
+                        <text x="16" y="3" font-size="8" fill="#4A3728" font-family="'Fredoka', sans-serif">SHIELD TV</text>
+                        <text id="popup-status-shield-text" x="105" y="3" text-anchor="end" font-size="7" fill="#666">--</text>
                     </g>
                 </g>
 

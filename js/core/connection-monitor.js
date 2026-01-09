@@ -38,6 +38,13 @@
         return `${Math.floor(seconds / 86400)}d`;
     }
 
+    // Status colors
+    const STATUS_COLORS = {
+        online: '#5D8A4A',    // Green
+        offline: '#C45C3E',   // Red
+        checking: '#E6A23C'   // Amber
+    };
+
     /**
      * Update a status indicator LED on the wheelie bin
      * @param {string} id - Element ID (e.g., 'status-hue')
@@ -51,14 +58,7 @@
 
         if (!led) return;
 
-        // Update LED color based on state
-        const colors = {
-            online: '#5D8A4A',    // Green
-            offline: '#C45C3E',   // Red
-            checking: '#E6A23C'   // Amber
-        };
-
-        led.setAttribute('fill', colors[state] || '#999');
+        led.setAttribute('fill', STATUS_COLORS[state] || '#999');
 
         // Update tooltip
         const titleEl = led.querySelector('title');
@@ -71,6 +71,89 @@
             led.setAttribute('filter', 'url(#glow)');
         } else {
             led.removeAttribute('filter');
+        }
+
+        // Also update popup indicator
+        updatePopupIndicator(service, state, title);
+    }
+
+    /**
+     * Update the popup status panel indicator
+     */
+    function updatePopupIndicator(service, state, title) {
+        const popupRow = document.getElementById(`popup-status-${service}`);
+        const popupText = document.getElementById(`popup-status-${service}-text`);
+
+        if (popupRow) {
+            const circle = popupRow.querySelector('circle');
+            if (circle) {
+                circle.setAttribute('fill', STATUS_COLORS[state] || '#999');
+            }
+        }
+
+        if (popupText) {
+            if (state === 'online') {
+                const uptime = connectionStatus[service]?.uptime;
+                popupText.textContent = uptime ? `Up ${formatUptime(uptime)}` : 'Online';
+                popupText.setAttribute('fill', '#5D8A4A');
+            } else if (state === 'offline') {
+                popupText.textContent = 'Offline';
+                popupText.setAttribute('fill', '#C45C3E');
+            } else {
+                popupText.textContent = 'Checking...';
+                popupText.setAttribute('fill', '#E6A23C');
+            }
+        }
+    }
+
+    /**
+     * Toggle the proxy status popup visibility
+     */
+    function toggleStatusPopup() {
+        const popup = document.getElementById('proxy-status-popup');
+        const bin = document.getElementById('wheelie-bin');
+
+        if (!popup || !bin) return;
+
+        const isVisible = popup.style.display !== 'none';
+
+        if (isVisible) {
+            popup.style.display = 'none';
+        } else {
+            // Position popup to the left of the bin
+            const binTransform = bin.getAttribute('transform');
+            const match = binTransform.match(/translate\(([^,]+),\s*([^)]+)\)/);
+            if (match) {
+                const binX = parseFloat(match[1]);
+                const binY = parseFloat(match[2]);
+                popup.setAttribute('transform', `translate(${binX - 150}, ${binY - 80})`);
+            }
+            popup.style.display = 'block';
+        }
+    }
+
+    /**
+     * Initialize bin click handler for status popup
+     */
+    function initBinPopupHandler() {
+        const bin = document.getElementById('wheelie-bin');
+        if (bin) {
+            bin.addEventListener('click', (e) => {
+                // Don't toggle if dragging
+                if (e.detail === 1) {
+                    toggleStatusPopup();
+                }
+            });
+
+            // Close popup when clicking elsewhere
+            document.addEventListener('click', (e) => {
+                const popup = document.getElementById('proxy-status-popup');
+                if (popup && popup.style.display !== 'none') {
+                    if (!bin.contains(e.target) && !popup.contains(e.target)) {
+                        popup.style.display = 'none';
+                    }
+                }
+            });
         }
     }
 
@@ -311,10 +394,19 @@
         waitForConnections,
         isOnline,
         getStatus,
-        formatUptime
+        formatUptime,
+        initBinPopup: initBinPopupHandler,
+        toggleStatusPopup
     };
 
     // Legacy alias for backwards compatibility
     window.checkAllConnections = checkAllConnections;
+
+    // Auto-init popup handler when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initBinPopupHandler);
+    } else {
+        initBinPopupHandler();
+    }
 
 })();
