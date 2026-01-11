@@ -399,6 +399,60 @@
     }
 
     /**
+     * Sync UI with discovered plugs - handles new/removed plugs
+     */
+    async function syncPlugsWithDiscovery() {
+        const container = document.getElementById(CONTAINER_ID);
+        if (!container) return;
+
+        try {
+            const response = await TapoAPI.getPlugs();
+            const discoveredPlugs = response.plugs || {};
+            const currentPlugs = getPlugStates();
+
+            // Find and add new plugs
+            for (const [name, info] of Object.entries(discoveredPlugs)) {
+                if (!currentPlugs.hasOwnProperty(name)) {
+                    Logger.info(`New plug discovered: ${name}`);
+                    setPlugState(name, false);
+                    const control = createPlugControl(name, info);
+                    container.appendChild(control);
+
+                    // Fetch initial status for new plug
+                    try {
+                        const status = await TapoAPI.getStatus(name);
+                        if (status) {
+                            const isOn = status.state === 'on' || status.device_on === true;
+                            updatePlugVisual(name, isOn);
+                        }
+                    } catch (err) {
+                        Logger.error(`Failed to get status for new plug ${name}:`, err);
+                    }
+                }
+            }
+
+            // Find and remove missing plugs
+            for (const name of Object.keys(currentPlugs)) {
+                if (!discoveredPlugs.hasOwnProperty(name)) {
+                    Logger.info(`Plug removed: ${name}`);
+                    const safeId = name.replace(/\s+/g, '-').toLowerCase();
+                    const element = document.getElementById(`tapo-${safeId}-controls`);
+                    if (element) element.remove();
+
+                    // Remove from AppState
+                    if (window.AppState) {
+                        const plugs = AppState.get('plugs') || {};
+                        delete plugs[name];
+                        AppState.set('plugs', plugs);
+                    }
+                }
+            }
+        } catch (error) {
+            Logger.error('Failed to sync plugs with discovery:', error);
+        }
+    }
+
+    /**
      * Initialize Tapo controls
      */
     async function init() {
@@ -467,8 +521,11 @@
             // Set up periodic status refresh
             if (typeof IntervalManager !== 'undefined') {
                 IntervalManager.register(refreshAllStatuses, APP_CONFIG.intervals.tapoStatus);
+                // Sync with discovery to detect new/removed plugs
+                IntervalManager.register(syncPlugsWithDiscovery, APP_CONFIG.intervals.tapoDiscovery);
             } else {
                 setInterval(refreshAllStatuses, APP_CONFIG.intervals.tapoStatus || 30000);
+                setInterval(syncPlugsWithDiscovery, APP_CONFIG.intervals.tapoDiscovery || 300000);
             }
 
             Logger.success(`Tapo controls initialized for ${Object.keys(plugs).length} plugs`);
@@ -482,6 +539,7 @@
     window.TapoControls = {
         init,
         refreshAllStatuses,
+        syncPlugsWithDiscovery,
         togglePlug
     };
 
