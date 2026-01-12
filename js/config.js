@@ -47,3 +47,6 @@ const APP_CONFIG = {
 if (typeof window !== 'undefined') {
     window.APP_CONFIG = APP_CONFIG;
 }
+
+// Export for ES modules (Vitest)
+export { APP_CONFIG };

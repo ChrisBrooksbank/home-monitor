@@ -158,3 +158,6 @@ window.addEventListener('beforeunload', () => {
     Logger.info('Page unloading - cleaning up resources');
     IntervalManager.clearAll();
 });
+
+// Export for ES modules (Vitest)
+export { sanitizeHTML, safeSetHTML, checkProxyAvailability, retryWithBackoff, debounce, throttle, IntervalManager };

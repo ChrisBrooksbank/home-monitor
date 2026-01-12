@@ -106,3 +106,6 @@ const ShieldAPI = {
 if (typeof window !== 'undefined') {
     window.ShieldAPI = ShieldAPI;
 }
+
+// Export for ES modules (Vitest)
+export { ShieldAPI };

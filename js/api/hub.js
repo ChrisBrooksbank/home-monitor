@@ -202,3 +202,6 @@ if (typeof window !== 'undefined') {
     window.HubAPI = HubAPI;
     window.HUB_CONFIG = HUB_CONFIG;
 }
+
+// Export for ES modules (Vitest)
+export { HubAPI, HUB_CONFIG };

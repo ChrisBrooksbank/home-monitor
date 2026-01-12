@@ -197,3 +197,6 @@ ${paramsXml.trimEnd()}
 if (typeof window !== 'undefined') {
     window.SonosAPI = SonosAPI;
 }
+
+// Export for ES modules (Vitest)
+export { SonosAPI };
