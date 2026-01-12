@@ -197,7 +197,8 @@ const HubAPI = {
     }
 };
 
-// Export for ES6 modules
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = HubAPI;
+// Expose on window for global access
+if (typeof window !== 'undefined') {
+    window.HubAPI = HubAPI;
+    window.HUB_CONFIG = HUB_CONFIG;
 }

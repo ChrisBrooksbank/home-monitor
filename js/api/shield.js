@@ -102,7 +102,7 @@ const ShieldAPI = {
     }
 };
 
-// Export for ES6 modules
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = ShieldAPI;
+// Expose on window for global access
+if (typeof window !== 'undefined') {
+    window.ShieldAPI = ShieldAPI;
 }

@@ -63,7 +63,7 @@ const Logger = {
     }
 };
 
-// Export for ES6 modules
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = Logger;
+// Expose on window for global access
+if (typeof window !== 'undefined') {
+    window.Logger = Logger;
 }

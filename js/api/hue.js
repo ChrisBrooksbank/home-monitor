@@ -222,9 +222,6 @@ const HueAPI = {
 };
 
 // Expose on window for global access
-window.HueAPI = HueAPI;
-
-// Export for ES6 modules
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = HueAPI;
+if (typeof window !== 'undefined') {
+    window.HueAPI = HueAPI;
 }

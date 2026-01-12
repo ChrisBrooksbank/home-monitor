@@ -21,6 +21,7 @@ const APP_CONFIG = {
         nest: 15 * 60 * 1000,
         sonosVolume: 30000,
         tapoStatus: 30000,
+        tapoDiscovery: 5 * 60 * 1000,  // Re-scan for plugs every 5 minutes
         connectionStatus: 30000  // Hue bridge + proxy servers
     },
 
@@ -42,7 +43,7 @@ const APP_CONFIG = {
     debug: false
 };
 
-// Export for ES6 modules
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = APP_CONFIG;
+// Expose on window for global access
+if (typeof window !== 'undefined') {
+    window.APP_CONFIG = APP_CONFIG;
 }

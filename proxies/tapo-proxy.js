@@ -36,6 +36,10 @@ if (!TAPO_EMAIL || !TAPO_PASSWORD) {
 // Dynamic plug storage (populated by discovery)
 let discoveredPlugs = {};
 let lastDiscovery = null;
+let isDiscovering = false;
+
+// Re-discovery interval (5 minutes)
+const REDISCOVERY_INTERVAL = 5 * 60 * 1000;
 
 // Manual plug overrides for devices that don't respond to probe correctly
 const MANUAL_PLUGS = {
@@ -124,43 +128,54 @@ async function getPlugInfo(ip) {
  * Discover all plugs and identify them
  */
 async function discoverAndIdentifyPlugs() {
-    const startTime = Date.now();
-
-    // Step 1: Scan for Tapo devices
-    const ips = await scanForPlugs(BASE_IP, SCAN_START, SCAN_END);
-    console.log(`   Found ${ips.length} Tapo devices`);
-
-    // Step 2: Get info for each plug
-    const plugs = {};
-    for (const ip of ips) {
-        const info = await getPlugInfo(ip);
-        if (!info.error && info.nickname) {
-            const key = info.nickname.toLowerCase().replace(/\s+/g, '-');
-            plugs[key] = {
-                ip: info.ip,
-                nickname: info.nickname,
-                model: info.model,
-                mac: info.mac
-            };
-            console.log(`   ✓ ${info.nickname} @ ${ip}`);
-        }
+    // Prevent overlapping discovery runs
+    if (isDiscovering) {
+        console.log('⏳ Discovery already in progress, skipping...');
+        return discoveredPlugs;
     }
+    isDiscovering = true;
 
-    // Merge manual plugs that weren't discovered
-    for (const [key, plug] of Object.entries(MANUAL_PLUGS)) {
-        if (!plugs[key]) {
-            plugs[key] = plug;
-            console.log(`   + ${plug.nickname} @ ${plug.ip} (manual)`);
+    try {
+        const startTime = Date.now();
+
+        // Step 1: Scan for Tapo devices
+        const ips = await scanForPlugs(BASE_IP, SCAN_START, SCAN_END);
+        console.log(`   Found ${ips.length} Tapo devices`);
+
+        // Step 2: Get info for each plug
+        const plugs = {};
+        for (const ip of ips) {
+            const info = await getPlugInfo(ip);
+            if (!info.error && info.nickname) {
+                const key = info.nickname.toLowerCase().replace(/\s+/g, '-');
+                plugs[key] = {
+                    ip: info.ip,
+                    nickname: info.nickname,
+                    model: info.model,
+                    mac: info.mac
+                };
+                console.log(`   ✓ ${info.nickname} @ ${ip}`);
+            }
         }
+
+        // Merge manual plugs that weren't discovered
+        for (const [key, plug] of Object.entries(MANUAL_PLUGS)) {
+            if (!plugs[key]) {
+                plugs[key] = plug;
+                console.log(`   + ${plug.nickname} @ ${plug.ip} (manual)`);
+            }
+        }
+
+        const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+        console.log(`✅ Discovery complete in ${elapsed}s - found ${Object.keys(plugs).length} plugs\n`);
+
+        discoveredPlugs = plugs;
+        lastDiscovery = new Date().toISOString();
+
+        return plugs;
+    } finally {
+        isDiscovering = false;
     }
-
-    const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-    console.log(`✅ Discovery complete in ${elapsed}s - found ${Object.keys(plugs).length} plugs\n`);
-
-    discoveredPlugs = plugs;
-    lastDiscovery = new Date().toISOString();
-
-    return plugs;
 }
 
 /**
@@ -411,6 +426,17 @@ async function startServer() {
         console.error('⚠️  Initial discovery failed:', error.message);
         console.log('   Use POST /discover to retry\n');
     }
+
+    // Set up periodic re-discovery to handle IP address changes
+    setInterval(async () => {
+        console.log('🔄 Running periodic plug discovery...');
+        try {
+            await discoverAndIdentifyPlugs();
+        } catch (error) {
+            console.error('⚠️  Periodic discovery failed:', error.message);
+        }
+    }, REDISCOVERY_INTERVAL);
+    console.log(`⏰ Periodic re-discovery scheduled every ${REDISCOVERY_INTERVAL / 60000} minutes`);
 }
 
 startServer();
