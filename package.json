@@ -12,6 +12,10 @@
     "proxy:shield": "node proxies/shield-proxy.js",
     "proxy:news": "node proxies/news-proxy.js",
     "start": "node scripts/start.js",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui",
     "lint": "eslint . --ext .js",
     "lint:fix": "eslint . --ext .js --fix",
     "format": "prettier --write \"**/*.{js,json,md}\"",
@@ -23,11 +27,14 @@
     "tp-link-tapo-connect": "^2.0.8"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^4.0.16",
     "concurrently": "^9.2.1",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
+    "jsdom": "^27.4.0",
     "prettier": "^3.7.4",
-    "vite": "^5.0.0"
+    "vite": "^5.0.0",
+    "vitest": "^4.0.16"
   },
   "engines": {
     "node": ">=18.0.0"
