@@ -43,7 +43,7 @@ const APP_CONFIG = {
     debug: false
 };
 
-// Export for ES6 modules
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = APP_CONFIG;
+// Expose on window for global access
+if (typeof window !== 'undefined') {
+    window.APP_CONFIG = APP_CONFIG;
 }

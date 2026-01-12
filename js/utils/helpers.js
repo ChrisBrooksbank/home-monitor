@@ -158,16 +158,3 @@ window.addEventListener('beforeunload', () => {
     Logger.info('Page unloading - cleaning up resources');
     IntervalManager.clearAll();
 });
-
-// Export for ES6 modules
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {
-        sanitizeHTML,
-        safeSetHTML,
-        checkProxyAvailability,
-        retryWithBackoff,
-        debounce,
-        throttle,
-        IntervalManager
-    };
-}
