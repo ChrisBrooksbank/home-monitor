@@ -67,6 +67,3 @@ const Logger = {
 if (typeof window !== 'undefined') {
     window.Logger = Logger;
 }
-
-// Export for ES modules (Vitest)
-export { Logger };

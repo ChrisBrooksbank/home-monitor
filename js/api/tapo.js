@@ -147,6 +147,3 @@ const TapoAPI = {
 if (typeof window !== 'undefined') {
     window.TapoAPI = TapoAPI;
 }
-
-// Export for ES modules (Vitest)
-export { TapoAPI };

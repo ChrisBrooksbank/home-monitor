@@ -225,6 +225,3 @@ const HueAPI = {
 if (typeof window !== 'undefined') {
     window.HueAPI = HueAPI;
 }
-
-// Export for ES modules (Vitest)
-export { HueAPI, getBridgeConfig };
