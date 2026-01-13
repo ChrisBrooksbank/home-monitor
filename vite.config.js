@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite';
+import { resolve } from 'path';
 
 export default defineConfig(({ mode }) => ({
   // Base public path
@@ -8,6 +9,20 @@ export default defineConfig(({ mode }) => ({
   define: {
     __DEV__: mode === 'development',
     __PROD__: mode === 'production'
+  },
+
+  // Resolve path aliases from tsconfig
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, 'src'),
+      '@api': resolve(__dirname, 'src/api'),
+      '@core': resolve(__dirname, 'src/core'),
+      '@features': resolve(__dirname, 'src/features'),
+      '@ui': resolve(__dirname, 'src/ui'),
+      '@utils': resolve(__dirname, 'src/utils'),
+      '@config': resolve(__dirname, 'src/config'),
+      '@types': resolve(__dirname, 'src/types')
+    }
   },
 
   // Server configuration
@@ -23,30 +38,13 @@ export default defineConfig(({ mode }) => ({
     assetsDir: 'assets',
     sourcemap: true, // Enable source maps for debugging
 
-    // Optimize bundle
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: false, // Keep Logger statements
-        drop_debugger: true
-      }
-    },
+    // Optimize bundle (use esbuild for faster builds)
+    minify: 'esbuild',
 
-    // Chunk splitting for better caching
+    // Rollup options
     rollupOptions: {
-      output: {
-        manualChunks: {
-          'vendor': ['config.js', 'nest-config.js'],
-          'utils': [
-            './js/utils/logger.js',
-            './js/utils/helpers.js'
-          ],
-          'api': [
-            './js/api/sonos.js',
-            './js/api/tapo.js'
-          ]
-        }
-      }
+      // Don't include config files that are loaded separately
+      external: []
     }
   },
 

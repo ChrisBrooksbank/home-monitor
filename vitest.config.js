@@ -4,24 +4,24 @@ export default defineConfig({
     test: {
         globals: true,
         environment: 'jsdom',
-        include: ['**/*.test.js'],
-        exclude: ['**/node_modules/**', '**/dist/**'],
-        setupFiles: ['./test/setup.js'],
+        include: ['src/**/*.test.ts'],
+        exclude: ['**/node_modules/**', '**/dist/**', 'js/**/*.test.js', 'proxies/**/*.test.js'],
+        setupFiles: ['./src/test/setup.ts'],
         coverage: {
             provider: 'v8',
             reporter: ['text', 'html', 'lcov'],
-            include: ['js/**/*.js', 'proxies/**/*.js'],
+            include: ['src/**/*.ts'],
             exclude: [
                 '**/node_modules/**',
-                '**/*.test.js',
-                '**/test/**',
-                'js/app.js' // Main entry point, integration tested
+                '**/*.test.ts',
+                'src/test/**',
+                'src/**/*.d.ts'
             ]
         },
         // Separate environments for frontend vs backend tests
         environmentMatchGlobs: [
-            ['proxies/**/*.test.js', 'node'],
-            ['scripts/**/*.test.js', 'node']
+            ['src/proxies/**/*.test.ts', 'node'],
+            ['src/scripts/**/*.test.ts', 'node']
         ]
     }
 });
