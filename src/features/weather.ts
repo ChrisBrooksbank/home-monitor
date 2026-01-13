@@ -95,7 +95,7 @@ export function updateWeatherElements(weatherData: WeatherData | null): void {
   const svgElements: Record<string, string> = {
     'weather-temp-svg': `${Math.round(weatherData.temp)}°`,
     'weather-condition-svg': weatherData.condition,
-    'weather-feels-svg': `Feels: ${Math.round(weatherData.feelsLike)}°`,
+    'weather-feels-svg': `Feels ${Math.round(weatherData.feelsLike)}°`,
     'weather-humidity-svg': `${weatherData.humidity}%`,
     'weather-uv-svg': `UV ${weatherData.uv}`,
     'weather-wind-svg': `${Math.round(weatherData.wind)} km/h`,
@@ -110,6 +110,19 @@ export function updateWeatherElements(weatherData: WeatherData | null): void {
   // Update SVG icon
   const svgIconEl = document.getElementById('weather-icon-svg');
   if (svgIconEl) svgIconEl.setAttribute('href', `https:${weatherData.icon}`);
+
+  // Rotate wind vane based on wind direction
+  const windArrow = document.getElementById('wind-arrow');
+  if (windArrow && weatherData.windDir) {
+    const directionAngles: Record<string, number> = {
+      'N': 180, 'NNE': 202.5, 'NE': 225, 'ENE': 247.5,
+      'E': 270, 'ESE': 292.5, 'SE': 315, 'SSE': 337.5,
+      'S': 0, 'SSW': 22.5, 'SW': 45, 'WSW': 67.5,
+      'W': 90, 'WNW': 112.5, 'NW': 135, 'NNW': 157.5,
+    };
+    const angle = directionAngles[weatherData.windDir] ?? 0;
+    windArrow.style.transform = `rotate(${angle}deg)`;
+  }
 
   Logger.info(`Weather updated: ${weatherData.temp.toFixed(1)}°C, ${weatherData.condition}`);
 }

@@ -193,30 +193,94 @@
                 <!-- Sky background -->
                 <rect width="1000" height="650" fill="url(#skyGradient)"/>
 
-                <!-- Weather Info Panel (Top Right) -->
-                <g id="weather-info-panel" transform="translate(800, 30)">
-                    <!-- Semi-transparent background -->
-                    <rect x="0" y="0" width="180" height="110" rx="15" fill="rgba(255, 255, 255, 0.85)" stroke="rgba(100, 100, 100, 0.3)" stroke-width="2"/>
+                <!-- Weather Info Panel - Pixel Art Garden Signpost -->
+                <g id="weather-info-panel" transform="translate(870, 20)">
+                    <!-- Wooden Post -->
+                    <rect x="25" y="20" width="12" height="130" fill="#8B4513"/>
+                    <rect x="27" y="20" width="3" height="130" fill="#A0522D"/>
+                    <rect x="33" y="20" width="2" height="130" fill="#654321"/>
 
-                    <!-- Weather Icon -->
-                    <image id="weather-icon-svg" x="10" y="10" width="50" height="50" href=""/>
+                    <!-- Post cap -->
+                    <rect x="22" y="15" width="18" height="8" fill="#654321"/>
+                    <rect x="24" y="17" width="14" height="4" fill="#8B4513"/>
 
-                    <!-- Temperature -->
-                    <text id="weather-temp-svg" x="70" y="35" font-size="28" font-weight="bold" fill="#333" font-family="Arial">--°</text>
+                    <!-- Weather Vane on top -->
+                    <g id="weather-vane" transform="translate(31, 10)">
+                        <!-- Pole -->
+                        <rect x="-1" y="-15" width="2" height="15" fill="#4A4A4A"/>
+                        <!-- Arrow -->
+                        <g id="wind-arrow" style="transform-origin: 0px -8px;">
+                            <polygon points="-12,-8 0,-5 0,-11" fill="#CD7F32"/>
+                            <rect x="0" y="-9" width="15" height="2" fill="#CD7F32"/>
+                            <polygon points="15,-8 18,-6 18,-10" fill="#CD7F32"/>
+                        </g>
+                        <!-- N/S/E/W markers -->
+                        <text x="0" y="-18" text-anchor="middle" font-size="5" fill="#333" font-weight="bold">N</text>
+                    </g>
 
-                    <!-- Condition -->
-                    <text id="weather-condition-svg" x="70" y="52" font-size="11" fill="#666" font-family="Arial">Loading...</text>
+                    <!-- Main Temperature Sign (hanging) -->
+                    <g transform="translate(-45, 25)">
+                        <!-- Rope/chain -->
+                        <line x1="70" y1="0" x2="55" y2="5" stroke="#8B7355" stroke-width="2"/>
+                        <line x1="70" y1="0" x2="85" y2="5" stroke="#8B7355" stroke-width="2"/>
+                        <!-- Wooden sign -->
+                        <rect x="10" y="5" width="90" height="35" rx="3" fill="#DEB887" stroke="#8B7355" stroke-width="2"/>
+                        <rect x="12" y="7" width="86" height="31" fill="#F5DEB3"/>
+                        <!-- Grain lines -->
+                        <line x1="15" y1="12" x2="95" y2="12" stroke="#D2B48C" stroke-width="0.5"/>
+                        <line x1="15" y1="22" x2="95" y2="22" stroke="#D2B48C" stroke-width="0.5"/>
+                        <line x1="15" y1="32" x2="95" y2="32" stroke="#D2B48C" stroke-width="0.5"/>
+                        <!-- Weather icon (small) -->
+                        <image id="weather-icon-svg" x="15" y="10" width="28" height="28" href=""/>
+                        <!-- Temperature display -->
+                        <text id="weather-temp-svg" x="75" y="30" text-anchor="middle" font-size="20" font-weight="bold" fill="#4A3728" font-family="'Fredoka', Georgia, serif">--°</text>
+                    </g>
 
-                    <!-- Feels Like -->
-                    <text id="weather-feels-svg" x="10" y="75" font-size="10" fill="#555" font-family="Arial">Feels: --°</text>
+                    <!-- Condition Sign (smaller, angled) -->
+                    <g transform="translate(-55, 65) rotate(-3)">
+                        <line x1="80" y1="0" x2="70" y2="5" stroke="#8B7355" stroke-width="1.5"/>
+                        <rect x="5" y="5" width="80" height="20" rx="2" fill="#C4A76C" stroke="#8B7355" stroke-width="1.5"/>
+                        <rect x="7" y="7" width="76" height="16" fill="#DAC89B"/>
+                        <text id="weather-condition-svg" x="45" y="19" text-anchor="middle" font-size="9" fill="#4A3728" font-family="'Fredoka', Georgia, serif">Loading...</text>
+                    </g>
 
-                    <!-- Humidity & UV -->
-                    <text id="weather-humidity-svg" x="10" y="90" font-size="9" fill="#555" font-family="Arial">💧 --%</text>
-                    <text id="weather-uv-svg" x="10" y="103" font-size="9" fill="#555" font-family="Arial">☀️ UV -</text>
+                    <!-- Details Sign (angled other way) -->
+                    <g transform="translate(-40, 90) rotate(2)">
+                        <line x1="65" y1="0" x2="55" y2="5" stroke="#8B7355" stroke-width="1.5"/>
+                        <rect x="0" y="5" width="70" height="32" rx="2" fill="#B8956C" stroke="#8B7355" stroke-width="1.5"/>
+                        <rect x="2" y="7" width="66" height="28" fill="#D4BA8A"/>
+                        <!-- Feels like -->
+                        <text id="weather-feels-svg" x="5" y="17" font-size="7" fill="#4A3728" font-family="'Fredoka', sans-serif">Feels --°</text>
+                        <!-- Humidity with droplet -->
+                        <circle cx="8" cy="24" r="3" fill="#6CB4EE"/>
+                        <text id="weather-humidity-svg" x="14" y="26" font-size="7" fill="#4A3728" font-family="'Fredoka', sans-serif">--%</text>
+                        <!-- Wind -->
+                        <text id="weather-wind-svg" x="38" y="17" font-size="7" fill="#4A3728" font-family="'Fredoka', sans-serif">-- km/h</text>
+                        <text id="weather-wind-dir-svg" x="38" y="26" font-size="7" fill="#4A3728" font-family="'Fredoka', sans-serif">--</text>
+                    </g>
 
-                    <!-- Wind -->
-                    <text id="weather-wind-svg" x="100" y="75" font-size="9" fill="#555" font-family="Arial">🌬️ -- km/h</text>
-                    <text id="weather-wind-dir-svg" x="100" y="88" font-size="9" fill="#555" font-family="Arial">--</text>
+                    <!-- Small bird perched on post -->
+                    <g transform="translate(38, 55)">
+                        <!-- Body -->
+                        <ellipse cx="0" cy="0" rx="6" ry="4" fill="#8B0000"/>
+                        <!-- Head -->
+                        <circle cx="5" cy="-2" r="3" fill="#8B0000"/>
+                        <!-- Beak -->
+                        <polygon points="8,-2 11,-1 8,0" fill="#FFA500"/>
+                        <!-- Eye -->
+                        <circle cx="6" cy="-3" r="1" fill="white"/>
+                        <circle cx="6.5" cy="-3" r="0.5" fill="black"/>
+                        <!-- Wing -->
+                        <ellipse cx="-2" cy="0" rx="4" ry="2.5" fill="#A52A2A"/>
+                        <!-- Tail -->
+                        <polygon points="-6,0 -12,2 -10,-1" fill="#A52A2A"/>
+                        <!-- Legs -->
+                        <line x1="-2" y1="3" x2="-3" y2="7" stroke="#FFA500" stroke-width="1"/>
+                        <line x1="2" y1="3" x2="1" y2="7" stroke="#FFA500" stroke-width="1"/>
+                    </g>
+
+                    <!-- Hidden UV text for compatibility -->
+                    <text id="weather-uv-svg" x="0" y="0" font-size="0" fill="transparent">UV -</text>
                 </g>
 
                 <!-- Sun -->
