@@ -900,6 +900,102 @@ function initWheelieBinDraggable(): void {
   }
 }
 
+// =============================================================================
+// WHEELIE BIN STATUS DISPLAY
+// =============================================================================
+
+let binPopupVisible = false;
+
+/**
+ * Update a bin LED color based on online status
+ */
+function updateBinLed(service: string, online: boolean): void {
+  const led = document.getElementById(`bin-led-${service}`);
+  if (led) {
+    led.setAttribute('fill', online ? '#4CAF50' : '#F44336');
+  }
+
+  // Also update popup indicator if it exists
+  const popupGroup = document.getElementById(`popup-status-${service}`);
+  if (popupGroup) {
+    const circle = popupGroup.querySelector('circle');
+    if (circle) {
+      circle.setAttribute('fill', online ? '#4CAF50' : '#F44336');
+    }
+    const statusText = document.getElementById(`popup-status-${service}-text`);
+    if (statusText) {
+      statusText.textContent = online ? 'Online' : 'Offline';
+      statusText.setAttribute('fill', online ? '#4CAF50' : '#F44336');
+    }
+  }
+}
+
+/**
+ * Toggle the proxy status popup visibility
+ */
+function toggleBinPopup(): void {
+  const popup = document.getElementById('proxy-status-popup');
+  const bin = document.getElementById('wheelie-bin');
+  if (!popup || !bin) return;
+
+  binPopupVisible = !binPopupVisible;
+
+  if (binPopupVisible) {
+    // Position popup near the bin
+    const binTransform = bin.getAttribute('transform') || '';
+    const match = binTransform.match(/translate\(([^,]+),\s*([^)]+)\)/);
+    const binX = match ? parseFloat(match[1]) : 920;
+    const binY = match ? parseFloat(match[2]) : 555;
+
+    popup.setAttribute('transform', `translate(${binX - 140}, ${binY - 100})`);
+    popup.style.display = 'block';
+  } else {
+    popup.style.display = 'none';
+  }
+}
+
+/**
+ * Initialize wheelie bin click handler and status subscriptions
+ */
+function initBinStatusDisplay(): void {
+  const bin = document.getElementById('wheelie-bin');
+  if (!bin) return;
+
+  // Click handler for popup toggle
+  bin.addEventListener('click', (e) => {
+    // Don't toggle if we just finished dragging
+    if (e.defaultPrevented) return;
+    toggleBinPopup();
+  });
+
+  // Close popup when clicking elsewhere
+  document.addEventListener('click', (e) => {
+    if (!binPopupVisible) return;
+    const popup = document.getElementById('proxy-status-popup');
+    const target = e.target as Element;
+    if (!bin.contains(target) && popup && !popup.contains(target)) {
+      binPopupVisible = false;
+      popup.style.display = 'none';
+    }
+  });
+
+  // Subscribe to connection events
+  AppEvents.on('connection:hue:online', () => updateBinLed('hue', true));
+  AppEvents.on('connection:hue:offline', () => updateBinLed('hue', false));
+  AppEvents.on('connection:proxy:online', (data: { proxy: string }) => {
+    updateBinLed(data.proxy, true);
+  });
+  AppEvents.on('connection:proxy:offline', (data: { proxy: string }) => {
+    updateBinLed(data.proxy, false);
+  });
+
+  // Set initial states from ConnectionMonitor
+  updateBinLed('hue', ConnectionMonitor.isOnline('hue'));
+  updateBinLed('sonos', ConnectionMonitor.isOnline('sonos'));
+  updateBinLed('tapo', ConnectionMonitor.isOnline('tapo'));
+  updateBinLed('shield', ConnectionMonitor.isOnline('shield'));
+}
+
 async function toggleLight(lightId: string, currentState: boolean): Promise<void> {
   try {
     const success = await HueAPI.setLightState(lightId, { on: !currentState });
@@ -1108,6 +1204,7 @@ async function init(): Promise<void> {
   });
   initLamppostDraggable();
   initWheelieBinDraggable();
+  initBinStatusDisplay();
 
   // Register polling tasks using the Poller module
   Poller.register(

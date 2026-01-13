@@ -254,30 +254,38 @@ const server = http.createServer(async (req: IncomingMessage, res: ServerRespons
     const urlObj = new URL(req.url || '', `http://localhost:${PORT}`);
     const path = urlObj.pathname;
 
-    // GET /health - Health check endpoint
-    if (req.method === 'GET' && path === '/health') {
+    // GET/HEAD /health - Health check endpoint
+    if ((req.method === 'GET' || req.method === 'HEAD') && path === '/health') {
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(
-            JSON.stringify({
-                status: 'ok',
-                service: 'tapo-proxy',
-                uptime: process.uptime(),
-                timestamp: new Date().toISOString(),
-            })
-        );
+        if (req.method === 'HEAD') {
+            res.end();
+        } else {
+            res.end(
+                JSON.stringify({
+                    status: 'ok',
+                    service: 'tapo-proxy',
+                    uptime: process.uptime(),
+                    timestamp: new Date().toISOString(),
+                })
+            );
+        }
         return;
     }
 
-    // GET /plugs - List all discovered plugs
-    if (req.method === 'GET' && path === '/plugs') {
+    // GET/HEAD /plugs - List all discovered plugs
+    if ((req.method === 'GET' || req.method === 'HEAD') && path === '/plugs') {
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(
-            JSON.stringify({
-                plugs: discoveredPlugs,
-                lastDiscovery,
-                count: Object.keys(discoveredPlugs).length,
-            })
-        );
+        if (req.method === 'HEAD') {
+            res.end();
+        } else {
+            res.end(
+                JSON.stringify({
+                    plugs: discoveredPlugs,
+                    lastDiscovery,
+                    count: Object.keys(discoveredPlugs).length,
+                })
+            );
+        }
         return;
     }
 

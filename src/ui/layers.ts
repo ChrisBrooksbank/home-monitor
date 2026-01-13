@@ -10,6 +10,7 @@ import { Logger } from '../utils/logger';
 // =============================================================================
 
 const STORAGE_KEY = 'dashboardLayers';
+const POSITION_KEY = 'layersPanelPosition';
 const CONTAINER_ID = 'layers-panel';
 
 interface LayerConfig {
@@ -243,6 +244,122 @@ function togglePanelExpand(): void {
 }
 
 // =============================================================================
+// DRAGGABLE FUNCTIONALITY
+// =============================================================================
+
+function loadSavedPosition(panel: HTMLElement): void {
+  const saved = localStorage.getItem(POSITION_KEY);
+  if (saved) {
+    try {
+      const pos = JSON.parse(saved) as { x: number; y: number };
+      panel.style.transform = `translate(${pos.x}px, ${pos.y}px)`;
+    } catch {
+      // Ignore parse errors
+    }
+  }
+}
+
+function savePosition(x: number, y: number): void {
+  localStorage.setItem(POSITION_KEY, JSON.stringify({ x, y }));
+}
+
+function makePanelDraggable(panel: HTMLElement): void {
+  const header = panel.querySelector('.layers-header') as HTMLElement | null;
+  if (!header) return;
+
+  let isDragging = false;
+  let startX = 0;
+  let startY = 0;
+  let currentX = 0;
+  let currentY = 0;
+
+  // Parse current transform
+  function getCurrentPosition(): { x: number; y: number } {
+    const transform = panel.style.transform;
+    const match = transform.match(/translate\(([^p]+)px,\s*([^p]+)px\)/);
+    return {
+      x: match ? parseFloat(match[1]) : 0,
+      y: match ? parseFloat(match[2]) : 0,
+    };
+  }
+
+  function handleMouseDown(e: MouseEvent): void {
+    // Don't drag when clicking the toggle icon
+    if ((e.target as Element).closest('.layers-toggle-icon')) {
+      return;
+    }
+
+    isDragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    const pos = getCurrentPosition();
+    currentX = pos.x;
+    currentY = pos.y;
+
+    panel.style.opacity = '0.8';
+    e.preventDefault();
+  }
+
+  function handleMouseMove(e: MouseEvent): void {
+    if (!isDragging) return;
+
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    const newX = currentX + dx;
+    const newY = currentY + dy;
+
+    panel.style.transform = `translate(${newX}px, ${newY}px)`;
+  }
+
+  function handleMouseUp(): void {
+    if (!isDragging) return;
+    isDragging = false;
+
+    panel.style.opacity = '1';
+
+    // Save position
+    const pos = getCurrentPosition();
+    savePosition(pos.x, pos.y);
+  }
+
+  // Set initial cursor
+  header.style.cursor = 'move';
+
+  // Add event listeners
+  header.addEventListener('mousedown', handleMouseDown);
+  document.addEventListener('mousemove', handleMouseMove);
+  document.addEventListener('mouseup', handleMouseUp);
+
+  // Touch support
+  header.addEventListener('touchstart', (e: TouchEvent) => {
+    if ((e.target as Element).closest('.layers-toggle-icon')) return;
+
+    isDragging = true;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    const pos = getCurrentPosition();
+    currentX = pos.x;
+    currentY = pos.y;
+    panel.style.opacity = '0.8';
+  }, { passive: true });
+
+  document.addEventListener('touchmove', (e: TouchEvent) => {
+    if (!isDragging) return;
+    const dx = e.touches[0].clientX - startX;
+    const dy = e.touches[0].clientY - startY;
+    panel.style.transform = `translate(${currentX + dx}px, ${currentY + dy}px)`;
+  }, { passive: true });
+
+  document.addEventListener('touchend', () => {
+    if (!isDragging) return;
+    isDragging = false;
+    panel.style.opacity = '1';
+    const pos = getCurrentPosition();
+    savePosition(pos.x, pos.y);
+  });
+}
+
+// =============================================================================
 // INITIALIZATION
 // =============================================================================
 
@@ -266,6 +383,10 @@ function init(): void {
   // Create and insert panel
   const panel = createLayerPanel();
   houseContainer.appendChild(panel);
+
+  // Load saved position and make draggable
+  loadSavedPosition(panel);
+  makePanelDraggable(panel);
 
   // Apply saved visibility states after a short delay
   // (allows dynamically created elements to be added first)

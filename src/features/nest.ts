@@ -41,16 +41,16 @@ let nestDevices: NestThermostat[] = [];
 let nestAccessToken: string | null = null;
 let nestTokenExpiry = 0;
 
-// Get Nest configuration from global config (supports both camelCase and snake_case)
+// Get Nest configuration from global config (supports both UPPER_CASE and snake_case)
 const getNestConfig = (): NestConfigInternal => {
-  const cfg = window.NEST_CONFIG;
+  const cfg = window.NEST_CONFIG as Record<string, string | number | undefined> | undefined;
   return {
-    clientId: cfg?.CLIENT_ID,
-    clientSecret: cfg?.CLIENT_SECRET,
-    projectId: cfg?.PROJECT_ID,
-    refreshToken: cfg?.REFRESH_TOKEN,
-    accessToken: cfg?.ACCESS_TOKEN,
-    expiresAt: undefined, // Not used in new format
+    clientId: cfg?.CLIENT_ID as string | undefined,
+    clientSecret: cfg?.CLIENT_SECRET as string | undefined,
+    projectId: cfg?.PROJECT_ID as string | undefined,
+    refreshToken: (cfg?.REFRESH_TOKEN || cfg?.refresh_token) as string | undefined,
+    accessToken: (cfg?.ACCESS_TOKEN || cfg?.access_token) as string | undefined,
+    expiresAt: (cfg?.expires_at || cfg?.EXPIRES_AT) as number | undefined,
   };
 };
 

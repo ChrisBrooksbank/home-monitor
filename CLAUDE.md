@@ -11,66 +11,99 @@ Smart home monitoring dashboard that displays real-time data from Philips Hue se
 ```bash
 npm start              # Start Vite dev server + all proxy servers (recommended)
 npm run dev            # Vite dev server only (port 5173)
-npm run proxy:sonos    # Sonos proxy (port 3000)
-npm run proxy:tapo     # Tapo proxy (port 3001)
-npm run proxy:shield   # SHIELD proxy (port 8082)
 npm run build          # Production build to dist/
 npm run lint           # ESLint check
 npm run lint:fix       # ESLint auto-fix
 npm run format         # Prettier format all files
+
+# Testing
+npm test               # Vitest watch mode
+npm run test:run       # Run tests once
+npm run test:run -- src/api/hue.test.ts  # Run single test file
+npm run test:coverage  # Coverage report
+npm run test:ui        # Vitest UI
+
+# Individual proxies
+npm run proxy:sonos    # Sonos proxy (port 3000)
+npm run proxy:tapo     # Tapo proxy (port 3001)
+npm run proxy:shield   # SHIELD proxy (port 8082)
+npm run proxy:news     # News proxy (port 3002)
 ```
 
 ## Architecture
 
-### Frontend (Vanilla JS + SVG)
-- `index.html` - Main SVG-based house visualization with embedded components
-- `js/app.js` - Application entry point, initializes all modules and polling intervals
-- `js/config.js` - Centralized configuration (proxy URLs, intervals, timeouts, retry settings)
-- `js/features/` - Feature modules (lights, motion, temperature, sonos, tapo, nest, effects, weather, sky)
-- `js/api/` - API client modules for external services (hue.js, sonos.js, tapo.js, hub.js)
-- `js/ui/` - UI utilities (draggable.js for drag-and-drop, thermometer.js)
-- `js/utils/` - Shared utilities (logger.js, helpers.js with IntervalManager, retryWithBackoff)
+### TypeScript with ES Modules
+The codebase uses TypeScript with ES module imports/exports. Path aliases are configured:
+- `@api/*` → `src/api/*`
+- `@core/*` → `src/core/*`
+- `@features/*` → `src/features/*`
+- `@ui/*` → `src/ui/*`
+- `@utils/*` → `src/utils/*`
+- `@config/*` → `src/config/*`
+- `@types/*` → `src/types/*`
 
-### Backend (Node.js Proxy Servers)
-- `proxies/` - HTTP proxy servers for device APIs that don't support CORS
-- `proxies/middleware.js` - Shared middleware (CORS, JSON parsing, health checks)
-- Each proxy handles device-specific protocols (SOAP/UPnP for Sonos, Tapo API, ADB for SHIELD)
+### Source Structure (`src/`)
+- `main.ts` - Entry point, bootstraps on DOMContentLoaded
+- `app.ts` - Main application (Hue sensors, lights, thermometers, voice)
+- `types/index.ts` - All TypeScript interfaces and types
+- `core/` - Infrastructure (events, state, poller, connection-monitor, initializer)
+- `api/` - API clients (hue, sonos, tapo, shield, hub)
+- `features/` - Feature modules (weather, sky, temperature, nest, moose, effects, etc.)
+- `ui/` - UI utilities (draggable, color-picker, layers)
+- `utils/` - Shared utilities (logger, helpers)
+- `config/` - Configuration (constants, mappings, schema, loader)
+- `proxies/` - Node.js proxy servers for device APIs without CORS
+- `scripts/` - CLI scripts for device discovery and control
 
-### Configuration Files
-- `config.js` - Hue Bridge IP/username and Weather API key (not committed)
-- `config.example.js` - Template for config.js
+### Key Modules
+- **AppState** (`core/state.ts`) - Centralized reactive state with `get<T>(key)` and `set(key, value)`
+- **AppEvents** (`core/events.ts`) - Event bus for module communication
+- **Poller** (`core/poller.ts`) - Manages polling intervals for sensors
+- **ConnectionMonitor** (`core/connection-monitor.ts`) - Health checks for all services
+- **Logger** (`utils/logger.ts`) - Use `Logger.info()`, `.warn()`, `.error()`, `.success()` instead of console.log
+
+### Configuration
+- `APP_CONFIG` in `config/constants.ts` - Proxy URLs, intervals, timeouts
+- `config.js` (root, not committed) - Hue Bridge IP/username, Weather API key
 - `.env` - Tapo credentials (TAPO_EMAIL, TAPO_PASSWORD)
-- `config/devices.json` - Auto-discovered device registry
 
 ## Key Patterns
 
-### Global Configuration
-`APP_CONFIG` in `js/config.js` centralizes all settings. Access via `APP_CONFIG.proxies.sonos`, `APP_CONFIG.intervals.temperatures`, etc.
-
-### Interval Management
-Use `IntervalManager.register(fn, delay)` for all polling. Intervals auto-cleanup on page unload.
-
-### Logging
-Use `Logger.info()`, `Logger.warn()`, `Logger.error()`, `Logger.success()` instead of console.log. Timestamps are included automatically.
-
-### Draggable UI Elements
-SVG elements are made draggable with `createDraggable(element, { storageKey: 'myPosition' })`. Positions persist to localStorage.
-
-### Module Pattern
-Feature modules expose themselves on `window` (e.g., `window.HomeMonitor`, `window.SonosUI`, `window.TapoAPI`) and auto-initialize on DOMContentLoaded.
+### Importing Modules
+```typescript
+import { HueAPI } from '@api/hue';
+import { Logger } from '@utils/logger';
+import { APP_CONFIG } from '@config/constants';
+import type { LightInfo, RoomName } from '@types';
+```
 
 ### Retry Logic
-API calls should use `retryWithBackoff(fn)` for resilience. Config controls attempts and backoff delays.
+```typescript
+import { retryWithBackoff } from '@utils/helpers';
+const data = await retryWithBackoff(() => fetchData());
+```
+
+### Interval Management
+```typescript
+import { IntervalManager } from '@utils/helpers';
+IntervalManager.register(() => pollSensors(), APP_CONFIG.intervals.lights);
+```
+
+### Draggable Elements
+```typescript
+import { createDraggable } from '@ui/draggable';
+createDraggable(element, { storageKey: 'myPosition' });
+```
 
 ## External Dependencies
 
-- **Philips Hue Bridge** - Direct HTTP API on local network (no proxy needed)
-- **Sonos Speakers** - SOAP/UPnP protocol via sonos-proxy
-- **TP-Link Tapo Plugs** - tp-link-tapo-connect library via tapo-proxy
+- **Philips Hue Bridge** - Direct HTTP API (no proxy needed)
+- **Sonos Speakers** - SOAP/UPnP via sonos-proxy
+- **TP-Link Tapo Plugs** - tp-link-tapo-connect via tapo-proxy
 - **NVIDIA SHIELD** - ADB over TCP via shield-proxy
-- **Google Nest Thermostat** - Google Smart Device Management API (OAuth2)
-- **WeatherAPI.com** - Weather data (API key in config.js)
-- **Sunrise-Sunset API** - Day/night sky transitions
+- **Google Nest Thermostat** - Smart Device Management API (OAuth2)
+- **WeatherAPI.com** - Weather data
+- **Sunrise-Sunset API** - Day/night transitions
 
 ## Environment Setup
 
@@ -81,12 +114,9 @@ API calls should use `retryWithBackoff(fn)` for resilience. Config controls atte
 
 ## Nest Thermostat Setup
 
-The Nest integration uses Google's Smart Device Management API with OAuth2.
-
-### Initial Setup
-1. Create a Google Cloud project and enable the Smart Device Management API
+1. Create a Google Cloud project and enable Smart Device Management API
 2. Create OAuth2 credentials (Web application type)
-3. Create `nest-config.json` with your credentials:
+3. Create `nest-config.json`:
    ```json
    {
      "CLIENT_ID": "your-client-id",
@@ -95,13 +125,9 @@ The Nest integration uses Google's Smart Device Management API with OAuth2.
      "REDIRECT_URI": "http://localhost:8080/auth/callback"
    }
    ```
-4. Run `node scripts/setup/nest-auth.cjs` to authorize and get tokens
+4. Run `npx tsx src/scripts/setup/nest-auth.ts` to authorize
 
 ### Refreshing Expired Tokens
-If you see "Token has been expired or revoked" error in the console:
 ```bash
-node scripts/setup/nest-auth.cjs
+npx tsx src/scripts/setup/nest-auth.ts
 ```
-This opens a browser for Google login, gets new tokens, and saves them to `nest-config.js` and `nest-config.json`.
-
-**Note:** Google refresh tokens can expire if unused for 6 months or if revoked in Google Account settings.

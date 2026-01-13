@@ -106,16 +106,20 @@ const server: Server = http.createServer(async (req: IncomingMessage, res: Serve
         }
 
         // Health check
-        if (req.url === '/health' && req.method === 'GET') {
+        if (req.url === '/health' && (req.method === 'GET' || req.method === 'HEAD')) {
             res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(
-                JSON.stringify({
-                    status: 'ok',
-                    service: 'shield-proxy',
-                    uptime: process.uptime(),
-                    timestamp: new Date().toISOString(),
-                })
-            );
+            if (req.method === 'HEAD') {
+                res.end();
+            } else {
+                res.end(
+                    JSON.stringify({
+                        status: 'ok',
+                        service: 'shield-proxy',
+                        uptime: process.uptime(),
+                        timestamp: new Date().toISOString(),
+                    })
+                );
+            }
             return;
         }
 

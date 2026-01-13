@@ -195,30 +195,38 @@ const server = http.createServer(async (req: IncomingMessage, res: ServerRespons
     const parsedUrl = url.parse(req.url || '', true);
     const path = parsedUrl.pathname || '';
 
-    // GET /health - Health check endpoint
-    if (req.method === 'GET' && path === '/health') {
+    // GET/HEAD /health - Health check endpoint
+    if ((req.method === 'GET' || req.method === 'HEAD') && path === '/health') {
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(
-            JSON.stringify({
-                status: 'ok',
-                service: 'sonos-proxy',
-                uptime: process.uptime(),
-                timestamp: new Date().toISOString(),
-            })
-        );
+        if (req.method === 'HEAD') {
+            res.end();
+        } else {
+            res.end(
+                JSON.stringify({
+                    status: 'ok',
+                    service: 'sonos-proxy',
+                    uptime: process.uptime(),
+                    timestamp: new Date().toISOString(),
+                })
+            );
+        }
         return;
     }
 
-    // GET /speakers - List all discovered speakers
-    if (req.method === 'GET' && path === '/speakers') {
+    // GET/HEAD /speakers - List all discovered speakers
+    if ((req.method === 'GET' || req.method === 'HEAD') && path === '/speakers') {
         res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(
-            JSON.stringify({
-                speakers: discoveredSpeakers,
-                lastDiscovery,
-                count: Object.keys(discoveredSpeakers).length,
-            })
-        );
+        if (req.method === 'HEAD') {
+            res.end();
+        } else {
+            res.end(
+                JSON.stringify({
+                    speakers: discoveredSpeakers,
+                    lastDiscovery,
+                    count: Object.keys(discoveredSpeakers).length,
+                })
+            );
+        }
         return;
     }
 
