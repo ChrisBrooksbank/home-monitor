@@ -6,7 +6,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   getPlugIP,
-  isAllowedOrigin,
   MANUAL_PLUGS,
   REDISCOVERY_INTERVAL,
   _setDiscoveredPlugs,
@@ -73,45 +72,6 @@ describe('getPlugIP', () => {
     expect(getPlugIP('plug-1')).toBe('192.168.68.50');
     expect(getPlugIP('plug-2')).toBe('192.168.68.51');
     expect(getPlugIP('plug-3')).toBe('192.168.68.52');
-  });
-});
-
-// ============================================
-// isAllowedOrigin Tests
-// ============================================
-
-describe('isAllowedOrigin', () => {
-  it('should return true for null origin (server-to-server)', () => {
-    expect(isAllowedOrigin(null as unknown as string | undefined)).toBe(true);
-  });
-
-  it('should return true for undefined origin', () => {
-    expect(isAllowedOrigin(undefined)).toBe(true);
-  });
-
-  it('should return true for default frontend origin', () => {
-    expect(isAllowedOrigin('http://localhost:5173')).toBe(true);
-  });
-
-  it('should return true for any localhost port', () => {
-    expect(isAllowedOrigin('http://localhost:3000')).toBe(true);
-    expect(isAllowedOrigin('http://localhost:8080')).toBe(true);
-    expect(isAllowedOrigin('http://localhost:1')).toBe(true);
-    expect(isAllowedOrigin('http://localhost:65535')).toBe(true);
-  });
-
-  it('should return false for non-localhost origins', () => {
-    expect(isAllowedOrigin('http://example.com')).toBe(false);
-    expect(isAllowedOrigin('https://evil-site.com')).toBe(false);
-    expect(isAllowedOrigin('http://192.168.1.1')).toBe(false);
-  });
-
-  it('should return false for https localhost', () => {
-    expect(isAllowedOrigin('https://localhost:5173')).toBe(false);
-  });
-
-  it('should return false for localhost without port', () => {
-    expect(isAllowedOrigin('http://localhost')).toBe(false);
   });
 });
 

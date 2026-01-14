@@ -1,15 +1,14 @@
 // News RSS Proxy - Fetches Google News RSS and returns JSON headlines
-import http from 'http';
+import Fastify, { type FastifyInstance } from 'fastify';
+import cors from '@fastify/cors';
 import https from 'https';
-import type { IncomingMessage, ServerResponse, Server } from 'http';
+import type { IncomingMessage } from 'http';
 import dotenv from 'dotenv';
 
 // Load environment variables
 dotenv.config();
 
 const PORT = 3002;
-const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
-const ALLOWED_ORIGINS: (string | RegExp)[] = [FRONTEND_ORIGIN, /^http:\/\/localhost:\d+$/];
 
 // Google News RSS for UK
 const RSS_URL = 'https://news.google.com/rss?hl=en-GB&gl=GB&ceid=GB:en';
@@ -158,119 +157,106 @@ async function getRandomHeadline(): Promise<Headline> {
 }
 
 // ========================================
-// HTTP SERVER
+// FASTIFY SERVER (only created when not testing)
 // ========================================
 
-function isAllowedOrigin(origin: string | undefined): boolean {
-    if (!origin) return true;
-    return ALLOWED_ORIGINS.some((allowed) =>
-        allowed instanceof RegExp ? allowed.test(origin) : allowed === origin
-    );
+let app: FastifyInstance | null = null;
+
+function createApp(): FastifyInstance {
+    const fastify = Fastify({ logger: false });
+
+    // Register CORS
+    fastify.register(cors, {
+        origin: [/^http:\/\/localhost:\d+$/],
+        methods: ['GET', 'HEAD', 'OPTIONS'],
+    });
+
+    // Health check
+    fastify.get('/health', async () => ({
+        status: 'ok',
+        service: 'news-proxy',
+        uptime: process.uptime(),
+        cachedHeadlines: cachedHeadlines.length,
+        lastFetch: lastFetchTime ? new Date(lastFetchTime).toISOString() : null,
+        timestamp: new Date().toISOString(),
+    }));
+
+    fastify.head('/health', async (_, reply) => {
+        reply.code(200).send();
+    });
+
+    // All cached headlines
+    fastify.get('/headlines', async () => {
+        const headlines = await getHeadlines();
+        return {
+            headlines,
+            count: headlines.length,
+            lastFetch: lastFetchTime ? new Date(lastFetchTime).toISOString() : null,
+        };
+    });
+
+    fastify.head('/headlines', async (_, reply) => {
+        reply.code(200).send();
+    });
+
+    // Single random headline
+    fastify.get('/random', async () => {
+        return getRandomHeadline();
+    });
+
+    fastify.head('/random', async (_, reply) => {
+        reply.code(200).send();
+    });
+
+    return fastify;
 }
 
-const server: Server = http.createServer(async (req: IncomingMessage, res: ServerResponse) => {
-    // CORS headers
-    const origin = req.headers.origin || FRONTEND_ORIGIN;
-    const allowedOrigin = isAllowedOrigin(origin) ? origin : FRONTEND_ORIGIN;
-    res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+// ========================================
+// START SERVER
+// ========================================
 
-    // Handle preflight
-    if (req.method === 'OPTIONS') {
-        res.writeHead(200);
-        res.end();
-        return;
-    }
-
-    const path = (req.url || '').split('?')[0];
-
-    // GET /health - Health check
-    if (req.method === 'GET' && path === '/health') {
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(
-            JSON.stringify({
-                status: 'ok',
-                service: 'news-proxy',
-                uptime: process.uptime(),
-                cachedHeadlines: cachedHeadlines.length,
-                lastFetch: lastFetchTime ? new Date(lastFetchTime).toISOString() : null,
-                timestamp: new Date().toISOString(),
-            })
-        );
-        return;
-    }
-
-    // GET /headlines - All cached headlines
-    if (req.method === 'GET' && path === '/headlines') {
-        try {
-            const headlines = await getHeadlines();
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(
-                JSON.stringify({
-                    headlines,
-                    count: headlines.length,
-                    lastFetch: lastFetchTime ? new Date(lastFetchTime).toISOString() : null,
-                })
-            );
-        } catch (error) {
-            res.writeHead(500, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: (error as Error).message }));
-        }
-        return;
-    }
-
-    // GET /random - Single random headline
-    if (req.method === 'GET' && path === '/random') {
-        try {
-            const headline = await getRandomHeadline();
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify(headline));
-        } catch (error) {
-            res.writeHead(500, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: (error as Error).message }));
-        }
-        return;
-    }
-
-    // 404 for unknown routes
-    res.writeHead(404, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify({ error: 'Not found' }));
-});
-
-// Start server
 async function startServer(): Promise<void> {
     console.log('Starting News Proxy...\n');
 
     // Initial fetch
     await refreshHeadlines();
 
-    server.listen(PORT, () => {
+    app = createApp();
+
+    try {
+        await app.listen({ port: PORT, host: '0.0.0.0' });
         console.log(`News Proxy running on http://localhost:${PORT}`);
         console.log(`\nEndpoints:`);
         console.log(`   GET  /health    - Health check`);
         console.log(`   GET  /headlines - All cached headlines`);
         console.log(`   GET  /random    - Single random headline`);
         console.log(`\nReady!`);
-    });
+    } catch (err) {
+        console.error('Failed to start server:', err);
+        process.exit(1);
+    }
 }
 
-startServer();
+// Only start server when run directly, not when imported for testing
+if (!process.env.VITEST) {
+    startServer();
+}
 
 // ========================================
 // EXPORTS FOR TESTING
 // ========================================
+
 export {
     parseRSS,
-    isAllowedOrigin,
     fetchRSS,
     getHeadlines,
     getRandomHeadline,
     refreshHeadlines,
-    // Export cache state for testing
     cachedHeadlines,
     lastFetchTime,
     CACHE_DURATION,
+    app,
+    createApp,
 };
 
 // Allow tests to reset cache state

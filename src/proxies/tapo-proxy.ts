@@ -1,7 +1,9 @@
 // Tapo Smart Plug Proxy Server
 // Allows web interface to control Tapo devices with auto-discovery
+import Fastify, { type FastifyInstance } from 'fastify';
+import cors from '@fastify/cors';
 import http from 'http';
-import type { IncomingMessage, ServerResponse, ClientRequest } from 'http';
+import type { ClientRequest, IncomingMessage } from 'http';
 import dotenv from 'dotenv';
 import { loginDeviceByIp } from 'tp-link-tapo-connect';
 
@@ -9,25 +11,15 @@ import { loginDeviceByIp } from 'tp-link-tapo-connect';
 dotenv.config();
 
 const PORT = 3001;
-// Allow any localhost port for development flexibility
-const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
-const ALLOWED_ORIGINS: (string | RegExp)[] = [FRONTEND_ORIGIN, /^http:\/\/localhost:\d+$/];
 const BASE_IP = process.env.TAPO_BASE_IP || '192.168.68';
-
-function isAllowedOrigin(origin: string | undefined): boolean {
-    if (!origin) return true;
-    return ALLOWED_ORIGINS.some((allowed) =>
-        allowed instanceof RegExp ? allowed.test(origin) : allowed === origin
-    );
-}
 const SCAN_START = parseInt(process.env.TAPO_SCAN_START || '50');
 const SCAN_END = parseInt(process.env.TAPO_SCAN_END || '90');
 
-// Load credentials from environment - REQUIRED
+// Load credentials from environment - REQUIRED (skip check in test mode)
 const TAPO_EMAIL = process.env.TAPO_EMAIL;
 const TAPO_PASSWORD = process.env.TAPO_PASSWORD;
 
-if (!TAPO_EMAIL || !TAPO_PASSWORD) {
+if (!process.env.VITEST && (!TAPO_EMAIL || !TAPO_PASSWORD)) {
     console.error('ERROR: TAPO_EMAIL and TAPO_PASSWORD environment variables are required');
     console.error('Please create a .env file with your Tapo credentials');
     console.error('See .env.example for template');
@@ -71,15 +63,12 @@ interface PlugNameRequest {
 // DYNAMIC STATE
 // ========================================
 
-// Dynamic plug storage (populated by discovery)
 let discoveredPlugs: PlugMap = {};
 let lastDiscovery: string | null = null;
 let isDiscovering = false;
 
-// Re-discovery interval (5 minutes)
 const REDISCOVERY_INTERVAL = 5 * 60 * 1000;
 
-// Manual plug overrides for devices that don't respond to probe correctly
 const MANUAL_PLUGS: PlugMap = {
     'office-plug-2': { ip: '192.168.68.64', nickname: 'office plug 2', model: 'P105' },
 };
@@ -88,9 +77,6 @@ const MANUAL_PLUGS: PlugMap = {
 // DISCOVERY FUNCTIONS
 // ========================================
 
-/**
- * Probe a single IP for Tapo API (no auth needed)
- */
 function probeTapo(ip: string, timeout = 3000): Promise<ProbeResult> {
     return new Promise((resolve) => {
         const body = JSON.stringify({ method: 'get_device_info' });
@@ -111,15 +97,10 @@ function probeTapo(ip: string, timeout = 3000): Promise<ProbeResult> {
                 let data = '';
                 res.on('data', (chunk: Buffer) => (data += chunk));
                 res.on('end', () => {
-                    if (data.includes('error_code')) {
-                        resolve({ ip, isTapo: true });
-                    } else {
-                        resolve({ ip, isTapo: false });
-                    }
+                    resolve({ ip, isTapo: data.includes('error_code') });
                 });
             }
         );
-
         req.on('error', () => resolve({ ip, isTapo: false }));
         req.on('timeout', () => {
             req.destroy();
@@ -130,15 +111,7 @@ function probeTapo(ip: string, timeout = 3000): Promise<ProbeResult> {
     });
 }
 
-/**
- * Scan network for Tapo plugs
- */
-async function scanForPlugs(
-    baseIp: string,
-    start: number,
-    end: number,
-    batchSize = 10
-): Promise<string[]> {
+async function scanForPlugs(baseIp: string, start: number, end: number, batchSize = 10): Promise<string[]> {
     console.log(`Scanning ${baseIp}.${start}-${end} for Tapo plugs...`);
     const results: ProbeResult[] = [];
 
@@ -154,9 +127,6 @@ async function scanForPlugs(
     return results.map((r) => r.ip);
 }
 
-/**
- * Get device info for a discovered plug
- */
 async function getPlugInfo(ip: string): Promise<PlugInfo> {
     try {
         const device = await loginDeviceByIp(TAPO_EMAIL!, TAPO_PASSWORD!, ip);
@@ -173,11 +143,7 @@ async function getPlugInfo(ip: string): Promise<PlugInfo> {
     }
 }
 
-/**
- * Discover all plugs and identify them
- */
 async function discoverAndIdentifyPlugs(): Promise<PlugMap> {
-    // Prevent overlapping discovery runs
     if (isDiscovering) {
         console.log('Discovery already in progress, skipping...');
         return discoveredPlugs;
@@ -186,12 +152,9 @@ async function discoverAndIdentifyPlugs(): Promise<PlugMap> {
 
     try {
         const startTime = Date.now();
-
-        // Step 1: Scan for Tapo devices
         const ips = await scanForPlugs(BASE_IP, SCAN_START, SCAN_END);
         console.log(`   Found ${ips.length} Tapo devices`);
 
-        // Step 2: Get info for each plug
         const plugs: PlugMap = {};
         for (const ip of ips) {
             const info = await getPlugInfo(ip);
@@ -207,7 +170,6 @@ async function discoverAndIdentifyPlugs(): Promise<PlugMap> {
             }
         }
 
-        // Merge manual plugs that weren't discovered
         for (const [key, plug] of Object.entries(MANUAL_PLUGS)) {
             if (!plugs[key]) {
                 plugs[key] = plug;
@@ -227,261 +189,160 @@ async function discoverAndIdentifyPlugs(): Promise<PlugMap> {
     }
 }
 
-/**
- * Get IP for a plug by name (searches discovered plugs)
- */
 function getPlugIP(plugName: string): string | null {
     const plug = discoveredPlugs[plugName];
     return plug ? plug.ip : null;
 }
 
-const server = http.createServer(async (req: IncomingMessage, res: ServerResponse) => {
-    // Enable CORS - allow any localhost port for dev flexibility
-    const origin = req.headers.origin || FRONTEND_ORIGIN;
-    const allowedOrigin = isAllowedOrigin(origin) ? origin : FRONTEND_ORIGIN;
-    res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
-    res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+// ========================================
+// FASTIFY SERVER (only created when not testing)
+// ========================================
 
-    // Handle preflight
-    if (req.method === 'OPTIONS') {
-        res.writeHead(200);
-        res.end();
-        return;
-    }
+let app: FastifyInstance | null = null;
 
-    // Parse URL
-    const urlObj = new URL(req.url || '', `http://localhost:${PORT}`);
-    const path = urlObj.pathname;
+function createApp(): FastifyInstance {
+    const fastify = Fastify({ logger: false });
 
-    // GET/HEAD /health - Health check endpoint
-    if ((req.method === 'GET' || req.method === 'HEAD') && path === '/health') {
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        if (req.method === 'HEAD') {
-            res.end();
+    // Register CORS
+    fastify.register(cors, {
+        origin: [/^http:\/\/localhost:\d+$/],
+        methods: ['GET', 'POST', 'HEAD', 'OPTIONS'],
+    });
+
+    // Health check
+    fastify.get('/health', async () => ({
+        status: 'ok',
+        service: 'tapo-proxy',
+        uptime: process.uptime(),
+        timestamp: new Date().toISOString(),
+    }));
+
+    fastify.head('/health', async (_, reply) => {
+        reply.code(200).send();
+    });
+
+    // List plugs
+    fastify.get('/plugs', async () => ({
+        plugs: discoveredPlugs,
+        lastDiscovery,
+        count: Object.keys(discoveredPlugs).length,
+    }));
+
+    fastify.head('/plugs', async (_, reply) => {
+        reply.code(200).send();
+    });
+
+    // Discover plugs
+    fastify.post('/discover', async () => {
+        console.log('Manual discovery triggered...');
+        const plugs = await discoverAndIdentifyPlugs();
+        return {
+            success: true,
+            plugs,
+            count: Object.keys(plugs).length,
+            discoveredAt: lastDiscovery,
+        };
+    });
+
+    // Get plug status
+    fastify.post<{ Body: PlugNameRequest }>('/status', async (request, reply) => {
+        const { plugName } = request.body;
+        const ip = getPlugIP(plugName);
+
+        if (!ip) {
+            reply.code(404);
+            return { error: 'Plug not found', available: Object.keys(discoveredPlugs) };
+        }
+
+        const device = await loginDeviceByIp(TAPO_EMAIL!, TAPO_PASSWORD!, ip);
+        const info = await device.getDeviceInfo();
+
+        return {
+            success: true,
+            plugName,
+            ip,
+            state: info.device_on ? 'on' : 'off',
+            model: info.model,
+            nickname: info.nickname,
+            rssi: info.rssi,
+            onTime: info.on_time,
+        };
+    });
+
+    // Turn plug on
+    fastify.post<{ Body: PlugNameRequest }>('/on', async (request, reply) => {
+        const { plugName } = request.body;
+        const ip = getPlugIP(plugName);
+
+        if (!ip) {
+            reply.code(404);
+            return { error: 'Plug not found', available: Object.keys(discoveredPlugs) };
+        }
+
+        console.log(`Turning ON ${plugName} (${ip})`);
+        const device = await loginDeviceByIp(TAPO_EMAIL!, TAPO_PASSWORD!, ip);
+        await device.turnOn();
+
+        return { success: true, state: 'on' };
+    });
+
+    // Turn plug off
+    fastify.post<{ Body: PlugNameRequest }>('/off', async (request, reply) => {
+        const { plugName } = request.body;
+        const ip = getPlugIP(plugName);
+
+        if (!ip) {
+            reply.code(404);
+            return { error: 'Plug not found', available: Object.keys(discoveredPlugs) };
+        }
+
+        console.log(`Turning OFF ${plugName} (${ip})`);
+        const device = await loginDeviceByIp(TAPO_EMAIL!, TAPO_PASSWORD!, ip);
+        await device.turnOff();
+
+        return { success: true, state: 'off' };
+    });
+
+    // Toggle plug
+    fastify.post<{ Body: PlugNameRequest }>('/toggle', async (request, reply) => {
+        const { plugName } = request.body;
+        const ip = getPlugIP(plugName);
+
+        if (!ip) {
+            reply.code(404);
+            return { error: 'Plug not found', available: Object.keys(discoveredPlugs) };
+        }
+
+        console.log(`Toggling ${plugName} (${ip})`);
+        const device = await loginDeviceByIp(TAPO_EMAIL!, TAPO_PASSWORD!, ip);
+        const info = await device.getDeviceInfo();
+
+        if (info.device_on) {
+            await device.turnOff();
+            return { success: true, state: 'off' };
         } else {
-            res.end(
-                JSON.stringify({
-                    status: 'ok',
-                    service: 'tapo-proxy',
-                    uptime: process.uptime(),
-                    timestamp: new Date().toISOString(),
-                })
-            );
+            await device.turnOn();
+            return { success: true, state: 'on' };
         }
-        return;
-    }
+    });
 
-    // GET/HEAD /plugs - List all discovered plugs
-    if ((req.method === 'GET' || req.method === 'HEAD') && path === '/plugs') {
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        if (req.method === 'HEAD') {
-            res.end();
-        } else {
-            res.end(
-                JSON.stringify({
-                    plugs: discoveredPlugs,
-                    lastDiscovery,
-                    count: Object.keys(discoveredPlugs).length,
-                })
-            );
-        }
-        return;
-    }
+    return fastify;
+}
 
-    // POST /discover - Trigger plug discovery
-    if (req.method === 'POST' && path === '/discover') {
-        try {
-            console.log('Manual discovery triggered...');
-            const plugs = await discoverAndIdentifyPlugs();
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(
-                JSON.stringify({
-                    success: true,
-                    plugs,
-                    count: Object.keys(plugs).length,
-                    discoveredAt: lastDiscovery,
-                })
-            );
-        } catch (error) {
-            console.error('Discovery error:', error);
-            res.writeHead(500, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: (error as Error).message }));
-        }
-        return;
-    }
+// ========================================
+// START SERVER
+// ========================================
 
-    // POST /status - Get plug status
-    if (req.method === 'POST' && path === '/status') {
-        let body = '';
-        req.on('data', (chunk: Buffer) => (body += chunk.toString()));
-        req.on('end', async () => {
-            try {
-                const { plugName } = JSON.parse(body) as PlugNameRequest;
-                const ip = getPlugIP(plugName);
-
-                if (!ip) {
-                    res.writeHead(404, { 'Content-Type': 'application/json' });
-                    res.end(
-                        JSON.stringify({
-                            error: 'Plug not found',
-                            available: Object.keys(discoveredPlugs),
-                        })
-                    );
-                    return;
-                }
-
-                const device = await loginDeviceByIp(TAPO_EMAIL!, TAPO_PASSWORD!, ip);
-                const info = await device.getDeviceInfo();
-
-                res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(
-                    JSON.stringify({
-                        success: true,
-                        plugName: plugName,
-                        ip: ip,
-                        state: info.device_on ? 'on' : 'off',
-                        model: info.model,
-                        nickname: info.nickname,
-                        rssi: info.rssi,
-                        onTime: info.on_time,
-                    })
-                );
-            } catch (error) {
-                console.error('Status error:', error);
-                res.writeHead(500, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ error: (error as Error).message }));
-            }
-        });
-        return;
-    }
-
-    // POST /on - Turn plug on
-    if (req.method === 'POST' && path === '/on') {
-        let body = '';
-        req.on('data', (chunk: Buffer) => (body += chunk.toString()));
-        req.on('end', async () => {
-            try {
-                const { plugName } = JSON.parse(body) as PlugNameRequest;
-                const ip = getPlugIP(plugName);
-
-                if (!ip) {
-                    res.writeHead(404, { 'Content-Type': 'application/json' });
-                    res.end(
-                        JSON.stringify({
-                            error: 'Plug not found',
-                            available: Object.keys(discoveredPlugs),
-                        })
-                    );
-                    return;
-                }
-
-                console.log(`Turning ON ${plugName} (${ip})`);
-                const device = await loginDeviceByIp(TAPO_EMAIL!, TAPO_PASSWORD!, ip);
-                await device.turnOn();
-
-                res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ success: true, state: 'on' }));
-            } catch (error) {
-                console.error('Turn on error:', error);
-                res.writeHead(500, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ error: (error as Error).message }));
-            }
-        });
-        return;
-    }
-
-    // POST /off - Turn plug off
-    if (req.method === 'POST' && path === '/off') {
-        let body = '';
-        req.on('data', (chunk: Buffer) => (body += chunk.toString()));
-        req.on('end', async () => {
-            try {
-                const { plugName } = JSON.parse(body) as PlugNameRequest;
-                const ip = getPlugIP(plugName);
-
-                if (!ip) {
-                    res.writeHead(404, { 'Content-Type': 'application/json' });
-                    res.end(
-                        JSON.stringify({
-                            error: 'Plug not found',
-                            available: Object.keys(discoveredPlugs),
-                        })
-                    );
-                    return;
-                }
-
-                console.log(`Turning OFF ${plugName} (${ip})`);
-                const device = await loginDeviceByIp(TAPO_EMAIL!, TAPO_PASSWORD!, ip);
-                await device.turnOff();
-
-                res.writeHead(200, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ success: true, state: 'off' }));
-            } catch (error) {
-                console.error('Turn off error:', error);
-                res.writeHead(500, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ error: (error as Error).message }));
-            }
-        });
-        return;
-    }
-
-    // POST /toggle - Toggle plug state
-    if (req.method === 'POST' && path === '/toggle') {
-        let body = '';
-        req.on('data', (chunk: Buffer) => (body += chunk.toString()));
-        req.on('end', async () => {
-            try {
-                const { plugName } = JSON.parse(body) as PlugNameRequest;
-                const ip = getPlugIP(plugName);
-
-                if (!ip) {
-                    res.writeHead(404, { 'Content-Type': 'application/json' });
-                    res.end(
-                        JSON.stringify({
-                            error: 'Plug not found',
-                            available: Object.keys(discoveredPlugs),
-                        })
-                    );
-                    return;
-                }
-
-                console.log(`Toggling ${plugName} (${ip})`);
-                const device = await loginDeviceByIp(TAPO_EMAIL!, TAPO_PASSWORD!, ip);
-                const info = await device.getDeviceInfo();
-                const currentState = info.device_on;
-
-                if (currentState) {
-                    await device.turnOff();
-                    res.writeHead(200, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ success: true, state: 'off' }));
-                } else {
-                    await device.turnOn();
-                    res.writeHead(200, { 'Content-Type': 'application/json' });
-                    res.end(JSON.stringify({ success: true, state: 'on' }));
-                }
-            } catch (error) {
-                console.error('Toggle error:', error);
-                res.writeHead(500, { 'Content-Type': 'application/json' });
-                res.end(JSON.stringify({ error: (error as Error).message }));
-            }
-        });
-        return;
-    }
-
-    // 404 for unknown routes
-    res.writeHead(404, { 'Content-Type': 'text/plain' });
-    res.end('Not found');
-});
-
-// Start server with auto-discovery
 async function startServer(): Promise<void> {
     console.log('Tapo Smart Plug Proxy starting...\n');
 
-    // Start server FIRST so health checks work immediately
-    server.listen(PORT, () => {
+    app = createApp();
+
+    try {
+        await app.listen({ port: PORT, host: '0.0.0.0' });
         console.log(`Tapo Proxy running on http://localhost:${PORT}`);
         console.log(`\nEndpoints:`);
+        console.log(`   GET  /health   - Health check`);
         console.log(`   GET  /plugs    - List discovered plugs`);
         console.log(`   POST /discover - Re-scan network for plugs`);
         console.log(`   POST /status   - Get plug status`);
@@ -489,9 +350,11 @@ async function startServer(): Promise<void> {
         console.log(`   POST /off      - Turn plug off`);
         console.log(`   POST /toggle   - Toggle plug state`);
         console.log(`\nRunning plug discovery in background...`);
-    });
+    } catch (err) {
+        console.error('Failed to start server:', err);
+        process.exit(1);
+    }
 
-    // Run discovery AFTER server starts (so health checks work during discovery)
     try {
         await discoverAndIdentifyPlugs();
         console.log(`\nReady! Open index.html in your browser.`);
@@ -500,7 +363,6 @@ async function startServer(): Promise<void> {
         console.log('   Use POST /discover to retry\n');
     }
 
-    // Set up periodic re-discovery to handle IP address changes
     setInterval(async () => {
         console.log('Running periodic plug discovery...');
         try {
@@ -512,24 +374,28 @@ async function startServer(): Promise<void> {
     console.log(`Periodic re-discovery scheduled every ${REDISCOVERY_INTERVAL / 60000} minutes`);
 }
 
-startServer();
+// Only start server when run directly, not when imported for testing
+if (!process.env.VITEST) {
+    startServer();
+}
 
 // ========================================
 // EXPORTS FOR TESTING
 // ========================================
+
 export {
     probeTapo,
     scanForPlugs,
     getPlugInfo,
     discoverAndIdentifyPlugs,
     getPlugIP,
-    isAllowedOrigin,
     discoveredPlugs,
     MANUAL_PLUGS,
     REDISCOVERY_INTERVAL,
+    app,
+    createApp,
 };
 
-// Test helpers
 export function _setDiscoveredPlugs(plugs: PlugMap): void {
     Object.keys(discoveredPlugs).forEach((k) => delete discoveredPlugs[k]);
     Object.assign(discoveredPlugs, plugs);
@@ -539,5 +405,4 @@ export function _resetDiscoveredPlugs(): void {
     Object.keys(discoveredPlugs).forEach((k) => delete discoveredPlugs[k]);
 }
 
-// Export types
 export type { TapoPlug, PlugMap, ProbeResult, PlugInfo, PlugNameRequest };
