@@ -13,3 +13,11 @@ export {
   throttle,
   IntervalManager,
 } from './helpers';
+export {
+  ColorUtils,
+  getTemperatureColor,
+  hsvToHex,
+  xyToHex,
+  hueStateToColor,
+  darkenColor,
+} from './color-utils';
