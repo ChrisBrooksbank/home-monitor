@@ -171,7 +171,7 @@ function createApp(): FastifyInstance {
         methods: ['GET', 'HEAD', 'OPTIONS'],
     });
 
-    // Health check
+    // Health check (Fastify auto-creates HEAD for GET routes)
     fastify.get('/health', async () => ({
         status: 'ok',
         service: 'news-proxy',
@@ -180,10 +180,6 @@ function createApp(): FastifyInstance {
         lastFetch: lastFetchTime ? new Date(lastFetchTime).toISOString() : null,
         timestamp: new Date().toISOString(),
     }));
-
-    fastify.head('/health', async (_, reply) => {
-        reply.code(200).send();
-    });
 
     // All cached headlines
     fastify.get('/headlines', async () => {
@@ -195,17 +191,9 @@ function createApp(): FastifyInstance {
         };
     });
 
-    fastify.head('/headlines', async (_, reply) => {
-        reply.code(200).send();
-    });
-
     // Single random headline
     fastify.get('/random', async () => {
         return getRandomHeadline();
-    });
-
-    fastify.head('/random', async (_, reply) => {
-        reply.code(200).send();
     });
 
     return fastify;

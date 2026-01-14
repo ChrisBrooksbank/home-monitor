@@ -209,7 +209,7 @@ function createApp(): FastifyInstance {
         methods: ['GET', 'POST', 'HEAD', 'OPTIONS'],
     });
 
-    // Health check
+    // Health check (Fastify auto-creates HEAD for GET routes)
     fastify.get('/health', async () => ({
         status: 'ok',
         service: 'tapo-proxy',
@@ -217,9 +217,6 @@ function createApp(): FastifyInstance {
         timestamp: new Date().toISOString(),
     }));
 
-    fastify.head('/health', async (_, reply) => {
-        reply.code(200).send();
-    });
 
     // List plugs
     fastify.get('/plugs', async () => ({
@@ -228,9 +225,6 @@ function createApp(): FastifyInstance {
         count: Object.keys(discoveredPlugs).length,
     }));
 
-    fastify.head('/plugs', async (_, reply) => {
-        reply.code(200).send();
-    });
 
     // Discover plugs
     fastify.post('/discover', async () => {

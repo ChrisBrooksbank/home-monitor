@@ -189,7 +189,7 @@ function createApp(): FastifyInstance {
         methods: ['GET', 'POST', 'HEAD', 'OPTIONS'],
     });
 
-    // Health check
+    // Health check (Fastify auto-creates HEAD for GET routes)
     fastify.get('/health', async () => ({
         status: 'ok',
         service: 'sonos-proxy',
@@ -197,9 +197,6 @@ function createApp(): FastifyInstance {
         timestamp: new Date().toISOString(),
     }));
 
-    fastify.head('/health', async (_, reply) => {
-        reply.code(200).send();
-    });
 
     // List speakers
     fastify.get('/speakers', async () => ({
@@ -208,9 +205,6 @@ function createApp(): FastifyInstance {
         count: Object.keys(discoveredSpeakers).length,
     }));
 
-    fastify.head('/speakers', async (_, reply) => {
-        reply.code(200).send();
-    });
 
     // Discover speakers
     fastify.post('/discover', async () => {

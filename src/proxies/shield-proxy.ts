@@ -48,17 +48,13 @@ function createApp(): FastifyInstance {
         methods: ['GET', 'POST', 'HEAD', 'OPTIONS'],
     });
 
-    // Health check
+    // Health check (Fastify auto-creates HEAD for GET routes)
     fastify.get('/health', async () => ({
         status: 'ok',
         service: 'shield-proxy',
         uptime: process.uptime(),
         timestamp: new Date().toISOString(),
     }));
-
-    fastify.head('/health', async (_, reply) => {
-        reply.code(200).send();
-    });
 
     // Device info
     fastify.get('/info', async () => {
