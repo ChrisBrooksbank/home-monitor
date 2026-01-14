@@ -5,7 +5,7 @@
  * This file exports their utilities and types for potential reuse.
  */
 
-// Middleware utilities
+// Middleware utilities (legacy - kept for compatibility)
 export {
     parseJsonBody,
     sendJson,
@@ -24,11 +24,11 @@ export {
     scanForSpeakers,
     discoverSpeakers,
     getSpeakerIP,
-    isAllowedOrigin as isSonosAllowedOrigin,
     discoveredSpeakers,
     lastDiscovery as sonosLastDiscovery,
     _setDiscoveredSpeakers,
     _resetDiscoveredSpeakers,
+    app as sonosApp,
 } from './sonos-proxy.js';
 
 export type { SonosSpeaker, SpeakerMap, ProbeResult as SonosProbeResult } from './sonos-proxy.js';
@@ -40,12 +40,12 @@ export {
     getPlugInfo,
     discoverAndIdentifyPlugs,
     getPlugIP,
-    isAllowedOrigin as isTapoAllowedOrigin,
     discoveredPlugs,
     MANUAL_PLUGS,
     REDISCOVERY_INTERVAL,
     _setDiscoveredPlugs,
     _resetDiscoveredPlugs,
+    app as tapoApp,
 } from './tapo-proxy.js';
 
 export type {
@@ -57,7 +57,7 @@ export type {
 } from './tapo-proxy.js';
 
 // Shield proxy exports
-export { isAllowedOrigin as isShieldAllowedOrigin } from './shield-proxy.js';
+export { app as shieldApp } from './shield-proxy.js';
 
 export type {
     LaunchResult,
@@ -70,7 +70,6 @@ export type { ShieldControl } from './shield-proxy.js';
 // News proxy exports
 export {
     parseRSS,
-    isAllowedOrigin as isNewsAllowedOrigin,
     fetchRSS,
     getHeadlines,
     getRandomHeadline,
@@ -80,6 +79,7 @@ export {
     CACHE_DURATION,
     _resetCache,
     _setCache,
+    app as newsApp,
 } from './news-proxy.js';
 
 export type { Headline } from './news-proxy.js';

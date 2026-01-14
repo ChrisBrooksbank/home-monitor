@@ -1,7 +1,9 @@
 // Sonos CORS Proxy with Auto-Discovery
+// Allows web interface to control Sonos speakers
+import Fastify, { type FastifyInstance } from 'fastify';
+import cors from '@fastify/cors';
 import http from 'http';
-import type { IncomingMessage, ServerResponse, ClientRequest } from 'http';
-import url from 'url';
+import type { IncomingMessage, ClientRequest } from 'http';
 import dotenv from 'dotenv';
 
 // Load environment variables
@@ -9,9 +11,6 @@ dotenv.config();
 
 const PORT = 3000;
 const SONOS_PORT = 1400;
-// Allow any localhost port for development flexibility
-const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || 'http://localhost:5173';
-const ALLOWED_ORIGINS: (string | RegExp)[] = [FRONTEND_ORIGIN, /^http:\/\/localhost:\d+$/];
 const BASE_IP = process.env.SONOS_BASE_IP || '192.168.68';
 const SCAN_START = parseInt(process.env.SONOS_SCAN_START || '50');
 const SCAN_END = parseInt(process.env.SONOS_SCAN_END || '90');
@@ -37,11 +36,17 @@ interface ProbeResult {
     model?: string;
 }
 
+interface SonosProxyRequest {
+    Headers: {
+        'x-sonos-ip'?: string;
+        soapaction?: string;
+    };
+}
+
 // ========================================
 // DYNAMIC STATE
 // ========================================
 
-// Dynamic speaker storage (populated by discovery)
 let discoveredSpeakers: SpeakerMap = {};
 let lastDiscovery: string | null = null;
 
@@ -169,112 +174,66 @@ function getSpeakerIP(roomName: string): string | null {
     return speaker ? speaker.ip : null;
 }
 
-function isAllowedOrigin(origin: string | undefined): boolean {
-    if (!origin) return true; // Allow requests with no origin (e.g., curl)
-    return ALLOWED_ORIGINS.some((allowed) =>
-        allowed instanceof RegExp ? allowed.test(origin) : allowed === origin
-    );
-}
+// ========================================
+// FASTIFY SERVER (only created when not testing)
+// ========================================
 
-const server = http.createServer(async (req: IncomingMessage, res: ServerResponse) => {
-    // Enable CORS - allow any localhost port for dev flexibility
-    const origin = req.headers.origin || FRONTEND_ORIGIN;
-    const allowedOrigin = isAllowedOrigin(origin) ? origin : FRONTEND_ORIGIN;
-    res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
-    res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, SOAPAction, X-Sonos-IP');
+let app: FastifyInstance | null = null;
 
-    // Handle preflight
-    if (req.method === 'OPTIONS') {
-        res.writeHead(200);
-        res.end();
-        return;
-    }
+function createApp(): FastifyInstance {
+    const fastify = Fastify({ logger: false });
 
-    // Parse request URL
-    const parsedUrl = url.parse(req.url || '', true);
-    const path = parsedUrl.pathname || '';
+    // Register CORS
+    fastify.register(cors, {
+        origin: [/^http:\/\/localhost:\d+$/],
+        methods: ['GET', 'POST', 'HEAD', 'OPTIONS'],
+    });
 
-    // GET/HEAD /health - Health check endpoint
-    if ((req.method === 'GET' || req.method === 'HEAD') && path === '/health') {
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        if (req.method === 'HEAD') {
-            res.end();
-        } else {
-            res.end(
-                JSON.stringify({
-                    status: 'ok',
-                    service: 'sonos-proxy',
-                    uptime: process.uptime(),
-                    timestamp: new Date().toISOString(),
-                })
-            );
+    // Health check (Fastify auto-creates HEAD for GET routes)
+    fastify.get('/health', async () => ({
+        status: 'ok',
+        service: 'sonos-proxy',
+        uptime: process.uptime(),
+        timestamp: new Date().toISOString(),
+    }));
+
+
+    // List speakers
+    fastify.get('/speakers', async () => ({
+        speakers: discoveredSpeakers,
+        lastDiscovery,
+        count: Object.keys(discoveredSpeakers).length,
+    }));
+
+
+    // Discover speakers
+    fastify.post('/discover', async () => {
+        console.log('Manual discovery triggered...');
+        const speakers = await discoverSpeakers();
+        return {
+            success: true,
+            speakers,
+            count: Object.keys(speakers).length,
+            discoveredAt: lastDiscovery,
+        };
+    });
+
+    // Proxy SOAP requests to Sonos speakers
+    fastify.post<{ Headers: SonosProxyRequest['Headers'] }>('/*', async (request, reply) => {
+        const targetIP = request.headers['x-sonos-ip'];
+
+        if (!targetIP) {
+            reply.code(400);
+            return { error: 'Missing X-Sonos-IP header' };
         }
-        return;
-    }
 
-    // GET/HEAD /speakers - List all discovered speakers
-    if ((req.method === 'GET' || req.method === 'HEAD') && path === '/speakers') {
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        if (req.method === 'HEAD') {
-            res.end();
-        } else {
-            res.end(
-                JSON.stringify({
-                    speakers: discoveredSpeakers,
-                    lastDiscovery,
-                    count: Object.keys(discoveredSpeakers).length,
-                })
-            );
-        }
-        return;
-    }
+        const path = request.url;
+        const soapAction = request.headers.soapaction;
+        const body = request.body as string;
 
-    // POST /discover - Trigger speaker discovery
-    if (req.method === 'POST' && path === '/discover') {
-        try {
-            console.log('Manual discovery triggered...');
-            const speakers = await discoverSpeakers();
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(
-                JSON.stringify({
-                    success: true,
-                    speakers,
-                    count: Object.keys(speakers).length,
-                    discoveredAt: lastDiscovery,
-                })
-            );
-        } catch (error) {
-            console.error('Discovery error:', error);
-            res.writeHead(500, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: (error as Error).message }));
-        }
-        return;
-    }
+        console.log(`POST ${path} -> ${targetIP}`);
 
-    // Get target Sonos IP from custom header
-    const targetIP = req.headers['x-sonos-ip'] as string | undefined;
-
-    if (!targetIP) {
-        res.writeHead(400, { 'Content-Type': 'text/plain' });
-        res.end('Missing X-Sonos-IP header');
-        return;
-    }
-
-    console.log(`${req.method} ${path} -> ${targetIP}`);
-
-    // Proxy POST requests to Sonos
-    if (req.method === 'POST') {
-        let body = '';
-
-        req.on('data', (chunk: Buffer) => {
-            body += chunk.toString();
-        });
-
-        req.on('end', () => {
-            const soapAction =
-                (req.headers.soapaction as string) || (req.headers['soapaction'] as string);
-
+        return new Promise((resolve) => {
             const options = {
                 hostname: targetIP,
                 port: SONOS_PORT,
@@ -295,30 +254,32 @@ const server = http.createServer(async (req: IncomingMessage, res: ServerRespons
                 });
 
                 proxyRes.on('end', () => {
-                    res.writeHead(proxyRes.statusCode || 500, {
-                        'Content-Type': 'text/xml',
-                        'Access-Control-Allow-Origin': '*',
-                    });
-                    res.end(responseData);
+                    reply
+                        .code(proxyRes.statusCode || 500)
+                        .header('Content-Type', 'text/xml')
+                        .send(responseData);
+                    resolve(undefined);
                 });
             });
 
             proxyReq.on('error', (error: Error) => {
                 console.error('Proxy error:', error);
-                res.writeHead(500, { 'Content-Type': 'text/plain' });
-                res.end(`Proxy error: ${error.message}`);
+                reply.code(500).send({ error: `Proxy error: ${error.message}` });
+                resolve(undefined);
             });
 
             proxyReq.write(body);
             proxyReq.end();
         });
-    } else {
-        res.writeHead(404);
-        res.end('Not found');
-    }
-});
+    });
 
-// Start server with auto-discovery
+    return fastify;
+}
+
+// ========================================
+// START SERVER
+// ========================================
+
 async function startServer(): Promise<void> {
     console.log('Sonos Proxy starting...\n');
 
@@ -330,29 +291,41 @@ async function startServer(): Promise<void> {
         console.log('   Proxy will start anyway - use POST /discover to retry\n');
     }
 
-    server.listen(PORT, () => {
+    app = createApp();
+
+    try {
+        await app.listen({ port: PORT, host: '0.0.0.0' });
         console.log(`Sonos Proxy running on http://localhost:${PORT}`);
         console.log(`\nEndpoints:`);
+        console.log(`   GET  /health   - Health check`);
         console.log(`   GET  /speakers - List discovered speakers`);
         console.log(`   POST /discover - Re-scan network for speakers`);
         console.log(`   POST /*        - Proxy SOAP requests to Sonos`);
         console.log(`\nReady! Open index.html in your browser.`);
-    });
+    } catch (err) {
+        console.error('Failed to start server:', err);
+        process.exit(1);
+    }
 }
 
-startServer();
+// Only start server when run directly, not when imported for testing
+if (!process.env.VITEST) {
+    startServer();
+}
 
 // ========================================
 // EXPORTS FOR TESTING
 // ========================================
+
 export {
     probeSonos,
     scanForSpeakers,
     discoverSpeakers,
     getSpeakerIP,
-    isAllowedOrigin,
     discoveredSpeakers,
     lastDiscovery,
+    app,
+    createApp,
 };
 
 // Test helpers

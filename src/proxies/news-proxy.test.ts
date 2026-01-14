@@ -6,7 +6,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   parseRSS,
-  isAllowedOrigin,
   _resetCache,
   _setCache,
   CACHE_DURATION,
@@ -230,48 +229,6 @@ describe('parseRSS', () => {
     const result = parseRSS(xml);
 
     expect(result[0].source).toBe('BBC News');
-  });
-});
-
-// ============================================
-// isAllowedOrigin Tests
-// ============================================
-
-describe('isAllowedOrigin', () => {
-  it('should return true for null origin (server-to-server requests)', () => {
-    expect(isAllowedOrigin(null as unknown as string | undefined)).toBe(true);
-  });
-
-  it('should return true for undefined origin', () => {
-    expect(isAllowedOrigin(undefined)).toBe(true);
-  });
-
-  it('should return true for exact match with default frontend origin', () => {
-    expect(isAllowedOrigin('http://localhost:5173')).toBe(true);
-  });
-
-  it('should return true for any localhost port (regex match)', () => {
-    expect(isAllowedOrigin('http://localhost:3000')).toBe(true);
-    expect(isAllowedOrigin('http://localhost:8080')).toBe(true);
-    expect(isAllowedOrigin('http://localhost:1')).toBe(true);
-    expect(isAllowedOrigin('http://localhost:65535')).toBe(true);
-  });
-
-  it('should return false for non-localhost origins', () => {
-    expect(isAllowedOrigin('http://example.com')).toBe(false);
-    expect(isAllowedOrigin('https://malicious-site.com')).toBe(false);
-  });
-
-  it('should return false for localhost without port', () => {
-    expect(isAllowedOrigin('http://localhost')).toBe(false);
-  });
-
-  it('should return false for https localhost', () => {
-    expect(isAllowedOrigin('https://localhost:5173')).toBe(false);
-  });
-
-  it('should return false for localhost with path', () => {
-    expect(isAllowedOrigin('http://localhost:5173/some/path')).toBe(false);
   });
 });
 
