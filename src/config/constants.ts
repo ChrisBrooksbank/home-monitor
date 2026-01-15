@@ -44,6 +44,7 @@ export const APP_CONFIG: AppConfig = {
     sonos: 'http://localhost:3000',
     tapo: 'http://localhost:3001',
     shield: 'http://localhost:8082',
+    nest: 'http://localhost:3003',
   },
 
   // Update Intervals (in milliseconds)

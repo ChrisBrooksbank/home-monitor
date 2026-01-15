@@ -449,7 +449,7 @@ function initNestIntegration(
   const config = getNestConfig();
 
   if (!config.accessToken) {
-    Logger.info('Nest not configured. Run: node scripts/setup/nest-auth.cjs');
+    Logger.warn('Nest not configured. Run: npx tsx src/scripts/setup/nest-auth.ts');
     return;
   }
 
