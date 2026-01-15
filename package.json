@@ -17,8 +17,8 @@
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
-    "lint": "eslint . --ext .js,.ts",
-    "lint:fix": "eslint . --ext .js,.ts --fix",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "format": "prettier --write \"**/*.{js,ts,json,md}\"",
     "format:check": "prettier --check \"**/*.{js,ts,json,md}\""
   },
@@ -30,6 +30,7 @@
     "tp-link-tapo-connect": "^2.0.8"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.2",
     "@types/node": "^25.0.8",
     "@typescript-eslint/eslint-plugin": "^8.53.0",
     "@typescript-eslint/parser": "^8.53.0",
@@ -40,6 +41,7 @@
     "jsdom": "^27.4.0",
     "prettier": "^3.7.4",
     "typescript": "^5.9.3",
+    "typescript-eslint": "^8.53.0",
     "vite": "^5.0.0",
     "vitest": "^4.0.16"
   },

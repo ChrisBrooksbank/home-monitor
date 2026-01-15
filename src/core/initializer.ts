@@ -101,8 +101,7 @@ async function initFeature(name: string): Promise<boolean> {
     await feature.init();
     feature.initialized = true;
     initOrder.push(name);
-    Logger.success?.(`Initializer: Feature '${name}' initialized`) ??
-      Logger.info(`Initializer: Feature '${name}' initialized`);
+    Logger.success(`Initializer: Feature '${name}' initialized`);
     return true;
   } catch (error) {
     Logger.error(`Initializer: Feature '${name}' failed:`, error);
