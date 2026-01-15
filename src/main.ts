@@ -6,6 +6,13 @@
 // Import core registry first
 import './core/registry';
 
+// Bridge external configs (from config.js) to Registry BEFORE feature modules
+// config.js and nest-config.js are loaded via script tags before this module
+import { bridgeExternalConfig } from './config/config-bridge';
+if (typeof window !== 'undefined') {
+  bridgeExternalConfig();
+}
+
 // Import config - registers APP_CONFIG with Registry
 import './config/constants';
 
@@ -35,15 +42,6 @@ import './features/news-plane';
 // Import and initialize the app module
 // The HomeMonitor module auto-initializes via AppInitializer.onReady()
 import { HomeMonitor } from './app';
-
-// Bridge external configs (from config.js) to Registry at runtime
-import { bridgeExternalConfig } from './config/config-bridge';
-
-// Initialize config bridge for external config.js values
-if (typeof window !== 'undefined') {
-  // Bridge config.js values (HUE_CONFIG, WEATHER_CONFIG, NEST_CONFIG)
-  bridgeExternalConfig();
-}
 
 // Re-export for external access if needed
 export { HomeMonitor };
