@@ -294,9 +294,11 @@ function updateNestVisualDisplay(
  * Update Nest display with fresh data
  */
 async function updateNestDisplay(): Promise<void> {
+  Logger.info('Fetching Nest devices...');
   const devices = await fetchNestDevices();
 
   if (!devices || devices.length === 0) {
+    Logger.warn('No Nest devices returned');
     return;
   }
 
