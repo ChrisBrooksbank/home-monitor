@@ -3,15 +3,10 @@
  * Handles Google Nest thermostat communication and display
  */
 
-import { Logger } from '../utils/logger';
+import { Logger, getAppConfig } from '../utils';
 import { Registry } from '../core/registry';
 import { getNestConfigWithFallback } from '../config/config-bridge';
-import type { NestThermostat, AppConfig } from '../types';
-
-// Helper to get APP_CONFIG from Registry
-function getAppConfig() {
-  return Registry.getOptional('APP_CONFIG') as AppConfig | undefined;
-}
+import type { NestThermostat } from '../types';
 
 // Internal Nest configuration interface (with legacy snake_case support)
 interface NestConfigInternal {

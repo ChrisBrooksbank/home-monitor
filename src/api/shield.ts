@@ -3,15 +3,8 @@
  * Handles communication with NVIDIA SHIELD TV via proxy
  */
 
-import type { AppConfig } from '../types';
-import { Logger } from '../utils/logger';
-import { checkProxyAvailability } from '../utils/helpers';
+import { Logger, checkProxyAvailability, getAppConfig } from '../utils';
 import { Registry } from '../core/registry';
-
-// Helper to get APP_CONFIG from Registry
-function getAppConfig() {
-  return Registry.getOptional('APP_CONFIG') as AppConfig | undefined;
-}
 
 // Helper to get proxy URL
 function getProxyUrl(): string {

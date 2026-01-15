@@ -6,20 +6,12 @@
 import { SCHEMAS, SchemaDefinition } from './schema';
 import type { HueConfig, WeatherConfig, NestConfig, AppConfig } from '../types';
 import { Registry } from '../core/registry';
-
-// Helper functions to get configs from Registry
-function getHueConfig() {
-  return Registry.getOptional('HUE_CONFIG');
-}
-function getWeatherConfig() {
-  return Registry.getOptional('WEATHER_CONFIG');
-}
-function getNestConfig() {
-  return Registry.getOptional('NEST_CONFIG');
-}
-function getAppConfig() {
-  return Registry.getOptional('APP_CONFIG');
-}
+import {
+  getHueConfig,
+  getWeatherConfig,
+  getNestConfig,
+  getAppConfig,
+} from '../utils/registry-helpers';
 
 const CONFIG_SOURCES = {
   HUE: 'config.js (HUE_CONFIG)',

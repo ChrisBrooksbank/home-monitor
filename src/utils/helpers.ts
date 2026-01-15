@@ -5,11 +5,7 @@
 
 import { Logger } from './logger';
 import { Registry } from '../core/registry';
-
-// Helper to get APP_CONFIG from Registry
-function getAppConfig() {
-  return Registry.getOptional('APP_CONFIG');
-}
+import { getAppConfig } from './registry-helpers';
 
 /**
  * Sanitize HTML to prevent XSS attacks

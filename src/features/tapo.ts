@@ -4,21 +4,10 @@
  * Uses centralized AppState for plug state management
  */
 
-import { Logger } from '../utils/logger';
+import { Logger, getAppState, getAppEvents, getAppConfig } from '../utils';
 import { TapoAPI } from '../api';
 import { Registry } from '../core/registry';
-import type { TapoPlug, AppConfig } from '../types';
-
-// Helpers to get services from Registry
-function getAppState() {
-  return Registry.getOptional('AppState');
-}
-function getAppEvents() {
-  return Registry.getOptional('AppEvents');
-}
-function getAppConfig() {
-  return Registry.getOptional('APP_CONFIG') as AppConfig | undefined;
-}
+import type { TapoPlug } from '../types';
 
 // Constants
 const CONTAINER_ID = 'tapo-plugs-container';

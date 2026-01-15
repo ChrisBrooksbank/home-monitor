@@ -5,17 +5,8 @@
  * Subscribes to AppEvents 'app:ready' for automatic initialization.
  */
 
-import { Logger } from '../utils/logger';
+import { Logger, getAppEvents, getAppConfig } from '../utils';
 import { Registry } from '../core/registry';
-import type { AppConfig } from '../types';
-
-// Helpers to get services from Registry
-function getAppEvents() {
-  return Registry.getOptional('AppEvents');
-}
-function getAppConfig() {
-  return Registry.getOptional('APP_CONFIG') as AppConfig | undefined;
-}
 
 // Moose configuration interface
 interface MooseConfig {

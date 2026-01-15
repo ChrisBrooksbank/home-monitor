@@ -21,3 +21,11 @@ export {
   hueStateToColor,
   darkenColor,
 } from './color-utils';
+export {
+  getAppConfig,
+  getAppState,
+  getAppEvents,
+  getHueConfig,
+  getWeatherConfig,
+  getNestConfig,
+} from './registry-helpers';
