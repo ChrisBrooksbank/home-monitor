@@ -5,8 +5,21 @@
 
 import { SCHEMAS, SchemaDefinition } from './schema';
 import type { HueConfig, WeatherConfig, NestConfig, AppConfig } from '../types';
+import { Registry } from '../core/registry';
 
-// Window types are declared in types/index.ts
+// Helper functions to get configs from Registry
+function getHueConfig() {
+  return Registry.getOptional('HUE_CONFIG');
+}
+function getWeatherConfig() {
+  return Registry.getOptional('WEATHER_CONFIG');
+}
+function getNestConfig() {
+  return Registry.getOptional('NEST_CONFIG');
+}
+function getAppConfig() {
+  return Registry.getOptional('APP_CONFIG');
+}
 
 const CONFIG_SOURCES = {
   HUE: 'config.js (HUE_CONFIG)',
@@ -155,15 +168,17 @@ export async function loadConfig(): Promise<UnifiedConfig> {
   const result = new ValidationResult();
 
   // Validate HUE_CONFIG
-  const hueResult = validateConfig(window.HUE_CONFIG, 'hue', CONFIG_SOURCES.HUE);
+  const hueConfig = getHueConfig();
+  const hueResult = validateConfig(hueConfig, 'hue', CONFIG_SOURCES.HUE);
   result.errors.push(...hueResult.errors);
   result.warnings.push(...hueResult.warnings);
   if (!hueResult.valid) result.valid = false;
 
   // Validate WEATHER_CONFIG (optional but recommended)
-  if (window.WEATHER_CONFIG) {
+  const weatherConfig = getWeatherConfig();
+  if (weatherConfig) {
     const weatherResult = validateConfig(
-      window.WEATHER_CONFIG,
+      weatherConfig,
       'weather',
       CONFIG_SOURCES.WEATHER
     );
@@ -178,14 +193,16 @@ export async function loadConfig(): Promise<UnifiedConfig> {
   }
 
   // Validate NEST_CONFIG (optional)
-  if (window.NEST_CONFIG) {
-    const nestResult = validateConfig(window.NEST_CONFIG, 'nest', CONFIG_SOURCES.NEST);
+  const nestConfig = getNestConfig();
+  if (nestConfig) {
+    const nestResult = validateConfig(nestConfig, 'nest', CONFIG_SOURCES.NEST);
     result.warnings.push(...nestResult.errors); // Nest is optional
     result.warnings.push(...nestResult.warnings);
   }
 
   // Validate APP_CONFIG
-  const appResult = validateConfig(window.APP_CONFIG, 'app', CONFIG_SOURCES.APP);
+  const appConfig = getAppConfig();
+  const appResult = validateConfig(appConfig, 'app', CONFIG_SOURCES.APP);
   result.errors.push(...appResult.errors);
   result.warnings.push(...appResult.warnings);
   if (!appResult.valid) result.valid = false;
@@ -203,11 +220,11 @@ export async function loadConfig(): Promise<UnifiedConfig> {
 
   // Build unified config object
   const CONFIG: UnifiedConfig = {
-    hue: window.HUE_CONFIG || {},
-    weather: window.WEATHER_CONFIG || {},
-    nest: window.NEST_CONFIG || {},
+    hue: hueConfig || {},
+    weather: weatherConfig || {},
+    nest: nestConfig || {},
     devices: devices || {},
-    app: window.APP_CONFIG || {},
+    app: appConfig || {},
 
     get bridgeUrl(): string | null {
       const hue = this.hue as HueConfig;
@@ -252,8 +269,11 @@ export async function loadConfig(): Promise<UnifiedConfig> {
     },
   };
 
-  // Store globally
-  window.CONFIG = CONFIG;
+  // Register with the service registry
+  Registry.register({
+    key: 'CONFIG',
+    instance: CONFIG,
+  });
 
   return CONFIG;
 }

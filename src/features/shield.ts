@@ -5,13 +5,7 @@
 
 import { Logger } from '../utils/logger';
 import { ShieldAPI } from '../api';
-
-// Declare global types for Shield-specific window properties
-declare global {
-  interface Window {
-    ShieldUI?: typeof ShieldUI;
-  }
-}
+import { Registry } from '../core/registry';
 
 // Shield device info interface (local type)
 interface ShieldDeviceInfo {
@@ -150,10 +144,14 @@ function setupShieldControls(): void {
 
   // Make panel draggable
   const panel = document.getElementById('shield-tv-panel') as SVGElement | null;
-  if (panel && typeof window.createDraggable === 'function') {
+  const createDraggable = Registry.getOptional('createDraggable');
+  const loadSavedPosition = Registry.getOptional('loadSavedPosition');
+  if (panel && typeof createDraggable === 'function') {
     const storageKey = 'shieldPanelPosition';
-    window.loadSavedPosition?.(panel, storageKey);
-    window.createDraggable(panel, {
+    if (typeof loadSavedPosition === 'function') {
+      loadSavedPosition(panel, storageKey);
+    }
+    createDraggable(panel, {
       storageKey: storageKey,
       excludeSelector: '.shield-app-button',
     });
@@ -300,8 +298,9 @@ async function initShieldUI(): Promise<void> {
   await renderShieldControls();
 
   // Poll for status updates every 30 seconds
-  if (window.IntervalManager) {
-    window.IntervalManager.register(updateShieldStatus, 30000);
+  const intervalManager = Registry.getOptional('IntervalManager');
+  if (intervalManager) {
+    intervalManager.register(updateShieldStatus, 30000);
   }
 
   Logger.success('SHIELD UI initialized');
@@ -318,10 +317,11 @@ export const ShieldUI = {
   updateStatus: updateShieldStatus,
 };
 
-// Expose for other scripts
-if (typeof window !== 'undefined') {
-  window.ShieldUI = ShieldUI;
-}
+// Register with the service registry
+Registry.register({
+  key: 'ShieldUI',
+  instance: ShieldUI,
+});
 
 // Auto-initialize with consistent timing
 function onReady(fn: () => void): void {

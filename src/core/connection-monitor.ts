@@ -3,14 +3,23 @@
  * Handles health checks and reconnection logic for all services
  */
 
-import type { AppConfig, ConnectionStatus, ConnectionsState, HueConfig } from '../types';
+import type { ConnectionStatus, ConnectionsState } from '../types';
 import { Logger } from '../utils/logger';
-import { AppEvents } from './events';
+import { Registry } from './registry';
+import { getNestConfigWithFallback } from '../config/config-bridge';
 
-declare const APP_CONFIG: AppConfig;
-declare const window: Window & {
-  HUE_CONFIG?: HueConfig;
-};
+// Helper to get config values
+function getAppConfig() {
+  return Registry.getOptional('APP_CONFIG');
+}
+
+function getHueConfig() {
+  return Registry.getOptional('HUE_CONFIG');
+}
+
+function getAppEvents() {
+  return Registry.getOptional('AppEvents');
+}
 
 export interface FullConnectionStatus extends ConnectionStatus {
   name?: string | null;
@@ -19,10 +28,11 @@ export interface FullConnectionStatus extends ConnectionStatus {
 }
 
 const connectionStatus: ConnectionsState = {
-  hue: { online: false, lastCheck: null, name: null, apiVersion: null },
-  sonos: { online: false, lastCheck: null, uptime: null },
-  tapo: { online: false, lastCheck: null, uptime: null },
-  shield: { online: false, lastCheck: null, uptime: null },
+  hue: { online: false, lastCheck: null, name: null, apiVersion: null, error: null },
+  sonos: { online: false, lastCheck: null, uptime: null, error: null },
+  tapo: { online: false, lastCheck: null, uptime: null, error: null },
+  shield: { online: false, lastCheck: null, uptime: null, error: null },
+  nest: { online: false, lastCheck: null, error: null },
 };
 
 let isCheckingConnections = false;
@@ -64,7 +74,9 @@ interface HueBridgeConfigResponse {
  * Check Hue bridge connectivity
  */
 async function checkHueBridgeHealth(): Promise<boolean> {
-  const BRIDGE_IP = window.HUE_CONFIG?.BRIDGE_IP ?? '192.168.68.51';
+  const hueConfig = getHueConfig();
+  const appConfig = getAppConfig();
+  const BRIDGE_IP = hueConfig?.BRIDGE_IP ?? '192.168.68.51';
 
   updateIndicator('status-hue', 'checking');
 
@@ -72,7 +84,7 @@ async function checkHueBridgeHealth(): Promise<boolean> {
     const controller = new AbortController();
     const timeoutId = setTimeout(
       () => controller.abort(),
-      APP_CONFIG.timeouts.proxyCheck
+      appConfig?.timeouts?.proxyCheck ?? 2000
     );
 
     const response = await fetch(`http://${BRIDGE_IP}/api/config`, {
@@ -89,6 +101,7 @@ async function checkHueBridgeHealth(): Promise<boolean> {
           lastCheck: new Date(),
           name: data.name ?? null,
           apiVersion: data.apiversion ?? null,
+          error: null,
         };
         updateIndicator(
           'status-hue',
@@ -97,7 +110,8 @@ async function checkHueBridgeHealth(): Promise<boolean> {
         );
 
         if (wasOffline) {
-          AppEvents.emit('connection:hue:online', {
+          const events = getAppEvents();
+          events?.emit('connection:hue:online', {
             name: data.name ?? 'Hue Bridge',
             apiVersion: data.apiversion ?? 'unknown',
           });
@@ -110,21 +124,25 @@ async function checkHueBridgeHealth(): Promise<boolean> {
   }
 
   const wasOnline = connectionStatus.hue.online;
+  const errorMsg = `Check connection to ${BRIDGE_IP}`;
   connectionStatus.hue = {
     online: false,
     lastCheck: new Date(),
     name: null,
     apiVersion: null,
+    error: errorMsg,
   };
   updateIndicator(
     'status-hue',
     'offline',
-    `Hue Bridge: Offline - check connection to ${BRIDGE_IP}`
+    `Hue Bridge: Offline - ${errorMsg}`
   );
 
   if (wasOnline) {
-    AppEvents.emit('connection:hue:offline', {
+    const events = getAppEvents();
+    events?.emit('connection:hue:offline', {
       bridgeIp: BRIDGE_IP,
+      error: errorMsg,
     });
   }
   return false;
@@ -141,13 +159,14 @@ async function checkProxyHealth(
   proxyName: 'sonos' | 'tapo' | 'shield',
   url: string
 ): Promise<boolean> {
+  const appConfig = getAppConfig();
   updateIndicator(`status-${proxyName}`, 'checking');
 
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(
       () => controller.abort(),
-      APP_CONFIG.timeouts.proxyCheck
+      appConfig?.timeouts?.proxyCheck ?? 2000
     );
 
     const response = await fetch(`${url}/health`, { signal: controller.signal });
@@ -160,6 +179,7 @@ async function checkProxyHealth(
         online: true,
         lastCheck: new Date(),
         uptime: data.uptime ?? null,
+        error: null,
       };
       updateIndicator(
         `status-${proxyName}`,
@@ -168,7 +188,8 @@ async function checkProxyHealth(
       );
 
       if (wasOffline) {
-        AppEvents.emit('connection:proxy:online', {
+        const events = getAppEvents();
+        events?.emit('connection:proxy:online', {
           proxy: proxyName,
           uptime: data.uptime,
         });
@@ -180,21 +201,105 @@ async function checkProxyHealth(
   }
 
   const wasOnline = connectionStatus[proxyName].online;
+  const errorMsg = "Run 'npm start' to start proxies";
   connectionStatus[proxyName] = {
     online: false,
     lastCheck: new Date(),
     uptime: null,
+    error: errorMsg,
   };
   updateIndicator(
     `status-${proxyName}`,
     'offline',
-    `${proxyName}: Offline - run 'npm start' to start proxies`
+    `${proxyName}: Offline - ${errorMsg}`
   );
 
   if (wasOnline) {
-    AppEvents.emit('connection:proxy:offline', { proxy: proxyName });
+    const events = getAppEvents();
+    events?.emit('connection:proxy:offline', { proxy: proxyName, error: errorMsg });
   }
   return false;
+}
+
+/**
+ * Check Nest thermostat config and token validity
+ * Does NOT make API calls - just validates config/token state
+ */
+function checkNestHealth(): boolean {
+  updateIndicator('status-nest', 'checking');
+
+  const config = getNestConfigWithFallback();
+
+  // Check if config exists
+  if (!config) {
+    const errorMsg = "Run 'npx tsx src/scripts/setup/nest-auth.ts' to configure";
+    const wasOnline = connectionStatus.nest.online;
+    connectionStatus.nest = {
+      online: false,
+      lastCheck: new Date(),
+      error: errorMsg,
+    };
+    updateIndicator('status-nest', 'offline', `Nest: ${errorMsg}`);
+
+    if (wasOnline) {
+      const events = getAppEvents();
+      events?.emit('connection:nest:offline', { error: errorMsg });
+    }
+    return false;
+  }
+
+  // Get access token (handle both camelCase and UPPER_CASE)
+  const accessToken = config.access_token ?? config.ACCESS_TOKEN;
+  if (!accessToken) {
+    const errorMsg = 'Access token missing - re-run auth setup';
+    const wasOnline = connectionStatus.nest.online;
+    connectionStatus.nest = {
+      online: false,
+      lastCheck: new Date(),
+      error: errorMsg,
+    };
+    updateIndicator('status-nest', 'offline', `Nest: ${errorMsg}`);
+
+    if (wasOnline) {
+      const events = getAppEvents();
+      events?.emit('connection:nest:offline', { error: errorMsg });
+    }
+    return false;
+  }
+
+  // Check token expiry (handle both camelCase and UPPER_CASE)
+  const expiresAt = config.expires_at ?? config.EXPIRES_AT;
+  if (expiresAt && Date.now() > expiresAt) {
+    const errorMsg = 'Token expired - run auth refresh';
+    const wasOnline = connectionStatus.nest.online;
+    connectionStatus.nest = {
+      online: false,
+      lastCheck: new Date(),
+      error: errorMsg,
+    };
+    updateIndicator('status-nest', 'offline', `Nest: ${errorMsg}`);
+
+    if (wasOnline) {
+      const events = getAppEvents();
+      events?.emit('connection:nest:offline', { error: errorMsg });
+    }
+    return false;
+  }
+
+  // Config and token are valid
+  const wasOffline = !connectionStatus.nest.online;
+  connectionStatus.nest = {
+    online: true,
+    lastCheck: new Date(),
+    error: null,
+  };
+  updateIndicator('status-nest', 'online', 'Nest: Configured');
+
+  if (wasOffline) {
+    const events = getAppEvents();
+    events?.emit('connection:nest:online', {});
+  }
+  return true;
 }
 
 /**
@@ -206,13 +311,18 @@ async function checkAllConnections(): Promise<ConnectionsState> {
     return connectionStatus;
   }
 
+  const appConfig = getAppConfig();
   isCheckingConnections = true;
   try {
+    // Check Nest synchronously (no network call)
+    checkNestHealth();
+
+    // Check others in parallel (network calls)
     await Promise.all([
       checkHueBridgeHealth(),
-      checkProxyHealth('sonos', APP_CONFIG.proxies.sonos),
-      checkProxyHealth('tapo', APP_CONFIG.proxies.tapo),
-      checkProxyHealth('shield', APP_CONFIG.proxies.shield),
+      checkProxyHealth('sonos', appConfig?.proxies?.sonos ?? 'http://localhost:3000'),
+      checkProxyHealth('tapo', appConfig?.proxies?.tapo ?? 'http://localhost:3001'),
+      checkProxyHealth('shield', appConfig?.proxies?.shield ?? 'http://localhost:8082'),
     ]);
   } finally {
     isCheckingConnections = false;
@@ -289,19 +399,27 @@ async function waitForConnections(options: WaitOptions = {}): Promise<Connection
   return connectionStatus;
 }
 
+/**
+ * Get the error message for a service, if any
+ */
+function getErrorMessage(service: keyof ConnectionsState): string | null {
+  return connectionStatus[service]?.error ?? null;
+}
+
 export const ConnectionMonitor = {
   checkAll: checkAllConnections,
   checkHue: checkHueBridgeHealth,
   checkProxy: checkProxyHealth,
+  checkNest: checkNestHealth,
   waitForConnections,
   isOnline,
   getStatus,
+  getErrorMessage,
   formatUptime,
 } as const;
 
-// Expose on window for global access
-if (typeof window !== 'undefined') {
-  window.ConnectionMonitor = ConnectionMonitor;
-  // Legacy alias
-  (window as unknown as Record<string, unknown>).checkAllConnections = checkAllConnections;
-}
+// Register with the service registry
+Registry.register({
+  key: 'ConnectionMonitor',
+  instance: ConnectionMonitor,
+});

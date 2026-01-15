@@ -7,37 +7,33 @@
  */
 
 import { Logger } from '../utils/logger';
-import { AppState, AppEvents } from '../core';
 import { HueAPI } from '../api';
+import { Registry } from '../core/registry';
 import type { HueLightState, HueLightsResponse } from '../types';
 
-// Declare global types
-declare global {
-  interface Window {
-    LightEffects?: typeof LightEffects;
-    redAlert?: typeof redAlert;
-    partyMode?: typeof partyMode;
-    discoMode?: typeof discoMode;
-    waveEffect?: typeof waveEffect;
-    sunsetMode?: typeof sunsetMode;
-  }
+// Helpers to get services from Registry
+function getAppState() {
+  return Registry.getOptional('AppState');
+}
+function getAppEvents() {
+  return Registry.getOptional('AppEvents');
 }
 
 // =============================================================================
 // STATE HELPERS (using centralized AppState)
 // =============================================================================
 
-const getEffectInProgress = (): boolean => (AppState?.get('effect.inProgress') as boolean) || false;
+const getEffectInProgress = (): boolean => (getAppState()?.get('effect.inProgress') as boolean) || false;
 const setEffectInProgress = (value: boolean): void => {
-  AppState?.set('effect.inProgress', value);
+  getAppState()?.set('effect.inProgress', value);
 };
 const getOriginalStates = (): Record<string, Partial<HueLightState>> =>
-  (AppState?.get('effect.originalStates') as Record<string, Partial<HueLightState>>) || {};
+  (getAppState()?.get('effect.originalStates') as Record<string, Partial<HueLightState>>) || {};
 const setOriginalStates = (states: Record<string, Partial<HueLightState>>): void => {
-  AppState?.set('effect.originalStates', states);
+  getAppState()?.set('effect.originalStates', states);
 };
 const setCurrentEffect = (name: string | null): void => {
-  AppState?.set('effect.currentEffect', name);
+  getAppState()?.set('effect.currentEffect', name);
 };
 
 /**
@@ -129,7 +125,7 @@ async function runLightEffect(
   disableEffectButtons(true);
 
   // Emit effect started event
-  AppEvents?.emit('effect:started', { effect: effectName, timestamp: Date.now() });
+  getAppEvents()?.emit('effect:started', { effect: effectName, timestamp: Date.now() });
 
   try {
     const success = await saveLightStates();
@@ -151,7 +147,7 @@ async function runLightEffect(
     await effectCallback(lights);
     await restoreLightStates(() => {
       // Emit effect completed event
-      AppEvents?.emit('effect:completed', { effect: effectName, timestamp: Date.now() });
+      getAppEvents()?.emit('effect:completed', { effect: effectName, timestamp: Date.now() });
       if (onComplete) onComplete();
     });
   } finally {
@@ -320,15 +316,6 @@ export async function sunsetMode(onComplete?: () => void): Promise<void> {
  * Initialize effects and wire up jukebox buttons
  */
 function initEffects(): void {
-  // Expose effect functions to window for HTML onclick handlers
-  if (typeof window !== 'undefined') {
-    window.redAlert = redAlert;
-    window.partyMode = partyMode;
-    window.discoMode = discoMode;
-    window.waveEffect = waveEffect;
-    window.sunsetMode = sunsetMode;
-  }
-
   // Initialize effect state in AppState
   setEffectInProgress(false);
   setCurrentEffect(null);
@@ -369,10 +356,11 @@ export const LightEffects = {
   init: initEffects,
 };
 
-// Expose for other scripts
-if (typeof window !== 'undefined') {
-  window.LightEffects = LightEffects;
-}
+// Register with the service registry
+Registry.register({
+  key: 'LightEffects',
+  instance: LightEffects,
+});
 
 // Auto-initialize with consistent timing
 function onReady(fn: () => void): void {

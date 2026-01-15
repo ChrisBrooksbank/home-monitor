@@ -5,6 +5,12 @@
 
 import { Logger } from '../utils/logger';
 import { HueAPI } from '../api/hue';
+import { Registry } from '../core/registry';
+
+// Helper to get HomeMonitor from Registry
+function getHomeMonitor() {
+  return Registry.getOptional('HomeMonitor') as { loadLights?: () => void } | undefined;
+}
 
 const NS = 'http://www.w3.org/2000/svg';
 
@@ -665,8 +671,9 @@ async function applyColor(state: ColorState): Promise<void> {
 
       // Refresh lights display after short delay
       setTimeout(() => {
-        if (window.HomeMonitor && typeof (window.HomeMonitor as { loadLights?: () => void }).loadLights === 'function') {
-          (window.HomeMonitor as { loadLights: () => void }).loadLights();
+        const homeMonitor = getHomeMonitor();
+        if (homeMonitor && typeof homeMonitor.loadLights === 'function') {
+          homeMonitor.loadLights();
         }
       }, 300);
     } else {
@@ -717,7 +724,8 @@ if (typeof document !== 'undefined') {
   }
 }
 
-// Expose on window for global access
-if (typeof window !== 'undefined') {
-  (window as unknown as { ColorPicker: typeof ColorPicker }).ColorPicker = ColorPicker;
-}
+// Register with the service registry
+Registry.register({
+  key: 'ColorPicker',
+  instance: ColorPicker,
+});

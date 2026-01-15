@@ -32,6 +32,7 @@ const PROXIES: ProxyConfig[] = [
     { name: 'tapo', port: 3001, script: 'src/proxies/tapo-proxy.ts', color: '\x1b[33m' },
     { name: 'shield', port: 8082, script: 'src/proxies/shield-proxy.ts', color: '\x1b[35m' },
     { name: 'news', port: 3002, script: 'src/proxies/news-proxy.ts', color: '\x1b[34m' },
+    { name: 'nest', port: 3003, script: 'src/proxies/nest-proxy.ts', color: '\x1b[31m' },
 ];
 
 const RESET = '\x1b[0m';

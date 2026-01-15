@@ -4,8 +4,12 @@
  */
 
 import type { LogLevel, LogLevels, AppConfig } from '../types';
+import { Registry } from '../core/registry';
 
-declare const APP_CONFIG: AppConfig | undefined;
+// Helper to get APP_CONFIG from Registry
+function getAppConfig() {
+  return Registry.getOptional('APP_CONFIG') as AppConfig | undefined;
+}
 
 const levels: LogLevels = {
   DEBUG: 0,
@@ -40,7 +44,7 @@ export const Logger = {
    * Debug logs (only in development/debug mode)
    */
   debug(message: string, ...args: unknown[]): void {
-    if (this.currentLevel <= this.levels.DEBUG && APP_CONFIG?.debug) {
+    if (this.currentLevel <= this.levels.DEBUG && getAppConfig()?.debug) {
       console.log(...this._format('DEBUG', '\u{1F50D}', message, ...args));
     }
   },

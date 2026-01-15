@@ -4,6 +4,7 @@
  */
 
 import type { AppConfig } from '../types';
+import { Registry } from '../core/registry';
 
 // Time constants
 export const MS_PER_SECOND = 1000;
@@ -43,6 +44,7 @@ export const APP_CONFIG: AppConfig = {
     sonos: 'http://localhost:3000',
     tapo: 'http://localhost:3001',
     shield: 'http://localhost:8082',
+    nest: 'http://localhost:3003',
   },
 
   // Update Intervals (in milliseconds)
@@ -79,7 +81,8 @@ export const APP_CONFIG: AppConfig = {
   debug: false,
 };
 
-// Expose on window for global access
-if (typeof window !== 'undefined') {
-  window.APP_CONFIG = APP_CONFIG;
-}
+// Register with the service registry
+Registry.register({
+  key: 'APP_CONFIG',
+  instance: APP_CONFIG,
+});

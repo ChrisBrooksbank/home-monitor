@@ -979,7 +979,7 @@
                     <text x="0" y="-8" text-anchor="middle" font-size="14" fill="#A5D6A7">♻</text>
 
                     <!-- Status LED panel - white background for visibility -->
-                    <rect x="-13" y="-40" width="26" height="22" rx="2" fill="#F5F5F0" stroke="#DDD" stroke-width="0.5"/>
+                    <rect x="-13" y="-40" width="26" height="32" rx="2" fill="#F5F5F0" stroke="#DDD" stroke-width="0.5"/>
 
                     <!-- Status LEDs with labels -->
                     <g id="bin-status-leds">
@@ -1004,15 +1004,21 @@
                             <title>SHIELD TV</title>
                         </circle>
                         <text x="7" y="-23" text-anchor="middle" dominant-baseline="middle" font-size="3.5" fill="#333" font-weight="bold" pointer-events="none">TV</text>
+
+                        <!-- Row 3 -->
+                        <circle id="bin-led-nest" cx="-5" cy="-13" r="4" fill="#999" stroke="#666" stroke-width="0.5">
+                            <title>Nest Thermostat</title>
+                        </circle>
+                        <text x="-5" y="-13" text-anchor="middle" dominant-baseline="middle" font-size="4" fill="#333" font-weight="bold" pointer-events="none">N</text>
                     </g>
                 </g>
 
                 <!-- Proxy Status Popup (shown on bin click) -->
                 <g id="proxy-status-popup" style="display: none;">
                     <!-- Clipboard/notice board style -->
-                    <rect x="0" y="0" width="130" height="95" rx="4" fill="#DEB887" stroke="#8B7355" stroke-width="2"/>
+                    <rect x="0" y="0" width="130" height="110" rx="4" fill="#DEB887" stroke="#8B7355" stroke-width="2"/>
                     <!-- Paper -->
-                    <rect x="8" y="12" width="114" height="75" fill="#FFFEF5" stroke="#E8E0D0" stroke-width="1"/>
+                    <rect x="8" y="12" width="114" height="90" fill="#FFFEF5" stroke="#E8E0D0" stroke-width="1"/>
                     <!-- Clip at top -->
                     <rect x="50" y="-4" width="30" height="12" rx="2" fill="#8B7355"/>
                     <rect x="55" y="-2" width="20" height="8" rx="1" fill="#A08060"/>
@@ -1041,6 +1047,12 @@
                         <text x="16" y="3" font-size="8" fill="#4A3728" font-family="'Fredoka', sans-serif">SHIELD TV</text>
                         <text id="popup-status-shield-text" x="105" y="3" text-anchor="end" font-size="7" fill="#666">--</text>
                     </g>
+                    <g id="popup-status-nest" transform="translate(15, 95)">
+                        <circle cx="6" cy="0" r="5" fill="#999" stroke="#666" stroke-width="0.5"/>
+                        <text x="16" y="3" font-size="8" fill="#4A3728" font-family="'Fredoka', sans-serif">Nest</text>
+                        <text id="nest-reauth-btn" x="45" y="3" font-size="6" fill="#1976D2" font-family="'Fredoka', sans-serif" style="cursor: pointer; text-decoration: underline;">Auth</text>
+                        <text id="popup-status-nest-text" x="105" y="3" text-anchor="end" font-size="7" fill="#666">--</text>
+                    </g>
                 </g>
 
                 <!-- Garden hedge/border -->
@@ -1063,7 +1075,7 @@
 
         <!-- Sensor Details Panel -->
         <div class="graph-container" style="margin-top: 20px;">
-            <h2 class="graph-title section-header" onclick="toggleSection('sensor-details-content', 'sensor-arrow')">
+            <h2 class="graph-title section-header" id="sensor-header">
                 <span class="section-arrow collapsed" id="sensor-arrow">▼</span>
                 📡 Sensor Details
             </h2>
@@ -1076,7 +1088,7 @@
 
         <!-- Activity Log -->
         <div class="graph-container" style="margin-top: 20px;">
-            <h2 class="graph-title section-header" onclick="toggleSection('motion-log-content', 'motion-arrow')">
+            <h2 class="graph-title section-header" id="motion-header">
                 <span class="section-arrow collapsed" id="motion-arrow">▼</span>
                 📋 48-Hour Activity Log
             </h2>

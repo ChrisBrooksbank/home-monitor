@@ -4,28 +4,32 @@
  */
 
 import type {
-  AppConfig,
   TapoPlugsResponse,
   TapoStatusResponse,
   TapoToggleResponse,
 } from '../types';
 import { Logger } from '../utils/logger';
 import { retryWithBackoff } from '../utils/helpers';
+import { Registry } from '../core/registry';
 
-declare const APP_CONFIG: AppConfig;
+// Helper to get APP_CONFIG
+function getAppConfig() {
+  return Registry.getOptional('APP_CONFIG');
+}
 
 /**
  * Make a request to the Tapo proxy
  */
 async function request<T>(endpoint: string, body: object = {}): Promise<T> {
+  const config = getAppConfig();
   try {
-    const response = await fetch(`${APP_CONFIG.proxies.tapo}${endpoint}`, {
+    const response = await fetch(`${config?.proxies?.tapo ?? 'http://localhost:3001'}${endpoint}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(body),
-      signal: AbortSignal.timeout(APP_CONFIG.timeouts.apiRequest),
+      signal: AbortSignal.timeout(config?.timeouts?.apiRequest ?? 10000),
     });
 
     if (!response.ok) {
@@ -114,10 +118,11 @@ async function toggle(plugName: string): Promise<TapoToggleResponse> {
  * Get list of discovered plugs
  */
 async function getPlugs(): Promise<TapoPlugsResponse> {
+  const config = getAppConfig();
   try {
-    const response = await fetch(`${APP_CONFIG.proxies.tapo}/plugs`, {
+    const response = await fetch(`${config?.proxies?.tapo ?? 'http://localhost:3001'}/plugs`, {
       method: 'GET',
-      signal: AbortSignal.timeout(APP_CONFIG.timeouts.proxyCheck),
+      signal: AbortSignal.timeout(config?.timeouts?.proxyCheck ?? 2000),
     });
     return (await response.json()) as TapoPlugsResponse;
   } catch (error) {
@@ -137,9 +142,10 @@ interface TapoDiscoveryResponse {
  * Trigger network discovery for Tapo plugs
  */
 async function discover(): Promise<TapoDiscoveryResponse> {
+  const config = getAppConfig();
   Logger.info('Starting Tapo plug discovery...');
   try {
-    const response = await fetch(`${APP_CONFIG.proxies.tapo}/discover`, {
+    const response = await fetch(`${config?.proxies?.tapo ?? 'http://localhost:3001'}/discover`, {
       method: 'POST',
       signal: AbortSignal.timeout(60000),
     });
@@ -159,10 +165,11 @@ async function discover(): Promise<TapoDiscoveryResponse> {
  * Check if Tapo proxy is available
  */
 async function checkAvailability(): Promise<boolean> {
+  const config = getAppConfig();
   try {
-    const response = await fetch(`${APP_CONFIG.proxies.tapo}/plugs`, {
+    const response = await fetch(`${config?.proxies?.tapo ?? 'http://localhost:3001'}/plugs`, {
       method: 'HEAD',
-      signal: AbortSignal.timeout(APP_CONFIG.timeouts.proxyCheck),
+      signal: AbortSignal.timeout(config?.timeouts?.proxyCheck ?? 2000),
     });
     if (response.ok) {
       Logger.success('Tapo proxy is available');
@@ -177,7 +184,9 @@ async function checkAvailability(): Promise<boolean> {
 }
 
 export const TapoAPI = {
-  proxyUrl: APP_CONFIG?.proxies?.tapo ?? 'http://localhost:3001',
+  get proxyUrl() {
+    return getAppConfig()?.proxies?.tapo ?? 'http://localhost:3001';
+  },
   request,
   turnOn,
   turnOff,
@@ -188,7 +197,8 @@ export const TapoAPI = {
   checkAvailability,
 } as const;
 
-// Expose on window for global access
-if (typeof window !== 'undefined') {
-  window.TapoAPI = TapoAPI;
-}
+// Register with the service registry
+Registry.register({
+  key: 'TapoAPI',
+  instance: TapoAPI,
+});

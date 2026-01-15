@@ -17,11 +17,7 @@ import type {
   LightInfo,
 } from '../types';
 import { Logger } from '../utils/logger';
-
-declare const window: Window & {
-  AppEvents?: typeof import('./events').AppEvents;
-  AppState?: typeof AppState;
-};
+import { Registry } from './registry';
 
 // Configuration
 const CONFIG = {
@@ -199,8 +195,9 @@ function set<T>(key: string, value: T, options: SetOptions = {}): void {
   }
 
   // Emit event
-  if (!options.silent && window.AppEvents) {
-    window.AppEvents.emit(`state:${key}:changed`, {
+  const events = Registry.getOptional('AppEvents');
+  if (!options.silent && events) {
+    events.emit(`state:${key}:changed`, {
       key,
       value,
       oldValue,
@@ -209,7 +206,7 @@ function set<T>(key: string, value: T, options: SetOptions = {}): void {
 
     // Also emit top-level key event for convenience
     if (keys.length > 1) {
-      window.AppEvents.emit(`state:${keys[0]}:changed`, {
+      events.emit(`state:${keys[0]}:changed`, {
         key: keys[0],
         value: (state as Record<string, unknown>)[keys[0]],
         subKey: key,
@@ -272,8 +269,9 @@ function remove(key: string): void {
   const oldValue = target[finalKey];
   delete target[finalKey];
 
-  if (window.AppEvents) {
-    window.AppEvents.emit(`state:${key}:removed`, {
+  const events = Registry.getOptional('AppEvents');
+  if (events) {
+    events.emit(`state:${key}:removed`, {
       key,
       oldValue,
       timestamp: Date.now(),
@@ -455,8 +453,9 @@ function setMany(updates: Record<string, unknown>, options: SetOptions = {}): vo
   }
 
   // Emit single batch event
-  if (!silent && window.AppEvents) {
-    window.AppEvents.emit('state:batch:changed', {
+  const events = Registry.getOptional('AppEvents');
+  if (!silent && events) {
+    events.emit('state:batch:changed', {
       keys: Object.keys(updates),
       timestamp: Date.now(),
     });
@@ -489,21 +488,22 @@ function init(): void {
   Logger.info('AppState initialized');
 
   // Subscribe to relevant events to auto-update state
-  if (window.AppEvents) {
-    window.AppEvents.on('connection:hue:online', (data: { name: string }) => {
+  const events = Registry.getOptional('AppEvents');
+  if (events) {
+    events.on('connection:hue:online', (data: { name: string }) => {
       update('connections.hue', { online: true, name: data.name }, { silent: true });
     });
-    window.AppEvents.on('connection:hue:offline', () => {
+    events.on('connection:hue:offline', () => {
       update('connections.hue', { online: false }, { silent: true });
     });
-    window.AppEvents.on('connection:proxy:online', (data: { proxy: string }) => {
+    events.on('connection:proxy:online', (data: { proxy: string }) => {
       set(`connections.${data.proxy}.online`, true, { silent: true });
     });
-    window.AppEvents.on('connection:proxy:offline', (data: { proxy: string }) => {
+    events.on('connection:proxy:offline', (data: { proxy: string }) => {
       set(`connections.${data.proxy}.online`, false, { silent: true });
     });
 
-    window.AppEvents.on('app:ready', () => {
+    events.on('app:ready', () => {
       set('app.ready', true, { silent: true });
       set('app.lastUpdate', Date.now(), { silent: true });
     });
@@ -528,11 +528,14 @@ export const AppState = {
   init,
 } as const;
 
-// Expose on window for global access
-if (typeof window !== 'undefined') {
-  window.AppState = AppState;
+// Register with the service registry
+Registry.register({
+  key: 'AppState',
+  instance: AppState,
+});
 
-  // Auto-initialize when DOM is ready
+// Auto-initialize when DOM is ready (browser only)
+if (typeof window !== 'undefined') {
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {

@@ -5,12 +5,11 @@
 
 import type { RoomName, RoomLights, LightInfo } from '../../types';
 import { Logger } from '../../utils/logger';
-import { AppState } from '../../core/state';
-import { AppEvents } from '../../core/events';
 import { HueAPI } from '../../api/hue';
 import { MAPPINGS, mapLightToRoom } from '../../config/mappings';
 import { hueStateToColor, darkenColor } from '../../utils/color-utils';
 import { updateOutdoorLamppost } from './lamppost';
+import { Registry } from '../../core/registry';
 
 // Extended light info with color picker properties
 export interface LightInfoExtended extends LightInfo {
@@ -21,16 +20,24 @@ export interface LightInfoExtended extends LightInfo {
   ct?: number;
 }
 
-declare const window: Window & {
-  ColorPicker?: { handleBulbClick: (id: string, light: LightInfoExtended, e: MouseEvent) => void };
-};
+// Helpers to get services from Registry
+function getAppState() {
+  return Registry.getOptional('AppState');
+}
+function getAppEvents() {
+  return Registry.getOptional('AppEvents');
+}
+function getColorPicker() {
+  return Registry.getOptional('ColorPicker') as { handleBulbClick: (id: string, light: LightInfoExtended, e: MouseEvent) => void } | undefined;
+}
 
 /**
  * Get room lights from AppState
  */
 export function getRoomLights(): RoomLights {
+  const appState = getAppState();
   return (
-    AppState.get<RoomLights>('lights') ?? {
+    appState?.get<RoomLights>('lights') ?? {
       'Main Bedroom': [],
       'Guest Bedroom': [],
       Landing: [],
@@ -49,7 +56,8 @@ export function getRoomLights(): RoomLights {
  * Get previous light states from AppState
  */
 export function getPreviousLightStates(): Record<string, boolean> {
-  return AppState.get<Record<string, boolean>>('previousLightStates') ?? {};
+  const appState = getAppState();
+  return appState?.get<Record<string, boolean>>('previousLightStates') ?? {};
 }
 
 /**
@@ -206,8 +214,9 @@ export function updateLightIndicators(): void {
 
       // Single click opens color picker, double-click toggles
       bulbGroup.addEventListener('click', (e: MouseEvent) => {
-        if (window.ColorPicker) {
-          window.ColorPicker.handleBulbClick(light.id, light as LightInfoExtended, e);
+        const colorPicker = getColorPicker();
+        if (colorPicker) {
+          colorPicker.handleBulbClick(light.id, light as LightInfoExtended, e);
         }
       });
       bulbGroup.addEventListener('dblclick', () => toggleLight(light.id, light.on));
@@ -252,7 +261,7 @@ export async function loadLights(): Promise<void> {
           light.state.reachable
         ) {
           // Emit event - let subscribers handle announcements
-          AppEvents.emit('light:changed', {
+          getAppEvents()?.emit('light:changed', {
             room,
             lightId: id,
             lightName: light.name,
@@ -284,8 +293,9 @@ export async function loadLights(): Promise<void> {
     }
 
     // Update state
-    AppState.set('lights', roomLights);
-    AppState.set('previousLightStates', newPreviousStates);
+    const appState = getAppState();
+    appState?.set('lights', roomLights);
+    appState?.set('previousLightStates', newPreviousStates);
 
     updateLightIndicators();
     updateOutdoorLamppost();
@@ -306,7 +316,8 @@ export const Lights = {
   createPixelBulb,
 };
 
-// Expose on window for backwards compatibility
-if (typeof window !== 'undefined') {
-  (window as Window & { Lights?: typeof Lights }).Lights = Lights;
-}
+// Register with the service registry
+Registry.register({
+  key: 'Lights',
+  instance: Lights,
+});

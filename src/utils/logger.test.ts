@@ -5,6 +5,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vitest';
 import { Logger } from './logger';
+import { Registry } from '../core/registry';
 import type { AppConfig } from '../types';
 
 // ============================================
@@ -18,10 +19,15 @@ const originalConsole = {
   error: console.error,
 };
 
-// Mock APP_CONFIG
-(globalThis as typeof globalThis & { APP_CONFIG: Partial<AppConfig> }).APP_CONFIG = {
-  debug: true,
-};
+// Helper to mock APP_CONFIG in Registry
+function mockAppConfig(config: Partial<AppConfig> | undefined) {
+  if (config === undefined) {
+    // Clear the registry entry
+    Registry.clear();
+  } else {
+    Registry.replace('APP_CONFIG', config as AppConfig);
+  }
+}
 
 // ============================================
 // Logger._timestamp Tests
@@ -72,11 +78,12 @@ describe('Logger.debug', () => {
   beforeEach(() => {
     console.log = vi.fn();
     Logger.currentLevel = 0; // DEBUG
-    (globalThis as typeof globalThis & { APP_CONFIG: Partial<AppConfig> }).APP_CONFIG = { debug: true };
+    mockAppConfig({ debug: true });
   });
 
   afterEach(() => {
     console.log = originalConsole.log;
+    Registry.clear();
   });
 
   it('should log when debug mode is enabled', () => {
@@ -89,7 +96,7 @@ describe('Logger.debug', () => {
   });
 
   it('should not log when debug mode is disabled', () => {
-    (globalThis as typeof globalThis & { APP_CONFIG: Partial<AppConfig> }).APP_CONFIG = { debug: false };
+    mockAppConfig({ debug: false });
 
     Logger.debug('Debug message');
 
@@ -97,7 +104,7 @@ describe('Logger.debug', () => {
   });
 
   it('should not log when APP_CONFIG is undefined', () => {
-    (globalThis as typeof globalThis & { APP_CONFIG?: Partial<AppConfig> }).APP_CONFIG = undefined;
+    mockAppConfig(undefined);
 
     Logger.debug('Debug message');
 

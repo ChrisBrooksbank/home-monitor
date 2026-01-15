@@ -6,28 +6,30 @@
  */
 
 import { Logger } from '../utils/logger';
-import { AppState } from '../core';
 import { SonosAPI } from '../api';
-import { APP_CONFIG } from '../config';
-import type { SonosSpeaker } from '../types';
+import { Registry } from '../core/registry';
+import type { SonosSpeaker, AppConfig } from '../types';
 
-// Extend Window interface with SonosUI
-declare global {
-  interface Window {
-    SonosUI?: typeof SonosUI;
-  }
+// Helper to get AppState from Registry
+function getAppState() {
+  return Registry.getOptional('AppState');
+}
+
+// Helper to get APP_CONFIG from Registry
+function getAppConfig() {
+  return Registry.getOptional('APP_CONFIG') as AppConfig | undefined;
 }
 
 // Helper functions to access AppState
 const getSpeakers = (): Record<string, SonosSpeaker> =>
-  (AppState?.get('speakers') as Record<string, SonosSpeaker>) || {};
+  (getAppState()?.get('speakers') as Record<string, SonosSpeaker>) || {};
 const getSpeakerVolumes = (): Record<string, number> =>
-  (AppState?.get('speakerVolumes') as Record<string, number>) || {};
+  (getAppState()?.get('speakerVolumes') as Record<string, number>) || {};
 const setSpeakers = (speakers: Record<string, SonosSpeaker>): void => {
-  AppState?.set('speakers', speakers);
+  getAppState()?.set('speakers', speakers);
 };
 const setSpeakerVolume = (id: string, volume: number): void => {
-  AppState?.set(`speakerVolumes.${id}`, volume);
+  getAppState()?.set(`speakerVolumes.${id}`, volume);
 };
 
 /**
@@ -146,10 +148,14 @@ function setupSpeakerControl(id: string, speaker: SonosSpeaker): void {
 
   // Make draggable
   const panel = document.getElementById(`sonos-${id}-controls`) as SVGElement | null;
-  if (panel && typeof window.createDraggable === 'function') {
+  const createDraggable = Registry.getOptional('createDraggable');
+  const loadSavedPosition = Registry.getOptional('loadSavedPosition');
+  if (panel && typeof createDraggable === 'function') {
     const storageKey = `sonos${id}Position`;
-    window.loadSavedPosition(panel, storageKey);
-    window.createDraggable(panel, {
+    if (typeof loadSavedPosition === 'function') {
+      loadSavedPosition(panel, storageKey);
+    }
+    createDraggable(panel, {
       storageKey: storageKey,
       excludeSelector: '.sonos-button',
     });
@@ -259,8 +265,10 @@ async function initSonosUI(): Promise<void> {
   await renderSpeakerControls();
 
   // Register volume polling
-  if (window.IntervalManager && APP_CONFIG?.intervals?.sonosVolume) {
-    window.IntervalManager.register(updateSpeakerVolumes, APP_CONFIG.intervals.sonosVolume);
+  const config = getAppConfig();
+  const intervalManager = Registry.getOptional('IntervalManager');
+  if (intervalManager && config?.intervals?.sonosVolume) {
+    intervalManager.register(updateSpeakerVolumes, config.intervals.sonosVolume);
   }
 
   Logger.success('Sonos UI initialized');
@@ -275,10 +283,11 @@ export const SonosUI = {
   updateVolumes: updateSpeakerVolumes,
 };
 
-// Expose for other scripts
-if (typeof window !== 'undefined') {
-  window.SonosUI = SonosUI;
-}
+// Register with the service registry
+Registry.register({
+  key: 'SonosUI',
+  instance: SonosUI,
+});
 
 // Auto-initialize with consistent timing
 function onReady(fn: () => void): void {

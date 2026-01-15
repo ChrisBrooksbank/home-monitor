@@ -189,6 +189,15 @@ function createApp(): FastifyInstance {
         methods: ['GET', 'POST', 'HEAD', 'OPTIONS'],
     });
 
+    // Parse text/xml content for SOAP requests
+    fastify.addContentTypeParser(
+        'text/xml',
+        { parseAs: 'string' },
+        (_req, body, done) => {
+            done(null, body);
+        }
+    );
+
     // Health check (Fastify auto-creates HEAD for GET routes)
     fastify.get('/health', async () => ({
         status: 'ok',

@@ -32,10 +32,10 @@ import type {
   ConnectionHueOnlineEvent,
   ConnectionProxyEvent,
   EventMeta,
+  AppConfig,
 } from './types';
 import { Logger } from './utils/logger';
-import { APP_CONFIG } from './config/constants';
-import { AppEvents } from './core/events';
+import { Registry } from './core/registry';
 import { Poller } from './core/poller';
 import { ConnectionMonitor } from './core/connection-monitor';
 import { AppInitializer } from './core/initializer';
@@ -46,7 +46,6 @@ import {
   initLamppostDraggable,
   toggleLight,
   getRoomLights,
-  LightInfoExtended,
 } from './features/lights';
 import {
   loadMotionSensors,
@@ -59,16 +58,20 @@ import { fetchSunTimes, updateSky } from './features/sky';
 import { updateWeatherDisplay } from './features/weather';
 
 // =============================================================================
-// WINDOW DECLARATIONS
+// REGISTRY HELPERS
 // =============================================================================
 
-declare const window: Window & {
-  WEATHER_CONFIG?: { API_KEY: string; LOCATION?: string };
-  TapoControls?: { init: () => Promise<void> };
-  ColorPicker?: { handleBulbClick: (id: string, light: LightInfoExtended, e: MouseEvent) => void };
-  HomeMonitor?: typeof HomeMonitor;
-  toggleSection?: typeof toggleSection;
-};
+function getAppEvents() {
+  return Registry.getOptional('AppEvents');
+}
+
+function getAppConfig() {
+  return Registry.getOptional('APP_CONFIG') as AppConfig | undefined;
+}
+
+function getTapoControls() {
+  return Registry.getOptional('TapoControls') as { init: () => Promise<void> } | undefined;
+}
 
 // =============================================================================
 // EVENT SUBSCRIPTIONS
@@ -82,37 +85,45 @@ declare const window: Window & {
  * so we only handle voice announcements here.
  */
 function setupEventSubscriptions(): void {
+  const appEvents = getAppEvents();
+  const appConfig = getAppConfig();
+
+  if (!appEvents) {
+    Logger.warn('AppEvents not available, skipping event subscriptions');
+    return;
+  }
+
   // Motion detection -> voice announcement
   // (MotionIndicators handles its own subscription for visual indicators)
-  AppEvents.on<MotionDetectedEvent>('motion:detected', (data) => {
+  appEvents.on<MotionDetectedEvent>('motion:detected', (data) => {
     announceMotion(data.room);
   });
 
   // Light state change -> voice announcement
-  AppEvents.on<LightChangedEvent>('light:changed', (data) => {
+  appEvents.on<LightChangedEvent>('light:changed', (data) => {
     announceLight(data.room, data.on);
   });
 
   // Connection status changes -> logging
-  AppEvents.on<ConnectionHueOnlineEvent>('connection:hue:online', (data) => {
+  appEvents.on<ConnectionHueOnlineEvent>('connection:hue:online', (data) => {
     Logger.success(`Hue Bridge connected: ${data.name}`);
   });
 
-  AppEvents.on('connection:hue:offline', () => {
+  appEvents.on('connection:hue:offline', () => {
     Logger.warn('Hue Bridge disconnected');
   });
 
-  AppEvents.on<ConnectionProxyEvent>('connection:proxy:online', (data) => {
+  appEvents.on<ConnectionProxyEvent>('connection:proxy:online', (data) => {
     Logger.success(`${data.proxy} proxy connected`);
   });
 
-  AppEvents.on<ConnectionProxyEvent>('connection:proxy:offline', (data) => {
+  appEvents.on<ConnectionProxyEvent>('connection:proxy:offline', (data) => {
     Logger.warn(`${data.proxy} proxy disconnected`);
   });
 
   // Debug: log all events in debug mode
-  if (APP_CONFIG.debug) {
-    AppEvents.on('*', (data: unknown, meta: EventMeta) => {
+  if (appConfig?.debug) {
+    appEvents.on('*', (data: unknown, meta: EventMeta) => {
       Logger.debug(`Event: ${meta.event}`, data);
     });
   }
@@ -151,10 +162,11 @@ async function init(): Promise<void> {
 
   // Initialize Tapo once proxy check completes
   proxyCheckPromise.then(async () => {
-    if (typeof window.TapoControls !== 'undefined' && window.TapoControls?.init) {
+    const tapoControls = getTapoControls();
+    if (tapoControls?.init) {
       if (ConnectionMonitor.isOnline('tapo')) {
         Logger.info('Initializing Tapo controls...');
-        await window.TapoControls.init();
+        await tapoControls.init();
       } else {
         Logger.warn('Tapo proxy offline, skipping Tapo initialization');
       }
@@ -174,20 +186,22 @@ async function init(): Promise<void> {
   initLamppostDraggable();
   initWheelieBinDraggable();
   initBinStatusDisplay();
+  setupCollapsibleSections();
 
   // Register polling tasks using the Poller module
+  const appConfig = getAppConfig();
   Poller.register(
     'connectionStatus',
     async () => { await ConnectionMonitor.checkAll(); },
-    APP_CONFIG.intervals.connectionStatus || 30000
+    appConfig?.intervals?.connectionStatus ?? 30000
   );
-  Poller.register('motionSensors', loadMotionSensors, APP_CONFIG.intervals.motionSensors);
-  Poller.register('lights', loadLights, APP_CONFIG.intervals.lights);
-  Poller.register('temperatures', () => loadTemperatures(false), APP_CONFIG.intervals.temperatures);
-  Poller.register('motionLog', updateMotionLogDisplay, APP_CONFIG.intervals.motionLog);
-  Poller.register('sky', updateSky, APP_CONFIG.intervals.sky);
-  Poller.register('sunTimes', async () => { await fetchSunTimes(); }, APP_CONFIG.intervals.sunTimes);
-  Poller.register('weather', async () => { await updateWeatherDisplay(); }, APP_CONFIG.intervals.weather);
+  Poller.register('motionSensors', loadMotionSensors, appConfig?.intervals?.motionSensors ?? 3000);
+  Poller.register('lights', loadLights, appConfig?.intervals?.lights ?? 10000);
+  Poller.register('temperatures', () => loadTemperatures(false), appConfig?.intervals?.temperatures ?? 60000);
+  Poller.register('motionLog', updateMotionLogDisplay, appConfig?.intervals?.motionLog ?? 60000);
+  Poller.register('sky', updateSky, appConfig?.intervals?.sky ?? 60000);
+  Poller.register('sunTimes', async () => { await fetchSunTimes(); }, appConfig?.intervals?.sunTimes ?? 86400000);
+  Poller.register('weather', async () => { await updateWeatherDisplay(); }, appConfig?.intervals?.weather ?? 900000);
 
   // Start all polling
   Poller.startAll();
@@ -196,7 +210,7 @@ async function init(): Promise<void> {
 
   // Emit app ready event
   // Note: MooseSystem subscribes to this event and auto-initializes
-  AppEvents.emit('app:ready', {
+  getAppEvents()?.emit('app:ready', {
     timestamp: Date.now(),
     features: {
       hue: ConnectionMonitor.isOnline('hue'),
@@ -226,9 +240,20 @@ function toggleSection(contentId: string, arrowId: string): void {
   }
 }
 
-// Expose toggleSection globally for onclick handlers
-if (typeof window !== 'undefined') {
-  window.toggleSection = toggleSection;
+/**
+ * Setup click handlers for collapsible sections
+ */
+function setupCollapsibleSections(): void {
+  const sensorHeader = document.getElementById('sensor-header');
+  const motionHeader = document.getElementById('motion-header');
+
+  sensorHeader?.addEventListener('click', () => {
+    toggleSection('sensor-details-content', 'sensor-arrow');
+  });
+
+  motionHeader?.addEventListener('click', () => {
+    toggleSection('motion-log-content', 'motion-arrow');
+  });
 }
 
 // =============================================================================
@@ -249,10 +274,11 @@ export const HomeMonitor = {
   getMotionSensors,
 } as const;
 
-// Expose on window for global access
-if (typeof window !== 'undefined') {
-  window.HomeMonitor = HomeMonitor;
-}
+// Register with the service registry
+Registry.register({
+  key: 'HomeMonitor',
+  instance: HomeMonitor,
+});
 
 // Auto-initialize
 AppInitializer.onReady(init);

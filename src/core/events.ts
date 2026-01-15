@@ -278,7 +278,10 @@ export const AppEvents = {
   request,
 } as const;
 
-// Expose on window for global access
-if (typeof window !== 'undefined') {
-  window.AppEvents = AppEvents;
-}
+// Register with the service registry
+import { Registry } from './registry';
+
+Registry.register({
+  key: 'AppEvents',
+  instance: AppEvents,
+});

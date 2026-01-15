@@ -11,6 +11,7 @@
     "proxy:tapo": "npx tsx src/proxies/tapo-proxy.ts",
     "proxy:shield": "npx tsx src/proxies/shield-proxy.ts",
     "proxy:news": "npx tsx src/proxies/news-proxy.ts",
+    "proxy:nest": "npx tsx src/proxies/nest-proxy.ts",
     "start": "npx tsx src/scripts/start.ts",
     "test": "vitest",
     "test:run": "vitest run",

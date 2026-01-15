@@ -11,6 +11,7 @@ export interface ProxyConfig {
   sonos: string;
   tapo: string;
   shield: string;
+  nest: string;
 }
 
 export interface IntervalsConfig {
@@ -383,6 +384,7 @@ export interface ConnectionStatus {
   name?: string | null;
   apiVersion?: string | null;
   uptime?: number | null;
+  error?: string | null;
 }
 
 export interface ConnectionsState {
@@ -390,6 +392,7 @@ export interface ConnectionsState {
   sonos: ConnectionStatus;
   tapo: ConnectionStatus;
   shield: ConnectionStatus;
+  nest: ConnectionStatus;
 }
 
 export interface NestState {

@@ -4,6 +4,7 @@
  */
 
 import type { DraggableOptions, TransformData, Position } from '../types';
+import { Registry } from '../core/registry';
 
 /**
  * Load saved position from localStorage
@@ -210,8 +211,12 @@ export function setPosition(
   element.setAttribute('transform', newTransform);
 }
 
-// Expose on window for global access
-if (typeof window !== 'undefined') {
-  window.createDraggable = createDraggable;
-  window.loadSavedPosition = loadSavedPosition;
-}
+// Register with the service registry
+Registry.register({
+  key: 'createDraggable',
+  instance: createDraggable,
+});
+Registry.register({
+  key: 'loadSavedPosition',
+  instance: loadSavedPosition,
+});

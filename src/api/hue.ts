@@ -4,7 +4,6 @@
  */
 
 import type {
-  HueConfig,
   HueLightsResponse,
   HueSensorsResponse,
   HueLightState,
@@ -12,10 +11,7 @@ import type {
   HueBridgeDiscovery,
 } from '../types';
 import { Logger } from '../utils/logger';
-
-declare const window: Window & {
-  HUE_CONFIG?: HueConfig;
-};
+import { Registry } from '../core/registry';
 
 interface BridgeConfig {
   ip: string;
@@ -23,12 +19,13 @@ interface BridgeConfig {
 }
 
 /**
- * Get bridge configuration from global HUE_CONFIG
+ * Get bridge configuration from Registry or window fallback
  */
 function getBridgeConfig(): BridgeConfig {
+  const config = Registry.getOptional('HUE_CONFIG');
   return {
-    ip: window.HUE_CONFIG?.BRIDGE_IP ?? '192.168.68.51',
-    username: window.HUE_CONFIG?.USERNAME ?? '',
+    ip: config?.BRIDGE_IP ?? '192.168.68.51',
+    username: config?.USERNAME ?? '',
   };
 }
 
@@ -274,7 +271,8 @@ export const HueAPI = {
   getBridgeInfo,
 } as const;
 
-// Expose on window for global access
-if (typeof window !== 'undefined') {
-  window.HueAPI = HueAPI;
-}
+// Register with the service registry
+Registry.register({
+  key: 'HueAPI',
+  instance: HueAPI,
+});

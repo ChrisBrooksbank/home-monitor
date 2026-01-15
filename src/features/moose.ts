@@ -6,14 +6,15 @@
  */
 
 import { Logger } from '../utils/logger';
-import { AppEvents } from '../core';
-import { APP_CONFIG } from '../config';
+import { Registry } from '../core/registry';
+import type { AppConfig } from '../types';
 
-// Declare global types
-declare global {
-  interface Window {
-    MooseSystem?: typeof MooseSystem;
-  }
+// Helpers to get services from Registry
+function getAppEvents() {
+  return Registry.getOptional('AppEvents');
+}
+function getAppConfig() {
+  return Registry.getOptional('APP_CONFIG') as AppConfig | undefined;
 }
 
 // Moose configuration interface
@@ -513,18 +514,26 @@ export const MooseSystem = {
   config: MOOSE_CONFIG,
 };
 
-// Expose to window for script tag usage
-if (typeof window !== 'undefined') {
-  window.MooseSystem = MooseSystem;
-}
+// Register with the service registry
+Registry.register({
+  key: 'MooseSystem',
+  instance: MooseSystem,
+});
 
 // Subscribe to app:ready event for automatic initialization
 // This decouples MooseSystem from app.js
-if (typeof window !== 'undefined' && AppEvents) {
-  AppEvents.on('app:ready', () => {
-    // Initialize with debug mode from config if available
-    const debugMode = APP_CONFIG?.debug || MOOSE_CONFIG.DEBUG_MODE;
-    initMooseSystem(debugMode);
-    Logger.info(`Moose system auto-initialized via app:ready event (debug: ${debugMode})`);
-  });
+if (typeof window !== 'undefined') {
+  // Defer subscription to allow Registry to be populated
+  setTimeout(() => {
+    const appEvents = getAppEvents();
+    if (appEvents) {
+      appEvents.on('app:ready', () => {
+        // Initialize with debug mode from config if available
+        const config = getAppConfig();
+        const debugMode = config?.debug || MOOSE_CONFIG.DEBUG_MODE;
+        initMooseSystem(debugMode);
+        Logger.info(`Moose system auto-initialized via app:ready event (debug: ${debugMode})`);
+      });
+    }
+  }, 0);
 }

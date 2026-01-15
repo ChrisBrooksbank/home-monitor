@@ -3,20 +3,30 @@
  * Application bootstrap and initialization
  */
 
-// Import config first - sets up window.APP_CONFIG needed by logger and other modules
+// Import core registry first
+import './core/registry';
+
+// Bridge external configs (from config.js) to Registry BEFORE feature modules
+// This module auto-bridges on import (config.js loads via script tag before this module)
+import './config/config-bridge';
+
+// Import config - registers APP_CONFIG with Registry
 import './config/constants';
 
-// Import utilities - sets up window.IntervalManager needed by features
+// Import utilities - registers IntervalManager with Registry
 import './utils/helpers';
+
+// Import draggable UI - registers createDraggable and loadSavedPosition
+import './ui/draggable';
 
 // Import UI modules that auto-initialize on DOM ready
 import './ui/layers';
 import './ui/color-picker';
 
-// Import feature modules that expose window globals
+// Import feature modules that register with the Registry
 // IMPORTANT: These must be imported BEFORE app.ts because app.ts's
 // onReady callback may run immediately if DOM is already loaded,
-// and it checks for window.TapoControls, window.SonosUI, etc.
+// and it looks up TapoControls, SonosUI, etc. from Registry
 import './features/tapo';
 import './features/sonos';
 import './features/shield';
