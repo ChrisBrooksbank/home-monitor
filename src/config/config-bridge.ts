@@ -56,6 +56,30 @@ export function bridgeExternalConfig(): void {
 }
 
 /**
+ * Get NEST_CONFIG with fallback to window global
+ * Ensures config is available even if bridge timing is off
+ */
+export function getNestConfigWithFallback(): typeof window.NEST_CONFIG | undefined {
+  // Try Registry first
+  const fromRegistry = Registry.getOptional('NEST_CONFIG');
+  if (fromRegistry) {
+    return fromRegistry as typeof window.NEST_CONFIG;
+  }
+
+  // Fallback to window global (in case bridge hasn't run yet)
+  if (typeof window !== 'undefined' && window.NEST_CONFIG) {
+    // Also register it for future calls
+    Registry.register({
+      key: 'NEST_CONFIG',
+      instance: window.NEST_CONFIG,
+    });
+    return window.NEST_CONFIG;
+  }
+
+  return undefined;
+}
+
+/**
  * Check if external configs are available
  * Useful for conditional initialization
  */

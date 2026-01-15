@@ -5,6 +5,7 @@
 
 import { Logger } from '../utils/logger';
 import { Registry } from '../core/registry';
+import { getNestConfigWithFallback } from '../config/config-bridge';
 import type { NestThermostat, AppConfig } from '../types';
 
 // Helper to get APP_CONFIG from Registry
@@ -40,7 +41,8 @@ let nestTokenExpiry = 0;
 
 // Get Nest configuration from global config (supports both UPPER_CASE and snake_case)
 const getNestConfig = (): NestConfigInternal => {
-  const cfg = Registry.getOptional('NEST_CONFIG') as Record<string, string | number | undefined> | undefined;
+  // Use fallback function that checks Registry then window global
+  const cfg = getNestConfigWithFallback() as Record<string, string | number | undefined> | undefined;
   return {
     clientId: cfg?.CLIENT_ID as string | undefined,
     clientSecret: cfg?.CLIENT_SECRET as string | undefined,
