@@ -3,7 +3,7 @@
  * Tests Tapo plug discovery and control functions
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import {
   getPlugIP,
   MANUAL_PLUGS,
@@ -85,7 +85,7 @@ describe('MANUAL_PLUGS', () => {
   });
 
   it('should contain plug entries with required fields', () => {
-    for (const [key, plug] of Object.entries(MANUAL_PLUGS)) {
+    for (const [_key, plug] of Object.entries(MANUAL_PLUGS)) {
       expect(plug).toHaveProperty('ip');
       expect(plug).toHaveProperty('nickname');
       expect(plug.ip).toMatch(/^\d+\.\d+\.\d+\.\d+$/);

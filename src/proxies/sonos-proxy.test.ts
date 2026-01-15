@@ -3,12 +3,11 @@
  * Tests Sonos speaker discovery and control functions
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import {
   getSpeakerIP,
   _setDiscoveredSpeakers,
   _resetDiscoveredSpeakers,
-  type SpeakerMap,
 } from './sonos-proxy';
 
 // ============================================

@@ -218,7 +218,7 @@ async function renderSpeakerControls(): Promise<void> {
       const volume = await SonosAPI.getVolume(speaker.ip);
       setSpeakerVolume(id, volume);
       updateVolumeDisplay(id, volume);
-    } catch (e) {
+    } catch (_e) {
       Logger.warn(`Could not get volume for ${id}`);
     }
   }
@@ -234,7 +234,7 @@ async function updateSpeakerVolumes(): Promise<void> {
       const volume = await SonosAPI.getVolume(speaker.ip);
       setSpeakerVolume(id, volume);
       updateVolumeDisplay(id, volume);
-    } catch (e) {
+    } catch (_e) {
       // Silently fail on volume update
     }
   }

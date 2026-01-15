@@ -242,7 +242,7 @@ async function updateShieldStatus(): Promise<void> {
     if (nameEl && shieldInfo) {
       nameEl.textContent = shieldInfo.name || 'SHIELD';
     }
-  } catch (error) {
+  } catch (_error) {
     shieldAvailable = false;
     if (led) {
       led.setAttribute('fill', '#f44336');

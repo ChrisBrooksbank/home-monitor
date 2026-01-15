@@ -325,7 +325,7 @@ function makeNestDraggable(group: SVGElement): void {
     try {
       const position = JSON.parse(savedPosition);
       group.setAttribute('transform', `translate(${position.x}, ${position.y})`);
-    } catch (e) {
+    } catch (_e) {
       // Ignore parse errors
     }
   }

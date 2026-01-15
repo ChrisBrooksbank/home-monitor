@@ -138,7 +138,7 @@ async function discoverSpeakers(): Promise<SpeakerMap> {
     const speakerMap: SpeakerMap = {};
 
     for (const speaker of speakers) {
-        let baseKey = (speaker.room || 'unknown').toLowerCase().replace(/\s+/g, '-');
+        const baseKey = (speaker.room || 'unknown').toLowerCase().replace(/\s+/g, '-');
 
         // Handle duplicate room names (e.g., grouped speakers)
         if (roomCounts[baseKey] === undefined) {

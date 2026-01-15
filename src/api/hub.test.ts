@@ -213,11 +213,9 @@ describe('HubAPI.stop', () => {
   });
 
   it('should stop active session', async () => {
-    let callCount = 0;
     (globalThis as typeof globalThis & { fetch: Mock }).fetch = vi
       .fn()
       .mockImplementation((url: string, options?: { method?: string }) => {
-        callCount++;
         if (url.includes('/apps') && (!options || options.method !== 'DELETE')) {
           // getStatus call
           return Promise.resolve({
@@ -247,7 +245,7 @@ describe('HubAPI.stop', () => {
       .fn()
       .mockRejectedValue(new Error('Network error'));
 
-    const result = await HubAPI.stop();
+    await HubAPI.stop();
 
     // Note: The actual implementation catches the error in getStatus and returns
     // { isPlaying: false }, so stop() returns true (already idle)

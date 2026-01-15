@@ -54,7 +54,7 @@ function getPosition(plugName: string): { x: number; y: number } {
   if (saved) {
     try {
       return JSON.parse(saved);
-    } catch (e) {
+    } catch (_e) {
       // Ignore parse errors
     }
   }
