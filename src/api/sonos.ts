@@ -4,7 +4,6 @@
  */
 
 import type {
-  AppConfig,
   SonosCommand,
   SonosSpeakersResponse,
   SonosDiscoveryResponse,
@@ -12,8 +11,12 @@ import type {
 } from '../types';
 import { Logger } from '../utils/logger';
 import { retryWithBackoff } from '../utils/helpers';
+import { Registry } from '../core/registry';
 
-declare const APP_CONFIG: AppConfig;
+// Helper to get APP_CONFIG
+function getAppConfig() {
+  return Registry.getOptional('APP_CONFIG');
+}
 
 type CommandName = 'Play' | 'Pause' | 'GetVolume' | 'SetVolume';
 
@@ -80,8 +83,9 @@ async function soapRequest(
   soapAction: string,
   soapBody: string
 ): Promise<SoapResponse> {
+  const config = getAppConfig();
   try {
-    const proxyUrl = `${APP_CONFIG.proxies.sonos}${path}`;
+    const proxyUrl = `${config?.proxies?.sonos ?? 'http://localhost:3000'}${path}`;
 
     const response = await fetch(proxyUrl, {
       method: 'POST',
@@ -91,7 +95,7 @@ async function soapRequest(
         'X-Sonos-IP': ip,
       },
       body: soapBody,
-      signal: AbortSignal.timeout(APP_CONFIG.timeouts.apiRequest),
+      signal: AbortSignal.timeout(config?.timeouts?.apiRequest ?? 10000),
     });
 
     const text = await response.text();
@@ -178,10 +182,11 @@ async function changeVolume(ip: string, delta: number): Promise<boolean> {
  * Get list of discovered speakers
  */
 async function getSpeakers(): Promise<SonosSpeakersResponse> {
+  const config = getAppConfig();
   try {
-    const response = await fetch(`${APP_CONFIG.proxies.sonos}/speakers`, {
+    const response = await fetch(`${config?.proxies?.sonos ?? 'http://localhost:3000'}/speakers`, {
       method: 'GET',
-      signal: AbortSignal.timeout(APP_CONFIG.timeouts.proxyCheck),
+      signal: AbortSignal.timeout(config?.timeouts?.proxyCheck ?? 2000),
     });
     return (await response.json()) as SonosSpeakersResponse;
   } catch (error) {
@@ -195,9 +200,10 @@ async function getSpeakers(): Promise<SonosSpeakersResponse> {
  * Trigger network discovery for Sonos speakers
  */
 async function discover(): Promise<SonosDiscoveryResponse> {
+  const config = getAppConfig();
   Logger.info('Starting Sonos speaker discovery...');
   try {
-    const response = await fetch(`${APP_CONFIG.proxies.sonos}/discover`, {
+    const response = await fetch(`${config?.proxies?.sonos ?? 'http://localhost:3000'}/discover`, {
       method: 'POST',
       signal: AbortSignal.timeout(60000),
     });
@@ -217,10 +223,11 @@ async function discover(): Promise<SonosDiscoveryResponse> {
  * Check if Sonos proxy is available
  */
 async function checkAvailability(): Promise<boolean> {
+  const config = getAppConfig();
   try {
-    const response = await fetch(`${APP_CONFIG.proxies.sonos}/speakers`, {
+    const response = await fetch(`${config?.proxies?.sonos ?? 'http://localhost:3000'}/speakers`, {
       method: 'HEAD',
-      signal: AbortSignal.timeout(APP_CONFIG.timeouts.proxyCheck),
+      signal: AbortSignal.timeout(config?.timeouts?.proxyCheck ?? 2000),
     });
     if (response.ok) {
       Logger.success('Sonos proxy is available');
@@ -235,7 +242,9 @@ async function checkAvailability(): Promise<boolean> {
 }
 
 export const SonosAPI = {
-  proxyUrl: APP_CONFIG?.proxies?.sonos ?? 'http://localhost:3000',
+  get proxyUrl() {
+    return getAppConfig()?.proxies?.sonos ?? 'http://localhost:3000';
+  },
   commands,
   buildSoapXml,
   soapRequest,
@@ -250,7 +259,8 @@ export const SonosAPI = {
   checkAvailability,
 } as const;
 
-// Expose on window for global access
-if (typeof window !== 'undefined') {
-  window.SonosAPI = SonosAPI;
-}
+// Register with the service registry
+Registry.register({
+  key: 'SonosAPI',
+  instance: SonosAPI,
+});

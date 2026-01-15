@@ -5,19 +5,7 @@
 
 import type { Feature, FeatureConfig } from '../types';
 import { Logger } from '../utils/logger';
-
-declare const window: Window & {
-  AppConfig?: {
-    init: () => Promise<{ isValid: boolean; hasFeature: (name: string) => boolean }>;
-  };
-  toggleViewMode?: () => void;
-  loadSavedPosition?: (element: SVGElement | HTMLElement, storageKey: string) => void;
-  createDraggable?: (
-    element: SVGElement | HTMLElement,
-    options: { storageKey?: string; excludeSelector?: string }
-  ) => void;
-  AppInitializer?: typeof AppInitializer;
-};
+import { Registry } from './registry';
 
 const VIEW_MODE_KEY = 'homeMonitorViewMode';
 
@@ -57,10 +45,11 @@ function updateViewModeLabel(isCompact: boolean): void {
   if (icon) icon.textContent = '\u{1F441}\uFE0F';
 }
 
-// Expose toggle globally for onclick handler
-if (typeof window !== 'undefined') {
-  window.toggleViewMode = toggleViewMode;
-}
+// Register toggleViewMode with the Registry
+Registry.register({
+  key: 'toggleViewMode',
+  instance: toggleViewMode,
+});
 
 /**
  * Register a feature for initialization
@@ -148,12 +137,11 @@ function loadSavedPosition(element: SVGElement | HTMLElement | null, storageKey:
  * Setup draggable functionality for UI elements
  */
 function setupDraggables(): void {
-  if (typeof window.createDraggable !== 'function') {
+  const createDraggable = Registry.getOptional('createDraggable');
+  if (!createDraggable) {
     Logger.warn('Initializer: createDraggable not available');
     return;
   }
-
-  const createDraggable = window.createDraggable;
 
   // Weather panel
   const weatherPanel = document.getElementById('weather-info-panel');
@@ -204,12 +192,19 @@ interface ConfigResult {
  * Initialize and validate app configuration
  */
 async function initConfiguration(): Promise<ConfigResult> {
-  if (!window.AppConfig) {
+  // Check for AppConfig via Registry or window (for backwards compat)
+  const appConfig = Registry.getOptional('CONFIG') as { init?: () => Promise<ConfigResult> } | undefined;
+  const windowAppConfig = typeof window !== 'undefined'
+    ? (window as Window & { AppConfig?: { init: () => Promise<ConfigResult> } }).AppConfig
+    : undefined;
+
+  const configModule = appConfig ?? windowAppConfig;
+  if (!configModule?.init) {
     Logger.warn('Initializer: AppConfig not available');
     return { isValid: true, hasFeature: () => true };
   }
 
-  const config = await window.AppConfig.init();
+  const config = await configModule.init();
   if (!config.isValid) {
     Logger.error('Configuration has errors - some features may not work');
   }
@@ -261,8 +256,13 @@ export const AppInitializer = {
   onReady,
 } as const;
 
-// Expose on window for global access
-if (typeof window !== 'undefined') {
-  window.AppInitializer = AppInitializer;
-  window.loadSavedPosition = loadSavedPosition;
-}
+// Register with the service registry
+Registry.register({
+  key: 'AppInitializer',
+  instance: AppInitializer,
+});
+
+Registry.register({
+  key: 'loadSavedPosition',
+  instance: loadSavedPosition,
+});

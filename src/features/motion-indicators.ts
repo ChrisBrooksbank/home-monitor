@@ -6,14 +6,12 @@
  */
 
 import { Logger } from '../utils/logger';
-import { AppEvents } from '../core';
+import { Registry } from '../core/registry';
 import type { MotionDetectedEvent, RoomPosition } from '../types';
 
-// Declare global types
-declare global {
-  interface Window {
-    MotionIndicators?: typeof MotionIndicators;
-  }
+// Helper to get AppEvents from Registry
+function getAppEvents() {
+  return Registry.getOptional('AppEvents');
 }
 
 const NS = 'http://www.w3.org/2000/svg';
@@ -222,8 +220,9 @@ function updateIndicators(motionSensors: Record<string, MotionSensorState>): voi
  */
 function init(): void {
   // Subscribe to motion events - this decouples us from app.js
-  if (AppEvents) {
-    AppEvents.on('motion:detected', (data: MotionDetectedEvent) => {
+  const appEvents = getAppEvents();
+  if (appEvents) {
+    appEvents.on('motion:detected', (data: MotionDetectedEvent) => {
       showMotionIndicator(data.room);
     });
     Logger.info('Motion indicators subscribed to motion:detected events');
@@ -240,10 +239,11 @@ export const MotionIndicators = {
   update: updateIndicators,
 };
 
-// Expose to window (show/clear kept for backwards compatibility)
-if (typeof window !== 'undefined') {
-  window.MotionIndicators = MotionIndicators;
-}
+// Register with the service registry
+Registry.register({
+  key: 'MotionIndicators',
+  instance: MotionIndicators,
+});
 
 // Auto-initialize when DOM is ready
 if (typeof window !== 'undefined') {

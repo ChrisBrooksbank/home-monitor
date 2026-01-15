@@ -5,10 +5,20 @@
  */
 
 import { Logger } from '../utils/logger';
-import { AppState, AppEvents } from '../core';
 import { TapoAPI } from '../api';
-import { APP_CONFIG } from '../config';
-import type { TapoPlug } from '../types';
+import { Registry } from '../core/registry';
+import type { TapoPlug, AppConfig } from '../types';
+
+// Helpers to get services from Registry
+function getAppState() {
+  return Registry.getOptional('AppState');
+}
+function getAppEvents() {
+  return Registry.getOptional('AppEvents');
+}
+function getAppConfig() {
+  return Registry.getOptional('APP_CONFIG') as AppConfig | undefined;
+}
 
 // Constants
 const CONTAINER_ID = 'tapo-plugs-container';
@@ -27,9 +37,9 @@ const DEFAULT_POSITIONS: Record<string, { x: number; y: number }> = {
 
 // Helper to access plug states from AppState
 const getPlugStates = (): Record<string, boolean> =>
-  (AppState?.get('plugs') as Record<string, boolean>) || {};
+  (getAppState()?.get('plugs') as Record<string, boolean>) || {};
 const setPlugState = (name: string, isOn: boolean): void => {
-  AppState?.set(`plugs.${name}`, isOn);
+  getAppState()?.set(`plugs.${name}`, isOn);
 };
 
 /**
@@ -414,7 +424,7 @@ async function togglePlug(plugName: string): Promise<void> {
     }
 
     // Emit event on successful toggle
-    AppEvents?.emit('tapo:toggled', {
+    getAppEvents()?.emit('tapo:toggled', {
       plug: plugName,
       on: newState,
       timestamp: Date.now(),
@@ -486,9 +496,10 @@ async function syncPlugsWithDiscovery(): Promise<void> {
         if (element) element.remove();
 
         // Remove from AppState
-        const plugs = (AppState?.get('plugs') as Record<string, boolean>) || {};
+        const appState = getAppState();
+        const plugs = (appState?.get('plugs') as Record<string, boolean>) || {};
         delete plugs[name];
-        AppState?.set('plugs', plugs);
+        appState?.set('plugs', plugs);
       }
     }
   } catch (error) {
@@ -563,13 +574,16 @@ async function init(): Promise<void> {
     await refreshAllStatuses();
 
     // Set up periodic status refresh
-    if (window.IntervalManager) {
-      window.IntervalManager.register(refreshAllStatuses, APP_CONFIG.intervals.tapoStatus);
+    const intervalManager = Registry.getOptional('IntervalManager');
+    const config = getAppConfig();
+    const tapoInterval = config?.intervals?.tapoStatus || 30000;
+    if (intervalManager) {
+      intervalManager.register(refreshAllStatuses, tapoInterval);
       // Sync with discovery to detect new/removed plugs - use a longer interval
-      window.IntervalManager.register(syncPlugsWithDiscovery, APP_CONFIG.intervals.tapoStatus * 10);
+      intervalManager.register(syncPlugsWithDiscovery, tapoInterval * 10);
     } else {
-      setInterval(refreshAllStatuses, APP_CONFIG.intervals.tapoStatus || 30000);
-      setInterval(syncPlugsWithDiscovery, (APP_CONFIG.intervals.tapoStatus || 30000) * 10);
+      setInterval(refreshAllStatuses, tapoInterval);
+      setInterval(syncPlugsWithDiscovery, tapoInterval * 10);
     }
 
     Logger.success(`Tapo controls initialized for ${Object.keys(plugs).length} plugs`);
@@ -588,10 +602,11 @@ export const TapoControls = {
   togglePlug,
 };
 
-// Expose to window
-if (typeof window !== 'undefined') {
-  window.TapoControls = TapoControls;
-}
+// Register with the service registry
+Registry.register({
+  key: 'TapoControls',
+  instance: TapoControls,
+});
 
 // NOTE: Auto-initialization removed - app.js now calls TapoControls.init()
 // This ensures proper initialization order and avoids race conditions

@@ -3,10 +3,13 @@
  * Shared utilities for the Home Monitor application
  */
 
-import type { AppConfig } from '../types';
 import { Logger } from './logger';
+import { Registry } from '../core/registry';
 
-declare const APP_CONFIG: AppConfig;
+// Helper to get APP_CONFIG from Registry
+function getAppConfig() {
+  return Registry.getOptional('APP_CONFIG');
+}
 
 /**
  * Sanitize HTML to prevent XSS attacks
@@ -39,10 +42,11 @@ export async function checkProxyAvailability(
   url: string,
   name: string
 ): Promise<boolean> {
+  const config = getAppConfig();
   try {
     const response = await fetch(url, {
       method: 'HEAD',
-      signal: AbortSignal.timeout(APP_CONFIG.timeouts.proxyCheck),
+      signal: AbortSignal.timeout(config?.timeouts?.proxyCheck ?? 2000),
     });
     if (response.ok) {
       Logger.success(`${name} proxy is available`);
@@ -61,25 +65,31 @@ export async function checkProxyAvailability(
  */
 export async function retryWithBackoff<T>(
   fn: () => Promise<T>,
-  maxAttempts: number = APP_CONFIG.retry.maxAttempts,
-  delay: number = APP_CONFIG.retry.initialDelay
+  maxAttempts?: number,
+  delay?: number
 ): Promise<T> {
+  const config = getAppConfig();
+  const attempts = maxAttempts ?? config?.retry?.maxAttempts ?? 3;
+  const initialDelay = delay ?? config?.retry?.initialDelay ?? 1000;
+  const backoffMultiplier = config?.retry?.backoffMultiplier ?? 2;
+  const maxDelay = config?.retry?.maxDelay ?? 10000;
+
   let lastError: Error | undefined;
 
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+  for (let attempt = 1; attempt <= attempts; attempt++) {
     try {
       return await fn();
     } catch (err) {
       lastError = err instanceof Error ? err : new Error(String(err));
 
-      if (attempt === maxAttempts) {
-        Logger.error(`Failed after ${maxAttempts} attempts:`, lastError.message);
+      if (attempt === attempts) {
+        Logger.error(`Failed after ${attempts} attempts:`, lastError.message);
         throw lastError;
       }
 
       const backoffDelay = Math.min(
-        delay * Math.pow(APP_CONFIG.retry.backoffMultiplier, attempt - 1),
-        APP_CONFIG.retry.maxDelay
+        initialDelay * Math.pow(backoffMultiplier, attempt - 1),
+        maxDelay
       );
 
       Logger.warn(`Attempt ${attempt} failed, retrying in ${backoffDelay}ms...`);
@@ -160,13 +170,16 @@ class IntervalManagerClass {
 
 export const IntervalManager = new IntervalManagerClass();
 
+// Register with the service registry
+Registry.register({
+  key: 'IntervalManager',
+  instance: IntervalManager,
+});
+
 // Cleanup on page unload
 if (typeof window !== 'undefined') {
   window.addEventListener('beforeunload', () => {
     Logger.info('Page unloading - cleaning up resources');
     IntervalManager.clearAll();
   });
-
-  // Expose on window for global access
-  window.IntervalManager = IntervalManager;
 }

@@ -4,15 +4,12 @@
  */
 
 import { Logger } from '../utils/logger';
-import { APP_CONFIG } from '../config';
-import type { NestThermostat } from '../types';
+import { Registry } from '../core/registry';
+import type { NestThermostat, AppConfig } from '../types';
 
-// Declare global types for Nest-specific window properties
-declare global {
-  interface Window {
-    NestIntegration?: typeof NestIntegration;
-    setNestTemp?: typeof setNestTemperature;
-  }
+// Helper to get APP_CONFIG from Registry
+function getAppConfig() {
+  return Registry.getOptional('APP_CONFIG') as AppConfig | undefined;
 }
 
 // Internal Nest configuration interface (with legacy snake_case support)
@@ -43,7 +40,7 @@ let nestTokenExpiry = 0;
 
 // Get Nest configuration from global config (supports both UPPER_CASE and snake_case)
 const getNestConfig = (): NestConfigInternal => {
-  const cfg = window.NEST_CONFIG as Record<string, string | number | undefined> | undefined;
+  const cfg = Registry.getOptional('NEST_CONFIG') as Record<string, string | number | undefined> | undefined;
   return {
     clientId: cfg?.CLIENT_ID as string | undefined,
     clientSecret: cfg?.CLIENT_SECRET as string | undefined,
@@ -469,8 +466,6 @@ function initNestIntegration(
     intervalManager.register(updateNestDisplay, pollInterval);
   }
 
-  // Expose for console access
-  window.setNestTemp = setNestTemperature;
 }
 
 /**
@@ -492,18 +487,23 @@ export const NestIntegration = {
   getThermostatStatus,
 };
 
-// Expose for other scripts
-if (typeof window !== 'undefined') {
-  window.NestIntegration = NestIntegration;
-}
+// Register with the service registry
+Registry.register({
+  key: 'NestIntegration',
+  instance: NestIntegration,
+});
 
 // Auto-initialize when DOM is ready
 if (typeof window !== 'undefined') {
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-      initNestIntegration(window.IntervalManager, APP_CONFIG.intervals.nest);
+      const intervalManager = Registry.getOptional('IntervalManager');
+      const config = getAppConfig();
+      initNestIntegration(intervalManager, config?.intervals?.nest ?? 15 * 60 * 1000);
     });
   } else {
-    initNestIntegration(window.IntervalManager, APP_CONFIG.intervals.nest);
+    const intervalManager = Registry.getOptional('IntervalManager');
+    const config = getAppConfig();
+    initNestIntegration(intervalManager, config?.intervals?.nest ?? 15 * 60 * 1000);
   }
 }

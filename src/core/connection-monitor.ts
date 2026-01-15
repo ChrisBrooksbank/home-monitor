@@ -3,14 +3,22 @@
  * Handles health checks and reconnection logic for all services
  */
 
-import type { AppConfig, ConnectionStatus, ConnectionsState, HueConfig } from '../types';
+import type { ConnectionStatus, ConnectionsState } from '../types';
 import { Logger } from '../utils/logger';
-import { AppEvents } from './events';
+import { Registry } from './registry';
 
-declare const APP_CONFIG: AppConfig;
-declare const window: Window & {
-  HUE_CONFIG?: HueConfig;
-};
+// Helper to get config values
+function getAppConfig() {
+  return Registry.getOptional('APP_CONFIG');
+}
+
+function getHueConfig() {
+  return Registry.getOptional('HUE_CONFIG');
+}
+
+function getAppEvents() {
+  return Registry.getOptional('AppEvents');
+}
 
 export interface FullConnectionStatus extends ConnectionStatus {
   name?: string | null;
@@ -64,7 +72,9 @@ interface HueBridgeConfigResponse {
  * Check Hue bridge connectivity
  */
 async function checkHueBridgeHealth(): Promise<boolean> {
-  const BRIDGE_IP = window.HUE_CONFIG?.BRIDGE_IP ?? '192.168.68.51';
+  const hueConfig = getHueConfig();
+  const appConfig = getAppConfig();
+  const BRIDGE_IP = hueConfig?.BRIDGE_IP ?? '192.168.68.51';
 
   updateIndicator('status-hue', 'checking');
 
@@ -72,7 +82,7 @@ async function checkHueBridgeHealth(): Promise<boolean> {
     const controller = new AbortController();
     const timeoutId = setTimeout(
       () => controller.abort(),
-      APP_CONFIG.timeouts.proxyCheck
+      appConfig?.timeouts?.proxyCheck ?? 2000
     );
 
     const response = await fetch(`http://${BRIDGE_IP}/api/config`, {
@@ -97,7 +107,8 @@ async function checkHueBridgeHealth(): Promise<boolean> {
         );
 
         if (wasOffline) {
-          AppEvents.emit('connection:hue:online', {
+          const events = getAppEvents();
+          events?.emit('connection:hue:online', {
             name: data.name ?? 'Hue Bridge',
             apiVersion: data.apiversion ?? 'unknown',
           });
@@ -123,7 +134,8 @@ async function checkHueBridgeHealth(): Promise<boolean> {
   );
 
   if (wasOnline) {
-    AppEvents.emit('connection:hue:offline', {
+    const events = getAppEvents();
+    events?.emit('connection:hue:offline', {
       bridgeIp: BRIDGE_IP,
     });
   }
@@ -141,13 +153,14 @@ async function checkProxyHealth(
   proxyName: 'sonos' | 'tapo' | 'shield',
   url: string
 ): Promise<boolean> {
+  const appConfig = getAppConfig();
   updateIndicator(`status-${proxyName}`, 'checking');
 
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(
       () => controller.abort(),
-      APP_CONFIG.timeouts.proxyCheck
+      appConfig?.timeouts?.proxyCheck ?? 2000
     );
 
     const response = await fetch(`${url}/health`, { signal: controller.signal });
@@ -168,7 +181,8 @@ async function checkProxyHealth(
       );
 
       if (wasOffline) {
-        AppEvents.emit('connection:proxy:online', {
+        const events = getAppEvents();
+        events?.emit('connection:proxy:online', {
           proxy: proxyName,
           uptime: data.uptime,
         });
@@ -192,7 +206,8 @@ async function checkProxyHealth(
   );
 
   if (wasOnline) {
-    AppEvents.emit('connection:proxy:offline', { proxy: proxyName });
+    const events = getAppEvents();
+    events?.emit('connection:proxy:offline', { proxy: proxyName });
   }
   return false;
 }
@@ -206,13 +221,14 @@ async function checkAllConnections(): Promise<ConnectionsState> {
     return connectionStatus;
   }
 
+  const appConfig = getAppConfig();
   isCheckingConnections = true;
   try {
     await Promise.all([
       checkHueBridgeHealth(),
-      checkProxyHealth('sonos', APP_CONFIG.proxies.sonos),
-      checkProxyHealth('tapo', APP_CONFIG.proxies.tapo),
-      checkProxyHealth('shield', APP_CONFIG.proxies.shield),
+      checkProxyHealth('sonos', appConfig?.proxies?.sonos ?? 'http://localhost:3000'),
+      checkProxyHealth('tapo', appConfig?.proxies?.tapo ?? 'http://localhost:3001'),
+      checkProxyHealth('shield', appConfig?.proxies?.shield ?? 'http://localhost:8082'),
     ]);
   } finally {
     isCheckingConnections = false;
@@ -299,9 +315,8 @@ export const ConnectionMonitor = {
   formatUptime,
 } as const;
 
-// Expose on window for global access
-if (typeof window !== 'undefined') {
-  window.ConnectionMonitor = ConnectionMonitor;
-  // Legacy alias
-  (window as unknown as Record<string, unknown>).checkAllConnections = checkAllConnections;
-}
+// Register with the service registry
+Registry.register({
+  key: 'ConnectionMonitor',
+  instance: ConnectionMonitor,
+});

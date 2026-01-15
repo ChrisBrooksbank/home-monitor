@@ -3,11 +3,16 @@
  * Centralized polling scheduler using IntervalManager
  */
 
-import type { AppConfig, PollingTask, PollingTaskStatus, RegisterTaskOptions } from '../types';
+import type { PollingTask, PollingTaskStatus, RegisterTaskOptions } from '../types';
 import { Logger } from '../utils/logger';
 import { IntervalManager } from '../utils/helpers';
+import { Registry } from './registry';
 
-declare const APP_CONFIG: AppConfig;
+// Helper to get debug mode from APP_CONFIG
+function isDebugMode(): boolean {
+  const config = Registry.getOptional('APP_CONFIG');
+  return config?.debug ?? false;
+}
 
 const registeredTasks = new Map<string, PollingTask>();
 
@@ -22,7 +27,7 @@ function createGuardedTask(
 
   return async function guardedTask(): Promise<void> {
     if (isRunning) {
-      if (APP_CONFIG.debug) {
+      if (isDebugMode()) {
         Logger.debug(`${taskName}: Already running, skipping...`);
       }
       return;
@@ -78,7 +83,7 @@ function registerTask(
 
   registeredTasks.set(name, task);
 
-  if (APP_CONFIG.debug) {
+  if (isDebugMode()) {
     Logger.debug(`Poller: Registered task '${name}' (${interval}ms)`);
   }
 
@@ -115,7 +120,7 @@ function startAll(): void {
         () => void task.fn(),
         task.interval
       );
-      if (APP_CONFIG.debug) {
+      if (isDebugMode()) {
         Logger.debug(`Poller: Started '${name}' (ID: ${String(task.intervalId)})`);
       }
     }
@@ -235,7 +240,8 @@ export const Poller = {
   createGuardedTask,
 } as const;
 
-// Expose on window for global access
-if (typeof window !== 'undefined') {
-  window.Poller = Poller;
-}
+// Register with the service registry
+Registry.register({
+  key: 'Poller',
+  instance: Poller,
+});

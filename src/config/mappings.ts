@@ -4,6 +4,7 @@
  */
 
 import type { RoomName, RoomPosition } from '../types';
+import { Registry } from '../core/registry';
 
 // Temperature sensor name to DOM element ID mapping
 export const sensorMapping: Record<string, string> = {
@@ -148,7 +149,8 @@ export const MAPPINGS = {
   mapMotionSensorToRoom,
 } as const;
 
-// Expose on window for global access
-if (typeof window !== 'undefined') {
-  window.MAPPINGS = MAPPINGS;
-}
+// Register with the service registry
+Registry.register({
+  key: 'MAPPINGS',
+  instance: MAPPINGS,
+});

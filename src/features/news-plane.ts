@@ -6,17 +6,18 @@
  */
 
 import { Logger } from '../utils/logger';
-import { AppEvents } from '../core';
-import { APP_CONFIG } from '../config';
+import { Registry } from '../core/registry';
+import type { AppConfig } from '../types';
 
-// Declare global types
-declare global {
-  interface Window {
-    PlaneSystem?: typeof PlaneSystem;
-    LayersPanel?: {
-      getLayerState: (layer: string) => boolean;
-    };
-  }
+// Helpers to get services from Registry
+function getAppEvents() {
+  return Registry.getOptional('AppEvents');
+}
+function getAppConfig() {
+  return Registry.getOptional('APP_CONFIG') as AppConfig | undefined;
+}
+function getLayersPanel() {
+  return Registry.getOptional('LayersPanel') as { getLayerState: (layer: string) => boolean } | undefined;
 }
 
 // News item interface
@@ -35,11 +36,17 @@ interface PlaneConfig {
   MAX_HEADLINE_LENGTH: number;
 }
 
+// Use getter for PROXY_URL since APP_CONFIG may not be available at module load time
+function getProxyUrl(): string {
+  const config = getAppConfig();
+  return config?.proxies?.sonos?.replace(':3000', ':3002') || 'http://localhost:3002';
+}
+
 const PLANE_CONFIG: PlaneConfig = {
   MIN_INTERVAL: 10 * 60 * 1000, // 10 minutes
   MAX_INTERVAL: 15 * 60 * 1000, // 15 minutes
   FLIGHT_DURATION: 18000, // 18 seconds to cross screen
-  PROXY_URL: APP_CONFIG?.proxies?.sonos?.replace(':3000', ':3002') || 'http://localhost:3002',
+  PROXY_URL: 'http://localhost:3002', // Initial value, use getProxyUrl() at runtime
   DEBUG_MODE: false, // Set to true for 30-60 sec intervals
   MAX_HEADLINE_LENGTH: 55, // Truncate headlines longer than this
 };
@@ -67,7 +74,7 @@ const planeState: PlaneState = {
  */
 async function fetchHeadline(): Promise<NewsItem | null> {
   try {
-    const response = await fetch(`${PLANE_CONFIG.PROXY_URL}/random`, {
+    const response = await fetch(`${getProxyUrl()}/random`, {
       signal: AbortSignal.timeout(5000),
     });
 
@@ -167,7 +174,8 @@ async function showPlane(): Promise<void> {
   if (planeState.isActive) return;
 
   // Check if news layer is visible
-  if (window.LayersPanel && !window.LayersPanel.getLayerState('news')) {
+  const layersPanel = getLayersPanel();
+  if (layersPanel && !layersPanel.getLayerState('news')) {
     Logger.debug('News plane: Layer is hidden, skipping flight');
     schedulePlaneFlight();
     return;
@@ -297,16 +305,23 @@ export const PlaneSystem = {
   config: PLANE_CONFIG,
 };
 
-// Expose to window for script tag usage
-if (typeof window !== 'undefined') {
-  window.PlaneSystem = PlaneSystem;
-}
+// Register with the service registry
+Registry.register({
+  key: 'PlaneSystem',
+  instance: PlaneSystem,
+});
 
 // Subscribe to app:ready event for automatic initialization
-if (typeof window !== 'undefined' && AppEvents) {
-  AppEvents.on('app:ready', () => {
-    const debugMode = APP_CONFIG?.debug || PLANE_CONFIG.DEBUG_MODE;
-    initPlaneSystem(debugMode);
-    Logger.info(`News plane auto-initialized via app:ready event (debug: ${debugMode})`);
-  });
+if (typeof window !== 'undefined') {
+  setTimeout(() => {
+    const appEvents = getAppEvents();
+    if (appEvents) {
+      appEvents.on('app:ready', () => {
+        const config = getAppConfig();
+        const debugMode = config?.debug || PLANE_CONFIG.DEBUG_MODE;
+        initPlaneSystem(debugMode);
+        Logger.info(`News plane auto-initialized via app:ready event (debug: ${debugMode})`);
+      });
+    }
+  }, 0);
 }

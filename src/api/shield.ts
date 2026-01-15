@@ -6,8 +6,26 @@
 import type { AppConfig } from '../types';
 import { Logger } from '../utils/logger';
 import { checkProxyAvailability } from '../utils/helpers';
+import { Registry } from '../core/registry';
 
-declare const APP_CONFIG: AppConfig;
+// Helper to get APP_CONFIG from Registry
+function getAppConfig() {
+  return Registry.getOptional('APP_CONFIG') as AppConfig | undefined;
+}
+
+// Helper to get proxy URL
+function getProxyUrl(): string {
+  return getAppConfig()?.proxies?.shield ?? 'http://localhost:8082';
+}
+
+// Helper to get timeout
+function getTimeout(type: 'proxyCheck' | 'apiRequest'): number {
+  const config = getAppConfig();
+  if (type === 'proxyCheck') {
+    return config?.timeouts?.proxyCheck ?? 3000;
+  }
+  return config?.timeouts?.apiRequest ?? 10000;
+}
 
 interface ShieldAppsResponse {
   apps: Array<{
@@ -35,7 +53,7 @@ interface ShieldActionResponse {
  */
 async function checkAvailability(): Promise<boolean> {
   return await checkProxyAvailability(
-    `${APP_CONFIG.proxies.shield}/health`,
+    `${getProxyUrl()}/health`,
     'SHIELD'
   );
 }
@@ -45,9 +63,9 @@ async function checkAvailability(): Promise<boolean> {
  */
 async function getApps(): Promise<ShieldAppsResponse> {
   try {
-    const response = await fetch(`${APP_CONFIG.proxies.shield}/apps`, {
+    const response = await fetch(`${getProxyUrl()}/apps`, {
       method: 'GET',
-      signal: AbortSignal.timeout(APP_CONFIG.timeouts.proxyCheck),
+      signal: AbortSignal.timeout(getTimeout('proxyCheck')),
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     return (await response.json()) as ShieldAppsResponse;
@@ -63,9 +81,9 @@ async function getApps(): Promise<ShieldAppsResponse> {
  */
 async function getInfo(): Promise<ShieldInfoResponse | null> {
   try {
-    const response = await fetch(`${APP_CONFIG.proxies.shield}/info`, {
+    const response = await fetch(`${getProxyUrl()}/info`, {
       method: 'GET',
-      signal: AbortSignal.timeout(APP_CONFIG.timeouts.apiRequest),
+      signal: AbortSignal.timeout(getTimeout('apiRequest')),
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     return (await response.json()) as ShieldInfoResponse;
@@ -82,13 +100,13 @@ async function getInfo(): Promise<ShieldInfoResponse | null> {
 async function launchApp(appName: string): Promise<ShieldActionResponse> {
   Logger.info(`Launching ${appName} on SHIELD...`);
   try {
-    const response = await fetch(`${APP_CONFIG.proxies.shield}/launch`, {
+    const response = await fetch(`${getProxyUrl()}/launch`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-App-Name': appName,
       },
-      signal: AbortSignal.timeout(APP_CONFIG.timeouts.apiRequest),
+      signal: AbortSignal.timeout(getTimeout('apiRequest')),
     });
 
     const result = (await response.json()) as ShieldActionResponse;
@@ -112,9 +130,9 @@ async function launchApp(appName: string): Promise<ShieldActionResponse> {
 async function stop(): Promise<ShieldActionResponse> {
   Logger.info('Stopping SHIELD app...');
   try {
-    const response = await fetch(`${APP_CONFIG.proxies.shield}/stop`, {
+    const response = await fetch(`${getProxyUrl()}/stop`, {
       method: 'POST',
-      signal: AbortSignal.timeout(APP_CONFIG.timeouts.apiRequest),
+      signal: AbortSignal.timeout(getTimeout('apiRequest')),
     });
 
     const result = (await response.json()) as ShieldActionResponse;
@@ -133,7 +151,9 @@ async function stop(): Promise<ShieldActionResponse> {
 }
 
 export const ShieldAPI = {
-  proxyUrl: APP_CONFIG?.proxies?.shield ?? 'http://localhost:8082',
+  get proxyUrl(): string {
+    return getProxyUrl();
+  },
   checkAvailability,
   getApps,
   getInfo,
@@ -141,7 +161,8 @@ export const ShieldAPI = {
   stop,
 } as const;
 
-// Expose on window for global access
-if (typeof window !== 'undefined') {
-  (window as unknown as Record<string, unknown>).ShieldAPI = ShieldAPI;
-}
+// Register with the service registry
+Registry.register({
+  key: 'ShieldAPI' as const,
+  instance: ShieldAPI as unknown as typeof import('./shield').ShieldAPI,
+});
