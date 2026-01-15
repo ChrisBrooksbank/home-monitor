@@ -1,51 +1,63 @@
 {
-  "name": "home-monitor",
-  "version": "2.0.0",
-  "description": "Smart home monitoring dashboard with modular architecture",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "proxy:sonos": "npx tsx src/proxies/sonos-proxy.ts",
-    "proxy:tapo": "npx tsx src/proxies/tapo-proxy.ts",
-    "proxy:shield": "npx tsx src/proxies/shield-proxy.ts",
-    "proxy:news": "npx tsx src/proxies/news-proxy.ts",
-    "proxy:nest": "npx tsx src/proxies/nest-proxy.ts",
-    "start": "npx tsx src/scripts/start.ts",
-    "test": "vitest",
-    "test:run": "vitest run",
-    "test:coverage": "vitest run --coverage",
-    "test:ui": "vitest --ui",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "format": "prettier --write \"**/*.{js,ts,json,md}\"",
-    "format:check": "prettier --check \"**/*.{js,ts,json,md}\""
-  },
-  "dependencies": {
-    "@fastify/cors": "^11.2.0",
-    "canvas": "^3.2.0",
-    "dotenv": "^17.2.3",
-    "fastify": "^5.6.2",
-    "tp-link-tapo-connect": "^2.0.8"
-  },
-  "devDependencies": {
-    "@eslint/js": "^9.39.2",
-    "@types/node": "^25.0.8",
-    "@typescript-eslint/eslint-plugin": "^8.53.0",
-    "@typescript-eslint/parser": "^8.53.0",
-    "@vitest/coverage-v8": "^4.0.16",
-    "concurrently": "^9.2.1",
-    "eslint": "^9.39.2",
-    "eslint-config-prettier": "^10.1.8",
-    "jsdom": "^27.4.0",
-    "prettier": "^3.7.4",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.53.0",
-    "vite": "^5.0.0",
-    "vitest": "^4.0.16"
-  },
-  "engines": {
-    "node": ">=18.0.0"
-  }
+    "name": "home-monitor",
+    "version": "2.0.0",
+    "description": "Smart home monitoring dashboard with modular architecture",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview",
+        "proxy:sonos": "npx tsx src/proxies/sonos-proxy.ts",
+        "proxy:tapo": "npx tsx src/proxies/tapo-proxy.ts",
+        "proxy:shield": "npx tsx src/proxies/shield-proxy.ts",
+        "proxy:news": "npx tsx src/proxies/news-proxy.ts",
+        "proxy:nest": "npx tsx src/proxies/nest-proxy.ts",
+        "start": "npx tsx src/scripts/start.ts",
+        "test": "vitest",
+        "test:run": "vitest run",
+        "test:coverage": "vitest run --coverage",
+        "test:ui": "vitest --ui",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
+        "format": "prettier --write \"**/*.{js,ts,json,md}\"",
+        "format:check": "prettier --check \"**/*.{js,ts,json,md}\"",
+        "prepare": "husky"
+    },
+    "dependencies": {
+        "@fastify/cors": "^11.2.0",
+        "canvas": "^3.2.0",
+        "dotenv": "^17.2.3",
+        "fastify": "^5.6.2",
+        "tp-link-tapo-connect": "^2.0.8"
+    },
+    "devDependencies": {
+        "@eslint/js": "^9.39.2",
+        "@types/node": "^25.0.8",
+        "@typescript-eslint/eslint-plugin": "^8.53.0",
+        "@typescript-eslint/parser": "^8.53.0",
+        "@vitest/coverage-v8": "^4.0.16",
+        "concurrently": "^9.2.1",
+        "eslint": "^9.39.2",
+        "eslint-config-prettier": "^10.1.8",
+        "husky": "^9.1.7",
+        "jsdom": "^27.4.0",
+        "lint-staged": "^16.2.7",
+        "prettier": "^3.7.4",
+        "typescript": "^5.9.3",
+        "typescript-eslint": "^8.53.0",
+        "vite": "^5.0.0",
+        "vitest": "^4.0.16"
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    },
+    "lint-staged": {
+        "*.{js,ts}": [
+            "eslint --fix",
+            "prettier --write"
+        ],
+        "*.{json,md}": [
+            "prettier --write"
+        ]
+    }
 }
