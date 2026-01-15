@@ -186,6 +186,7 @@ async function init(): Promise<void> {
   initLamppostDraggable();
   initWheelieBinDraggable();
   initBinStatusDisplay();
+  setupCollapsibleSections();
 
   // Register polling tasks using the Poller module
   const appConfig = getAppConfig();
@@ -239,11 +240,21 @@ function toggleSection(contentId: string, arrowId: string): void {
   }
 }
 
-// Register toggleSection with Registry
-Registry.register({
-  key: 'toggleSection',
-  instance: toggleSection,
-});
+/**
+ * Setup click handlers for collapsible sections
+ */
+function setupCollapsibleSections(): void {
+  const sensorHeader = document.getElementById('sensor-header');
+  const motionHeader = document.getElementById('motion-header');
+
+  sensorHeader?.addEventListener('click', () => {
+    toggleSection('sensor-details-content', 'sensor-arrow');
+  });
+
+  motionHeader?.addEventListener('click', () => {
+    toggleSection('motion-log-content', 'motion-arrow');
+  });
+}
 
 // =============================================================================
 // EXPOSE MODULE

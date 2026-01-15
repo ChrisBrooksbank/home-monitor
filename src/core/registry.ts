@@ -53,7 +53,6 @@ export type ServiceKey =
   | 'loadSavedPosition'
   | 'LayersPanel'
   // Functions
-  | 'toggleSection'
   | 'toggleViewMode'
   | 'setNestTemp'
   | 'redAlert'
@@ -118,7 +117,6 @@ export interface ServiceMap {
   LayersPanel: { getLayerState: (layer: string) => boolean };
 
   // Functions
-  toggleSection: (contentId: string, arrowId: string) => void;
   toggleViewMode: () => void;
   setNestTemp: (temp: number) => Promise<boolean>;
   redAlert: () => Promise<void>;

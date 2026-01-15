@@ -38,15 +38,11 @@ import { HomeMonitor } from './app';
 
 // Bridge external configs (from config.js) to Registry at runtime
 import { bridgeExternalConfig } from './config/config-bridge';
-import { initCompat } from './core/compat';
 
-// Initialize config bridge and backwards compatibility layer
-// This allows window.* access for code that hasn't been migrated
+// Initialize config bridge for external config.js values
 if (typeof window !== 'undefined') {
   // Bridge config.js values (HUE_CONFIG, WEATHER_CONFIG, NEST_CONFIG)
   bridgeExternalConfig();
-  // Setup window.* getters that delegate to Registry
-  initCompat();
 }
 
 // Re-export for external access if needed
