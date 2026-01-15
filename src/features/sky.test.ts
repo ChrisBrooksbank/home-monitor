@@ -22,9 +22,7 @@ import {
   isDaytime,
   isNighttime,
   fetchSunTimes,
-  type SkyConfig,
   type TimeOfDay,
-  type SunPosition,
 } from './sky';
 import { Logger } from '../utils/logger';
 

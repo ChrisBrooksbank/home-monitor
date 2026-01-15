@@ -3,13 +3,12 @@
  * Tests RSS parsing, caching, and origin validation
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import {
   parseRSS,
   _resetCache,
   _setCache,
   CACHE_DURATION,
-  type Headline,
 } from './news-proxy';
 
 // ============================================

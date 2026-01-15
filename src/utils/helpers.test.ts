@@ -20,7 +20,6 @@ const mockAddEventListener = vi.fn();
 // Import helpers functions and Logger
 import {
   sanitizeHTML,
-  safeSetHTML,
   checkProxyAvailability,
   retryWithBackoff,
   debounce,
