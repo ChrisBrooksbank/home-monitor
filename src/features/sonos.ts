@@ -5,20 +5,10 @@
  * Uses centralized AppState for speaker state management.
  */
 
-import { Logger } from '../utils/logger';
+import { Logger, getAppState, getAppConfig } from '../utils';
 import { SonosAPI } from '../api';
 import { Registry } from '../core/registry';
-import type { SonosSpeaker, AppConfig } from '../types';
-
-// Helper to get AppState from Registry
-function getAppState() {
-  return Registry.getOptional('AppState');
-}
-
-// Helper to get APP_CONFIG from Registry
-function getAppConfig() {
-  return Registry.getOptional('APP_CONFIG') as AppConfig | undefined;
-}
+import type { SonosSpeaker } from '../types';
 
 // Helper functions to access AppState
 const getSpeakers = (): Record<string, SonosSpeaker> =>

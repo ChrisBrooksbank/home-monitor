@@ -3,13 +3,8 @@
  * Provides consistent logging with timestamps and log levels
  */
 
-import type { LogLevel, LogLevels, AppConfig } from '../types';
-import { Registry } from '../core/registry';
-
-// Helper to get APP_CONFIG from Registry
-function getAppConfig() {
-  return Registry.getOptional('APP_CONFIG') as AppConfig | undefined;
-}
+import type { LogLevel, LogLevels } from '../types';
+import { getAppConfig } from './registry-helpers';
 
 const levels: LogLevels = {
   DEBUG: 0,

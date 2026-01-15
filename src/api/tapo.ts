@@ -8,14 +8,8 @@ import type {
   TapoStatusResponse,
   TapoToggleResponse,
 } from '../types';
-import { Logger } from '../utils/logger';
-import { retryWithBackoff } from '../utils/helpers';
+import { Logger, retryWithBackoff, getAppConfig } from '../utils';
 import { Registry } from '../core/registry';
-
-// Helper to get APP_CONFIG
-function getAppConfig() {
-  return Registry.getOptional('APP_CONFIG');
-}
 
 /**
  * Make a request to the Tapo proxy

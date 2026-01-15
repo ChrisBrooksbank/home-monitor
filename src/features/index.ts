@@ -22,9 +22,6 @@ export {
   createSparkles,
 } from './temperature';
 
-// Legacy temperature exports (graph drawing)
-export { Temperature, clearTempHistory, drawGraph, tempHistory } from './temperature.legacy';
-
 // Device UIs
 export { SonosUI } from './sonos';
 export { TapoControls } from './tapo';

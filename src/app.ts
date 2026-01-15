@@ -32,7 +32,6 @@ import type {
   ConnectionHueOnlineEvent,
   ConnectionProxyEvent,
   EventMeta,
-  AppConfig,
 } from './types';
 import { Logger } from './utils/logger';
 import { Registry } from './core/registry';
@@ -57,17 +56,11 @@ import { loadTemperatures, initTempHistory } from './features/temperature';
 import { fetchSunTimes, updateSky } from './features/sky';
 import { updateWeatherDisplay } from './features/weather';
 
+import { getAppEvents, getAppConfig } from './utils';
+
 // =============================================================================
 // REGISTRY HELPERS
 // =============================================================================
-
-function getAppEvents() {
-  return Registry.getOptional('AppEvents');
-}
-
-function getAppConfig() {
-  return Registry.getOptional('APP_CONFIG') as AppConfig | undefined;
-}
 
 function getTapoControls() {
   return Registry.getOptional('TapoControls') as { init: () => Promise<void> } | undefined;

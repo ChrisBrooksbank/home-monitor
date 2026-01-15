@@ -4,22 +4,9 @@
  */
 
 import type { ConnectionStatus, ConnectionsState } from '../types';
-import { Logger } from '../utils/logger';
+import { Logger, getAppConfig, getAppEvents, getHueConfig } from '../utils';
 import { Registry } from './registry';
 import { getNestConfigWithFallback } from '../config/config-bridge';
-
-// Helper to get config values
-function getAppConfig() {
-  return Registry.getOptional('APP_CONFIG');
-}
-
-function getHueConfig() {
-  return Registry.getOptional('HUE_CONFIG');
-}
-
-function getAppEvents() {
-  return Registry.getOptional('AppEvents');
-}
 
 export interface FullConnectionStatus extends ConnectionStatus {
   name?: string | null;

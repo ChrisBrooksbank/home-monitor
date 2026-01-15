@@ -9,14 +9,8 @@ import type {
   SonosDiscoveryResponse,
   SoapResponse,
 } from '../types';
-import { Logger } from '../utils/logger';
-import { retryWithBackoff } from '../utils/helpers';
+import { Logger, retryWithBackoff, getAppConfig } from '../utils';
 import { Registry } from '../core/registry';
-
-// Helper to get APP_CONFIG
-function getAppConfig() {
-  return Registry.getOptional('APP_CONFIG');
-}
 
 type CommandName = 'Play' | 'Pause' | 'GetVolume' | 'SetVolume';
 
