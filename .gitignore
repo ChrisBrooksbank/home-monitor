@@ -21,6 +21,9 @@ dist/
 dist-ssr/
 *.local
 
+# Test coverage
+coverage/
+
 # Vite cache
 .vite/
 
@@ -48,3 +51,6 @@ Thumbs.db
 
 # Temporary files
 nul
+
+# Husky generated files
+.husky/_/
