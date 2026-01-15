@@ -7,11 +7,8 @@
 import './core/registry';
 
 // Bridge external configs (from config.js) to Registry BEFORE feature modules
-// config.js and nest-config.js are loaded via script tags before this module
-import { bridgeExternalConfig } from './config/config-bridge';
-if (typeof window !== 'undefined') {
-  bridgeExternalConfig();
-}
+// This module auto-bridges on import (config.js loads via script tag before this module)
+import './config/config-bridge';
 
 // Import config - registers APP_CONFIG with Registry
 import './config/constants';

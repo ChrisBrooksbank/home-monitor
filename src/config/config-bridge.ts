@@ -78,3 +78,6 @@ export function hasExternalConfig(
       return false;
   }
 }
+
+// Auto-bridge on module load (before other modules that depend on config)
+bridgeExternalConfig();
