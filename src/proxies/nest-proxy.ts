@@ -89,7 +89,7 @@ function exchangeCodeForTokens(code: string, config: NestConfigFile): Promise<To
             },
         };
 
-        const tokenReq = https.request(options, (tokenRes) => {
+        const tokenReq = https.request(options, tokenRes => {
             let data = '';
             tokenRes.on('data', (chunk: Buffer) => (data += chunk));
             tokenRes.on('end', () => {
@@ -187,7 +187,8 @@ function createApp(): FastifyInstance {
         if (!config?.CLIENT_ID || !config?.PROJECT_ID) {
             return reply.code(400).send({
                 error: 'Nest not configured',
-                message: 'nest-config.json is missing or incomplete',
+                message:
+                    'Copy nest-config.example.json to nest-config.json and add your Google Cloud credentials',
             });
         }
 

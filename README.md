@@ -150,10 +150,10 @@ When cloning to a new machine, these files are **not in git** and must be create
 
 ### Optional Files
 
-| File               | Purpose                 | How to Create                          |
-| ------------------ | ----------------------- | -------------------------------------- |
-| `nest-config.js`   | Nest OAuth tokens       | Run `node scripts/setup/nest-auth.cjs` |
-| `nest-config.json` | Nest client credentials | See Nest setup below                   |
+| File               | Purpose                 | How to Create                                   |
+| ------------------ | ----------------------- | ----------------------------------------------- |
+| `nest-config.json` | Nest client credentials | Copy from `nest-config.example.json`            |
+| `nest-config.js`   | Nest OAuth tokens       | Auto-created when you authorize via wheelie bin |
 
 ### Quick Setup Commands
 
@@ -222,29 +222,55 @@ const WEATHER_CONFIG = {
 
 ### Nest Thermostat (Optional)
 
-1. Create Google Cloud project with Smart Device Management API
-2. Create OAuth2 credentials with redirect URI: `http://localhost:8080/auth/callback`
-3. Create `nest-config.json`:
-    ```json
-    {
-        "CLIENT_ID": "your-client-id.apps.googleusercontent.com",
-        "CLIENT_SECRET": "your-client-secret",
-        "PROJECT_ID": "your-sdm-project-id",
-        "REDIRECT_URI": "http://localhost:8080/auth/callback"
-    }
-    ```
-4. Run authorization:
-    ```bash
-    node scripts/setup/nest-auth.cjs
-    ```
+#### 1. Google Cloud Setup
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project (or select existing)
+3. Search for and enable the **Smart Device Management API**
+4. Go to **APIs & Services > Credentials**
+5. Click **Create Credentials > OAuth client ID**
+6. Select **Web application** as application type
+7. Add authorized redirect URI: `http://localhost:3003/auth/callback`
+8. Click **Create** and note your **Client ID** and **Client Secret**
+
+#### 2. Smart Device Management Setup
+
+1. Go to [Device Access Console](https://console.nest.google.com/device-access)
+2. Click **Create project** ($5 one-time registration fee)
+3. Give your project a name
+4. Enter your OAuth Client ID from step 1
+5. Enable events (optional)
+6. Note your **Project ID** (displayed on the project page)
+
+#### 3. Configure the App
+
+Copy the example config and fill in your credentials:
+
+```bash
+cp nest-config.example.json nest-config.json
+```
+
+Edit `nest-config.json`:
+
+```json
+{
+    "CLIENT_ID": "123456789-abc.apps.googleusercontent.com",
+    "CLIENT_SECRET": "GOCSPX-yourSecretHere",
+    "PROJECT_ID": "your-sdm-project-id"
+}
+```
+
+#### 4. Authorize
+
+1. Start the app: `npm start`
+2. Click the **wheelie bin** icon in the bottom-right of the house
+3. Click the **"Auth"** link next to the Nest status indicator
+4. Complete Google authorization in the popup window
+5. Tokens are saved automatically to `nest-config.json` and `nest-config.js`
 
 #### Refreshing Expired Tokens
 
-If you see "Token has been expired or revoked":
-
-```bash
-node scripts/setup/nest-auth.cjs
-```
+If you see "Token has been expired or revoked", simply click the **"Auth"** link in the wheelie bin popup again. No CLI commands needed.
 
 ## Development Commands
 
