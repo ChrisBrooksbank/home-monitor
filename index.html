@@ -1104,11 +1104,8 @@
 
     </div>
 
-    <!-- Global Configuration (must load before modules) -->
-    <script src="config.js"></script>
-    <script src="nest-config.js"></script>
-
     <!-- Main Application (TypeScript, bundled by Vite) -->
+    <!-- Configuration is now loaded from home.config.json via fetch -->
     <script type="module" src="/src/main.ts"></script>
 
     <!-- Service Worker Registration -->

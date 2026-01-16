@@ -1,0 +1,70 @@
+{
+    "$comment": "Copy this file to home.config.json and fill in your values",
+
+    "location": {
+        "name": "Chelmsford, Essex, UK",
+        "coordinates": {
+            "lat": 51.7356,
+            "lng": 0.4685
+        },
+        "postcode": "CM1 6UG"
+    },
+
+    "proxies": {
+        "sonos": { "host": "localhost", "port": 3000 },
+        "tapo": { "host": "localhost", "port": 3001 },
+        "shield": { "host": "localhost", "port": 8082 },
+        "nest": { "host": "localhost", "port": 3003 },
+        "news": { "host": "localhost", "port": 3002 }
+    },
+
+    "intervals": {
+        "motionSensors": 3000,
+        "lights": 10000,
+        "sensorDetails": 10000,
+        "temperatures": 60000,
+        "motionLog": 60000,
+        "sky": 60000,
+        "sunTimes": 86400000,
+        "weather": 900000,
+        "nest": 900000,
+        "sonosVolume": 30000,
+        "tapoStatus": 30000,
+        "connectionStatus": 30000
+    },
+
+    "timeouts": {
+        "proxyCheck": 2000,
+        "apiRequest": 10000
+    },
+
+    "retry": {
+        "maxAttempts": 3,
+        "initialDelay": 1000,
+        "maxDelay": 10000,
+        "backoffMultiplier": 2
+    },
+
+    "history": {
+        "motionRetentionHours": 48,
+        "temperatureRetentionHours": 24
+    },
+
+    "services": {
+        "hue": {
+            "bridgeIp": "192.168.1.XXX",
+            "username": "YOUR-HUE-API-USERNAME"
+        },
+        "weather": {
+            "apiKey": "YOUR-WEATHERAPI-KEY"
+        },
+        "nest": {
+            "clientId": "YOUR-GOOGLE-CLIENT-ID.apps.googleusercontent.com",
+            "clientSecret": "YOUR-GOOGLE-CLIENT-SECRET",
+            "projectId": "YOUR-SDM-PROJECT-ID",
+            "tokens": null
+        }
+    },
+
+    "debug": false
+}

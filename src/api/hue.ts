@@ -12,7 +12,7 @@ import type {
 } from '../types';
 import { Logger } from '../utils/logger';
 import { Registry } from '../core/registry';
-import { Config } from '../config/Config';
+import { getConfig } from '../config';
 
 interface BridgeConfig {
     ip: string;
@@ -20,13 +20,15 @@ interface BridgeConfig {
 }
 
 /**
- * Get bridge configuration from Config facade with centralized defaults
+ * Get bridge configuration from the unified config
  */
 function getBridgeConfig(): BridgeConfig {
-    const hueConfig = Config.hue;
+    const config = getConfig();
+    const hueService = config.services.hue;
+
     return {
-        ip: hueConfig?.BRIDGE_IP ?? Config.app.defaults.hue.BRIDGE_IP,
-        username: hueConfig?.USERNAME ?? '',
+        ip: hueService?.bridgeIp ?? '192.168.68.51',
+        username: hueService?.username ?? '',
     };
 }
 

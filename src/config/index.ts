@@ -1,22 +1,30 @@
 /**
- * Config Module Index
- * Re-exports all configuration
+ * Configuration Module
+ * Unified access point for all configuration
+ *
+ * Usage:
+ *   import { loadConfig, getConfig, isServiceConfigured, getProxyUrl } from '@config';
+ *
+ *   // At app startup (once):
+ *   await loadConfig();
+ *
+ *   // After initialization:
+ *   const config = getConfig();
+ *   if (isServiceConfigured('hue')) { ... }
+ *   const url = getProxyUrl('sonos');
  */
 
-// Constants and location
-export { LOCATION, APP_CONFIG } from './constants';
+// Core config loader and accessors
+export {
+    loadConfig,
+    getConfig,
+    isConfigLoaded,
+    isServiceConfigured,
+    getProxyUrl,
+    resetConfig,
+    setConfig,
+} from './loader';
 
-// Config facade (unified access)
-export { Config, ConfigStatus, withConfiguredFeature } from './Config';
-
-// Environment utilities
-export { Env } from './env';
-
-// Validation schemas
-export { HueConfigSchema, WeatherConfigSchema, NestConfigSchema, validateConfig } from './schemas';
-export type {
-    HueConfigValidated,
-    WeatherConfigValidated,
-    NestConfigValidated,
-    ValidationResult,
-} from './schemas';
+// Schema and types
+export { ConfigValidationError } from './schema';
+export type { HomeConfig } from './schema';

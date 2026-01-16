@@ -4,7 +4,7 @@
  */
 
 import { Logger } from '../utils/logger';
-import { LOCATION } from '../config';
+import { getConfig } from '../config';
 
 // Sky configuration interface
 export interface SkyConfig {
@@ -38,9 +38,12 @@ let sunsetTime: Date | null = null;
  * Fetch sunrise/sunset times from API
  */
 export async function fetchSunTimes(): Promise<SunTimes | null> {
+    const config = getConfig();
+    const { lat, lng } = config.location.coordinates;
+
     try {
         const response = await fetch(
-            `https://api.sunrise-sunset.org/json?lat=${LOCATION.LAT}&lng=${LOCATION.LNG}&formatted=0`
+            `https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lng}&formatted=0`
         );
         const data = await response.json();
 

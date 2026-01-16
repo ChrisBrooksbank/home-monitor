@@ -5,8 +5,9 @@
  * Subscribes to AppEvents 'app:ready' for automatic initialization.
  */
 
-import { Logger, getAppEvents, getAppConfig } from '../utils';
+import { Logger, getAppEvents } from '../utils';
 import { Registry } from '../core/registry';
+import { getProxyUrl, getConfig, isConfigLoaded } from '../config';
 
 // Helper to get LayersPanel from Registry
 function getLayersPanel() {
@@ -31,17 +32,20 @@ interface PlaneConfig {
     MAX_HEADLINE_LENGTH: number;
 }
 
-// Use getter for PROXY_URL since APP_CONFIG may not be available at module load time
-function getProxyUrl(): string {
-    const config = getAppConfig();
-    return config?.proxies?.sonos?.replace(':3000', ':3002') || 'http://localhost:3002';
+// Use getter for PROXY_URL since config may not be available at module load time
+function getNewsProxyUrl(): string {
+    try {
+        return getProxyUrl('news');
+    } catch {
+        return 'http://localhost:3002';
+    }
 }
 
 const PLANE_CONFIG: PlaneConfig = {
     MIN_INTERVAL: 10 * 60 * 1000, // 10 minutes
     MAX_INTERVAL: 15 * 60 * 1000, // 15 minutes
     FLIGHT_DURATION: 18000, // 18 seconds to cross screen
-    PROXY_URL: 'http://localhost:3002', // Initial value, use getProxyUrl() at runtime
+    PROXY_URL: 'http://localhost:3002', // Initial value, use getNewsProxyUrl() at runtime
     DEBUG_MODE: false, // Set to true for 30-60 sec intervals
     MAX_HEADLINE_LENGTH: 55, // Truncate headlines longer than this
 };
@@ -69,7 +73,7 @@ const planeState: PlaneState = {
  */
 async function fetchHeadline(): Promise<NewsItem | null> {
     try {
-        const response = await fetch(`${getProxyUrl()}/random`, {
+        const response = await fetch(`${getNewsProxyUrl()}/random`, {
             signal: AbortSignal.timeout(5000),
         });
 
@@ -312,8 +316,8 @@ if (typeof window !== 'undefined') {
         const appEvents = getAppEvents();
         if (appEvents) {
             appEvents.on('app:ready', () => {
-                const config = getAppConfig();
-                const debugMode = config?.debug || PLANE_CONFIG.DEBUG_MODE;
+                const debugMode =
+                    (isConfigLoaded() && getConfig().debug) || PLANE_CONFIG.DEBUG_MODE;
                 initPlaneSystem(debugMode);
                 Logger.info(
                     `News plane auto-initialized via app:ready event (debug: ${debugMode})`

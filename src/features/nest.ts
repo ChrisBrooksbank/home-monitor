@@ -5,10 +5,10 @@
 
 import { Logger } from '../utils';
 import { Registry } from '../core/registry';
-import { Config } from '../config/Config';
+import { getConfig } from '../config';
 import type { NestThermostat } from '../types';
 
-// Internal Nest configuration interface (normalized to UPPER_CASE by config-bridge)
+// Internal Nest configuration interface
 interface NestConfigInternal {
     clientId: string | undefined;
     clientSecret: string | undefined;
@@ -33,15 +33,16 @@ let nestDevices: NestThermostat[] = [];
 let nestAccessToken: string | null = null;
 let nestTokenExpiry = 0;
 
-// Get Nest configuration from Config facade (normalized by config-bridge)
+// Get Nest configuration from unified config
 const getNestConfig = (): NestConfigInternal => {
-    const cfg = Config.nest;
+    const config = getConfig();
+    const nest = config.services.nest;
     return {
-        clientId: cfg?.CLIENT_ID,
-        clientSecret: cfg?.CLIENT_SECRET,
-        projectId: cfg?.PROJECT_ID,
-        refreshToken: cfg?.REFRESH_TOKEN,
-        accessToken: cfg?.ACCESS_TOKEN,
+        clientId: nest?.clientId,
+        clientSecret: nest?.clientSecret,
+        projectId: nest?.projectId,
+        refreshToken: nest?.tokens?.refreshToken,
+        accessToken: nest?.tokens?.accessToken,
     };
 };
 
@@ -495,10 +496,12 @@ if (typeof window !== 'undefined') {
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
             const intervalManager = Registry.getOptional('IntervalManager');
-            initNestIntegration(intervalManager, Config.app.intervals.nest);
+            const config = getConfig();
+            initNestIntegration(intervalManager, config.intervals.nest);
         });
     } else {
         const intervalManager = Registry.getOptional('IntervalManager');
-        initNestIntegration(intervalManager, Config.app.intervals.nest);
+        const config = getConfig();
+        initNestIntegration(intervalManager, config.intervals.nest);
     }
 }

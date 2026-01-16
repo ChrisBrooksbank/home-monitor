@@ -4,7 +4,7 @@
  */
 
 import { Logger } from '../utils/logger';
-import { Config } from '../config/Config';
+import { getConfig } from '../config';
 
 // Weather data interface
 export interface WeatherData {
@@ -18,13 +18,15 @@ export interface WeatherData {
     windDir: string;
 }
 
-// Weather configuration using Config facade
+// Weather configuration using the unified config
 const WEATHER_CONFIG = {
     get apiKey(): string {
-        return Config.weather?.API_KEY || '';
+        const config = getConfig();
+        return config.services.weather?.apiKey || '';
     },
     get location(): string {
-        return Config.weather?.LOCATION || Config.app.defaults.weather.LOCATION;
+        const config = getConfig();
+        return config.location.postcode || config.location.name;
     },
 };
 

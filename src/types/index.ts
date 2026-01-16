@@ -527,7 +527,6 @@ export interface Feature extends FeatureConfig {
 
 declare global {
     interface Window {
-        APP_CONFIG?: AppConfig;
         HUE_CONFIG?: HueConfig;
         WEATHER_CONFIG?: WeatherConfig & { LOCATION?: string };
         NEST_CONFIG?: NestConfig;

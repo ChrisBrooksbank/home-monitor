@@ -97,28 +97,32 @@ A real-time, interactive smart home dashboard for monitoring and controlling Phi
     npm install
     ```
 
-2. **Create environment file:**
+2. **Create configuration file:**
+
+    ```bash
+    cp home.config.example.json home.config.json
+    ```
+
+3. **Configure `home.config.json`:**
+
+    Edit the file with your settings:
+    - `services.hue`: Your Hue Bridge IP and API username
+    - `services.weather`: Your WeatherAPI.com API key
+    - `services.nest`: Google Nest OAuth credentials (optional)
+    - `proxies`: Customize proxy ports if needed
+
+4. **Create environment file for Tapo:**
 
     ```bash
     cp .env.example .env
     ```
 
-3. **Configure `.env`:**
+    Edit `.env` with your Tapo credentials:
 
     ```env
     TAPO_EMAIL=your-email@example.com
     TAPO_PASSWORD=your-password
-    FRONTEND_ORIGIN=http://localhost:5173
-    NODE_ENV=development
     ```
-
-4. **Configure Hue Bridge:**
-
-    ```bash
-    cp config.example.js config.js
-    ```
-
-    Edit `config.js` with your Hue Bridge IP and API username.
 
 5. **Start the application:**
 
@@ -143,17 +147,10 @@ When cloning to a new machine, these files are **not in git** and must be create
 
 ### Required Files
 
-| File        | Purpose                                 | Template            |
-| ----------- | --------------------------------------- | ------------------- |
-| `config.js` | Hue Bridge credentials, Weather API key | `config.example.js` |
-| `.env`      | Tapo email/password                     | `.env.example`      |
-
-### Optional Files
-
-| File               | Purpose                 | How to Create                                   |
-| ------------------ | ----------------------- | ----------------------------------------------- |
-| `nest-config.json` | Nest client credentials | Copy from `nest-config.example.json`            |
-| `nest-config.js`   | Nest OAuth tokens       | Auto-created when you authorize via wheelie bin |
+| File               | Purpose                                   | Template                   |
+| ------------------ | ----------------------------------------- | -------------------------- |
+| `home.config.json` | All app config (Hue, Weather, Nest, etc.) | `home.config.example.json` |
+| `.env`             | Tapo email/password (proxy-side only)     | `.env.example`             |
 
 ### Quick Setup Commands
 
@@ -164,11 +161,11 @@ cd home-monitor
 npm install
 
 # Create config files from templates
-cp config.example.js config.js
+cp home.config.example.json home.config.json
 cp .env.example .env
 
 # Edit with your credentials
-# config.js: Add HUE_CONFIG.BRIDGE_IP and USERNAME
+# home.config.json: Configure Hue, Weather, Nest services
 # .env: Add TAPO_EMAIL and TAPO_PASSWORD
 
 # Start
@@ -177,7 +174,17 @@ npm start
 
 ### Troubleshooting
 
-**"APP_CONFIG is not defined"** - The `js/config.js` file should be in git. Run `git pull`.
+**"Configuration file not found"** - Copy the example config:
+
+```bash
+cp home.config.example.json home.config.json
+```
+
+**"Configuration validation failed"** - Check the error message for which field is invalid. Common issues:
+
+- Placeholder values like "YOUR-" still in config
+- Invalid IP address format for Hue bridge
+- Missing required fields
 
 **"Unexpected token '<'"** - Browser cached a bad response. Clear site data:
 
@@ -187,7 +194,7 @@ npm start
 **Greyed out status indicators** - Check:
 
 1. Node.js 18+ installed (`node --version`)
-2. `config.js` exists in project root with correct Hue credentials
+2. `home.config.json` exists with correct Hue credentials
 3. Devices are on same network (VPN may block local access)
 
 **Proxies not starting** - Ports may be in use. Check with:
@@ -198,26 +205,48 @@ netstat -ano | findstr ":3000 :3001 :8082"
 
 ## Configuration
 
-### Hue Bridge (Required)
+All configuration is in a single `home.config.json` file. Copy `home.config.example.json` and customize.
 
-Edit `config.js`:
+### Hue Bridge
 
-```javascript
-const HUE_CONFIG = {
-    BRIDGE_IP: '192.168.1.XXX',
-    USERNAME: 'your-hue-api-username',
-};
+```json
+{
+    "services": {
+        "hue": {
+            "bridgeIp": "192.168.1.XXX",
+            "username": "your-hue-api-username"
+        }
+    }
+}
 ```
 
-### Weather API (Optional)
+### Weather API
 
-Sign up at [weatherapi.com](https://www.weatherapi.com/signup.aspx) and add to `config.js`:
+Sign up at [weatherapi.com](https://www.weatherapi.com/signup.aspx):
 
-```javascript
-const WEATHER_CONFIG = {
-    API_KEY: 'your-api-key',
-    LOCATION: 'CM1 6UG',
-};
+```json
+{
+    "services": {
+        "weather": {
+            "apiKey": "your-api-key"
+        }
+    }
+}
+```
+
+### Proxy Ports
+
+Customize if defaults conflict with other services:
+
+```json
+{
+    "proxies": {
+        "sonos": { "host": "localhost", "port": 3000 },
+        "tapo": { "host": "localhost", "port": 3001 },
+        "shield": { "host": "localhost", "port": 8082 },
+        "nest": { "host": "localhost", "port": 3003 }
+    }
+}
 ```
 
 ### Nest Thermostat (Optional)
@@ -244,19 +273,18 @@ const WEATHER_CONFIG = {
 
 #### 3. Configure the App
 
-Copy the example config and fill in your credentials:
-
-```bash
-cp nest-config.example.json nest-config.json
-```
-
-Edit `nest-config.json`:
+Add your credentials to `home.config.json`:
 
 ```json
 {
-    "CLIENT_ID": "123456789-abc.apps.googleusercontent.com",
-    "CLIENT_SECRET": "GOCSPX-yourSecretHere",
-    "PROJECT_ID": "your-sdm-project-id"
+    "services": {
+        "nest": {
+            "clientId": "123456789-abc.apps.googleusercontent.com",
+            "clientSecret": "GOCSPX-yourSecretHere",
+            "projectId": "your-sdm-project-id",
+            "tokens": null
+        }
+    }
 }
 ```
 
@@ -266,7 +294,7 @@ Edit `nest-config.json`:
 2. Click the **wheelie bin** icon in the bottom-right of the house
 3. Click the **"Auth"** link next to the Nest status indicator
 4. Complete Google authorization in the popup window
-5. Tokens are saved automatically to `nest-config.json` and `nest-config.js`
+5. Tokens are saved automatically to `home.config.json`
 
 #### Refreshing Expired Tokens
 
@@ -299,46 +327,55 @@ npm run preview        # Preview production build
 
 ```
 home/
-├── index.html              # Main SVG-based house visualization
-├── config.js               # Hue/Weather credentials (not committed)
-├── nest-config.js          # Nest OAuth tokens (not committed)
-├── js/
-│   ├── app.js              # Main application entry point
-│   ├── config.js           # Runtime configuration (intervals, URLs)
+├── index.html                  # Main SVG-based house visualization
+├── home.config.json            # All app config (not committed)
+├── home.config.example.json    # Config template
+├── .env                        # Tapo credentials (not committed)
+├── src/
+│   ├── main.ts                 # Application entry point
+│   ├── app.ts                  # Main orchestration module
 │   ├── config/
-│   │   ├── schema.js       # Config validation schemas
-│   │   ├── loader.js       # Config loading with validation
-│   │   └── index.js        # Config module entry point
+│   │   ├── index.ts            # Config module exports
+│   │   ├── schema.ts           # Zod validation schemas
+│   │   ├── loader.ts           # Async config loader
+│   │   ├── defaults.ts         # Default configuration values
+│   │   ├── env.ts              # Environment detection
+│   │   └── mappings.ts         # Room/sensor name mappings
 │   ├── api/
-│   │   ├── sonos.js        # Sonos API client
-│   │   ├── tapo.js         # Tapo API client
-│   │   └── shield.js       # SHIELD API client
+│   │   ├── hue.ts              # Philips Hue API client
+│   │   ├── sonos.ts            # Sonos SOAP/UPnP client
+│   │   ├── tapo.ts             # Tapo API client
+│   │   └── shield.ts           # SHIELD ADB client
 │   ├── features/
-│   │   ├── effects.js      # Light effects (party mode, etc.)
-│   │   ├── moose.js        # Monty the Moose character
-│   │   ├── motion-indicators.js  # Monkey motion indicators
-│   │   ├── nest.js         # Nest thermostat
-│   │   ├── shield.js       # SHIELD TV controls
-│   │   ├── sonos.js        # Sonos speaker UI
-│   │   └── tapo.js         # Tapo plug controls
+│   │   ├── effects.ts          # Light effects (party mode, etc.)
+│   │   ├── moose.ts            # Monty the Moose character
+│   │   ├── motion-indicators.ts # Monkey motion indicators
+│   │   ├── nest.ts             # Nest thermostat
+│   │   ├── weather.ts          # Weather display
+│   │   ├── sky.ts              # Day/night sky effects
+│   │   └── ...
+│   ├── core/
+│   │   ├── registry.ts         # Service registry
+│   │   ├── events.ts           # Event bus
+│   │   ├── state.ts            # Centralized state
+│   │   └── poller.ts           # Polling scheduler
 │   ├── ui/
-│   │   └── draggable.js    # Drag-and-drop functionality
+│   │   └── draggable.ts        # Drag-and-drop functionality
 │   └── utils/
-│       ├── logger.js       # Logging utilities
-│       └── helpers.js      # IntervalManager, retryWithBackoff
-├── proxies/
-│   ├── sonos-proxy.js      # Sonos SOAP/UPnP proxy
-│   ├── tapo-proxy.js       # Tapo API proxy with discovery
-│   ├── shield-proxy.js     # SHIELD ADB proxy
-│   └── middleware.js       # Shared proxy middleware
+│       ├── logger.ts           # Logging utilities
+│       └── helpers.ts          # IntervalManager, retryWithBackoff
+├── src/proxies/
+│   ├── sonos-proxy.ts          # Sonos SOAP/UPnP proxy
+│   ├── tapo-proxy.ts           # Tapo API proxy with discovery
+│   ├── shield-proxy.ts         # SHIELD ADB proxy
+│   ├── nest-proxy.ts           # Nest OAuth proxy
+│   └── middleware.ts           # Shared proxy middleware
 ├── scripts/
-│   ├── setup/              # Device discovery scripts (.cjs)
-│   ├── testing/            # Testing/debugging scripts (.cjs)
-│   └── control/            # Device control CLI scripts (.cjs)
-├── config/
-│   └── devices.json        # Discovered device registry
+│   ├── setup/                  # Device discovery scripts
+│   ├── testing/                # Testing/debugging scripts
+│   └── control/                # Device control CLI scripts
 └── css/
-    └── main.css            # Styles including animations
+    └── main.css                # Styles including animations
 ```
 
 ## Health Checks

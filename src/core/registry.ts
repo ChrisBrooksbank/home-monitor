@@ -3,7 +3,7 @@
  * Replaces window globals with explicit service registration
  */
 
-import type { AppConfig, HueConfig, WeatherConfig, NestConfig } from '../types';
+import type { HueConfig, WeatherConfig, NestConfig } from '../types';
 
 // =============================================================================
 // SERVICE KEY TYPE
@@ -36,7 +36,6 @@ type ServiceKey =
     | 'HomeMonitor'
     | 'Lights'
     // Config
-    | 'APP_CONFIG'
     | 'HUE_CONFIG'
     | 'WEATHER_CONFIG'
     | 'NEST_CONFIG'
@@ -91,7 +90,6 @@ interface ServiceMap {
     Lights: { loadLights: () => Promise<void>; updateLightIndicators: () => void };
 
     // Config
-    APP_CONFIG: AppConfig;
     HUE_CONFIG: HueConfig;
     WEATHER_CONFIG: WeatherConfig & { LOCATION?: string };
     NEST_CONFIG: NestConfig & {

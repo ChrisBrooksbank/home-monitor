@@ -3,16 +3,10 @@
  * Handles health checks and reconnection logic for all services
  */
 
-import type { ConnectionStatus, ConnectionsState } from '../types';
+import type { ConnectionsState } from '../types';
 import { Logger, getAppEvents } from '../utils';
 import { Registry } from './registry';
-import { Config } from '../config/Config';
-
-interface FullConnectionStatus extends ConnectionStatus {
-    name?: string | null;
-    apiVersion?: string | null;
-    uptime?: number | null;
-}
+import { getConfig, getProxyUrl } from '../config';
 
 const connectionStatus: ConnectionsState = {
     hue: { online: false, lastCheck: null, name: null, apiVersion: null, error: null },
@@ -61,13 +55,14 @@ interface HueBridgeConfigResponse {
  * Check Hue bridge connectivity
  */
 async function checkHueBridgeHealth(): Promise<boolean> {
-    const BRIDGE_IP = Config.hue?.BRIDGE_IP ?? Config.app.defaults.hue.BRIDGE_IP;
+    const config = getConfig();
+    const BRIDGE_IP = config.services.hue?.bridgeIp ?? '192.168.68.51';
 
     updateIndicator('status-hue', 'checking');
 
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), Config.app.timeouts.proxyCheck);
+        const timeoutId = setTimeout(() => controller.abort(), config.timeouts.proxyCheck);
 
         const response = await fetch(`http://${BRIDGE_IP}/api/config`, {
             signal: controller.signal,
@@ -137,11 +132,12 @@ async function checkProxyHealth(
     proxyName: 'sonos' | 'tapo' | 'shield',
     url: string
 ): Promise<boolean> {
+    const config = getConfig();
     updateIndicator(`status-${proxyName}`, 'checking');
 
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), Config.app.timeouts.proxyCheck);
+        const timeoutId = setTimeout(() => controller.abort(), config.timeouts.proxyCheck);
 
         const response = await fetch(`${url}/health`, { signal: controller.signal });
         clearTimeout(timeoutId);
@@ -198,10 +194,11 @@ async function checkProxyHealth(
 function checkNestHealth(): boolean {
     updateIndicator('status-nest', 'checking');
 
-    const config = Config.nest;
+    const config = getConfig();
+    const nestConfig = config.services.nest;
 
     // Check if config exists
-    if (!config) {
+    if (!nestConfig) {
         const errorMsg = "Run 'npx tsx src/scripts/setup/nest-auth.ts' to configure";
         const wasOnline = connectionStatus.nest.online;
         connectionStatus.nest = {
@@ -218,8 +215,8 @@ function checkNestHealth(): boolean {
         return false;
     }
 
-    // Get access token (normalized to UPPER_CASE by config-bridge)
-    if (!config.ACCESS_TOKEN) {
+    // Get access token
+    if (!nestConfig.tokens?.accessToken) {
         const errorMsg = 'Access token missing - re-run auth setup';
         const wasOnline = connectionStatus.nest.online;
         connectionStatus.nest = {
@@ -269,9 +266,9 @@ async function checkAllConnections(): Promise<ConnectionsState> {
         // Check others in parallel (network calls)
         await Promise.all([
             checkHueBridgeHealth(),
-            checkProxyHealth('sonos', Config.app.proxies.sonos),
-            checkProxyHealth('tapo', Config.app.proxies.tapo),
-            checkProxyHealth('shield', Config.app.proxies.shield),
+            checkProxyHealth('sonos', getProxyUrl('sonos')),
+            checkProxyHealth('tapo', getProxyUrl('tapo')),
+            checkProxyHealth('shield', getProxyUrl('shield')),
         ]);
     } finally {
         isCheckingConnections = false;

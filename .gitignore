@@ -1,4 +1,5 @@
 # Sensitive configuration - DO NOT COMMIT (root level only)
+/home.config.json
 /config.js
 /nest-config.js
 /nest-config.json

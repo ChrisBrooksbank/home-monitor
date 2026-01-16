@@ -5,4 +5,4 @@
 
 export { Logger } from './logger';
 export { checkProxyAvailability, retryWithBackoff } from './helpers';
-export { getAppConfig, getAppState, getAppEvents, getHueConfig } from './registry-helpers';
+export { getAppConfig, getAppState, getAppEvents } from './registry-helpers';

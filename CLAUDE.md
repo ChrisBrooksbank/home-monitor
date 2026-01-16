@@ -71,9 +71,22 @@ The codebase uses TypeScript with ES module imports/exports. Path aliases are co
 
 ### Configuration
 
-- `APP_CONFIG` in `config/constants.ts` - Proxy URLs, intervals, timeouts
-- `config.js` (root, not committed) - Hue Bridge IP/username, Weather API key
-- `.env` - Tapo credentials (TAPO_EMAIL, TAPO_PASSWORD)
+All configuration is in a single `home.config.json` file:
+
+- `home.config.json` (root, not committed) - All app config: Hue, Weather, Nest, proxy ports, intervals
+- `.env` - Tapo credentials (TAPO_EMAIL, TAPO_PASSWORD) for proxy server only
+
+Configuration is loaded asynchronously at startup and validated with Zod. Access it via:
+
+```typescript
+import { getConfig, isServiceConfigured, getProxyUrl } from '@config';
+
+const config = getConfig();
+if (isServiceConfigured('hue')) {
+    const bridgeIp = config.services.hue.bridgeIp;
+}
+const sonosUrl = getProxyUrl('sonos'); // http://localhost:3000
+```
 
 ## Key Patterns
 
@@ -82,7 +95,7 @@ The codebase uses TypeScript with ES module imports/exports. Path aliases are co
 ```typescript
 import { HueAPI } from '@api/hue';
 import { Logger } from '@utils/logger';
-import { APP_CONFIG } from '@config/constants';
+import { getConfig, getProxyUrl } from '@config';
 import type { LightInfo, RoomName } from '@types';
 ```
 
@@ -97,7 +110,8 @@ const data = await retryWithBackoff(() => fetchData());
 
 ```typescript
 import { IntervalManager } from '@utils/helpers';
-IntervalManager.register(() => pollSensors(), APP_CONFIG.intervals.lights);
+import { getConfig } from '@config';
+IntervalManager.register(() => pollSensors(), getConfig().intervals.lights);
 ```
 
 ### Draggable Elements
@@ -119,7 +133,7 @@ createDraggable(element, { storageKey: 'myPosition' });
 
 ## Environment Setup
 
-1. Copy `config.example.js` to `config.js` and add Hue Bridge credentials
+1. Copy `home.config.example.json` to `home.config.json` and configure your services
 2. Copy `.env.example` to `.env` and add Tapo credentials
 3. Run `npm install`
 4. Run `npm start`
@@ -145,18 +159,20 @@ createDraggable(element, { storageKey: 'myPosition' });
 
 ### 3. Configure the App
 
-1. Copy the example config:
-    ```bash
-    cp nest-config.example.json nest-config.json
-    ```
-2. Fill in your credentials:
-    ```json
-    {
-        "CLIENT_ID": "your-client-id.apps.googleusercontent.com",
-        "CLIENT_SECRET": "your-client-secret",
-        "PROJECT_ID": "your-sdm-project-id"
+Add your Nest credentials to `home.config.json`:
+
+```json
+{
+    "services": {
+        "nest": {
+            "clientId": "your-client-id.apps.googleusercontent.com",
+            "clientSecret": "your-client-secret",
+            "projectId": "your-sdm-project-id",
+            "tokens": null
+        }
     }
-    ```
+}
+```
 
 ### 4. Authorize
 
@@ -164,7 +180,7 @@ createDraggable(element, { storageKey: 'myPosition' });
 2. Click the wheelie bin in the UI
 3. Click the "Auth" link next to Nest status
 4. Complete Google authorization in the popup
-5. Tokens are saved automatically
+5. Tokens are saved automatically to `home.config.json`
 
 ### Refreshing Expired Tokens
 
