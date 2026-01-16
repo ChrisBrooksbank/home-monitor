@@ -1,0 +1,5 @@
+{
+    "entry": ["src/main.ts", "src/proxies/*.ts", "src/scripts/**/*.ts"],
+    "project": ["src/**/*.ts"],
+    "ignore": ["src/test/**", "**/*.test.ts"]
+}
