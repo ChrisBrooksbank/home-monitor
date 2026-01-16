@@ -12,43 +12,43 @@ import type { SonosSpeaker } from '../types';
 
 // Helper functions to access AppState
 const getSpeakers = (): Record<string, SonosSpeaker> =>
-  (getAppState()?.get('speakers') as Record<string, SonosSpeaker>) || {};
+    (getAppState()?.get('speakers') as Record<string, SonosSpeaker>) || {};
 const getSpeakerVolumes = (): Record<string, number> =>
-  (getAppState()?.get('speakerVolumes') as Record<string, number>) || {};
+    (getAppState()?.get('speakerVolumes') as Record<string, number>) || {};
 const setSpeakers = (speakers: Record<string, SonosSpeaker>): void => {
-  getAppState()?.set('speakers', speakers);
+    getAppState()?.set('speakers', speakers);
 };
 const setSpeakerVolume = (id: string, volume: number): void => {
-  getAppState()?.set(`speakerVolumes.${id}`, volume);
+    getAppState()?.set(`speakerVolumes.${id}`, volume);
 };
 
 /**
  * Fetch speakers from proxy
  */
 async function fetchSpeakers(): Promise<Record<string, SonosSpeaker>> {
-  try {
-    const data = await SonosAPI.getSpeakers();
-    const speakers = data.speakers || {};
-    setSpeakers(speakers);
-    return speakers;
-  } catch (error) {
-    Logger.error('Failed to fetch Sonos speakers:', error);
-    return {};
-  }
+    try {
+        const data = await SonosAPI.getSpeakers();
+        const speakers = data.speakers || {};
+        setSpeakers(speakers);
+        return speakers;
+    } catch (error) {
+        Logger.error('Failed to fetch Sonos speakers:', error);
+        return {};
+    }
 }
 
 /**
  * Create SVG speaker control panel with buttons
  */
 function createSpeakerControl(id: string, speaker: SonosSpeaker): SVGGElement {
-  const ns = 'http://www.w3.org/2000/svg';
-  const group = document.createElementNS(ns, 'g');
-  group.id = `sonos-${id}-controls`;
-  group.setAttribute('class', 'sonos-speaker-control');
-  group.setAttribute('data-speaker-id', id);
+    const ns = 'http://www.w3.org/2000/svg';
+    const group = document.createElementNS(ns, 'g');
+    group.id = `sonos-${id}-controls`;
+    group.setAttribute('class', 'sonos-speaker-control');
+    group.setAttribute('data-speaker-id', id);
 
-  // Set innerHTML with all control elements
-  group.innerHTML = `
+    // Set innerHTML with all control elements
+    group.innerHTML = `
     <!-- Control Panel Background -->
     <rect x="-35" y="-18" width="70" height="36" rx="5" fill="#2C3E50" opacity="0.85" stroke="#34495E" stroke-width="1.5"/>
 
@@ -84,210 +84,205 @@ function createSpeakerControl(id: string, speaker: SonosSpeaker): SVGGElement {
     <text id="sonos-${id}-volume-label" x="0" y="25" text-anchor="middle" fill="#ECF0F1" font-size="6">Vol: --</text>
   `;
 
-  return group;
+    return group;
 }
 
 /**
  * Setup event handlers for a speaker control
  */
 function setupSpeakerControl(id: string, speaker: SonosSpeaker): void {
-  const playBtn = document.getElementById(`sonos-${id}-play`);
-  const pauseBtn = document.getElementById(`sonos-${id}-pause`);
-  const volUpBtn = document.getElementById(`sonos-${id}-volup`);
-  const volDownBtn = document.getElementById(`sonos-${id}-voldown`);
+    const playBtn = document.getElementById(`sonos-${id}-play`);
+    const pauseBtn = document.getElementById(`sonos-${id}-pause`);
+    const volUpBtn = document.getElementById(`sonos-${id}-volup`);
+    const volDownBtn = document.getElementById(`sonos-${id}-voldown`);
 
-  if (playBtn) {
-    playBtn.addEventListener('click', async (e) => {
-      e.stopPropagation();
-      await SonosAPI.play(speaker.ip);
-      Logger.info(`Playing on ${speaker.room}`);
-    });
-  }
-
-  if (pauseBtn) {
-    pauseBtn.addEventListener('click', async (e) => {
-      e.stopPropagation();
-      await SonosAPI.pause(speaker.ip);
-      Logger.info(`Paused ${speaker.room}`);
-    });
-  }
-
-  if (volUpBtn) {
-    volUpBtn.addEventListener('click', async (e) => {
-      e.stopPropagation();
-      const volumes = getSpeakerVolumes();
-      const currentVol = volumes[id] || 0;
-      const newVol = Math.min(100, currentVol + 5);
-      await SonosAPI.setVolume(speaker.ip, newVol);
-      setSpeakerVolume(id, newVol);
-      updateVolumeDisplay(id, newVol);
-    });
-  }
-
-  if (volDownBtn) {
-    volDownBtn.addEventListener('click', async (e) => {
-      e.stopPropagation();
-      const volumes = getSpeakerVolumes();
-      const currentVol = volumes[id] || 0;
-      const newVol = Math.max(0, currentVol - 5);
-      await SonosAPI.setVolume(speaker.ip, newVol);
-      setSpeakerVolume(id, newVol);
-      updateVolumeDisplay(id, newVol);
-    });
-  }
-
-  // Make draggable
-  const panel = document.getElementById(`sonos-${id}-controls`) as SVGElement | null;
-  const createDraggable = Registry.getOptional('createDraggable');
-  const loadSavedPosition = Registry.getOptional('loadSavedPosition');
-  if (panel && typeof createDraggable === 'function') {
-    const storageKey = `sonos${id}Position`;
-    if (typeof loadSavedPosition === 'function') {
-      loadSavedPosition(panel, storageKey);
+    if (playBtn) {
+        playBtn.addEventListener('click', async e => {
+            e.stopPropagation();
+            await SonosAPI.play(speaker.ip);
+            Logger.info(`Playing on ${speaker.room}`);
+        });
     }
-    createDraggable(panel, {
-      storageKey: storageKey,
-      excludeSelector: '.sonos-button',
-    });
-  }
+
+    if (pauseBtn) {
+        pauseBtn.addEventListener('click', async e => {
+            e.stopPropagation();
+            await SonosAPI.pause(speaker.ip);
+            Logger.info(`Paused ${speaker.room}`);
+        });
+    }
+
+    if (volUpBtn) {
+        volUpBtn.addEventListener('click', async e => {
+            e.stopPropagation();
+            const volumes = getSpeakerVolumes();
+            const currentVol = volumes[id] || 0;
+            const newVol = Math.min(100, currentVol + 5);
+            await SonosAPI.setVolume(speaker.ip, newVol);
+            setSpeakerVolume(id, newVol);
+            updateVolumeDisplay(id, newVol);
+        });
+    }
+
+    if (volDownBtn) {
+        volDownBtn.addEventListener('click', async e => {
+            e.stopPropagation();
+            const volumes = getSpeakerVolumes();
+            const currentVol = volumes[id] || 0;
+            const newVol = Math.max(0, currentVol - 5);
+            await SonosAPI.setVolume(speaker.ip, newVol);
+            setSpeakerVolume(id, newVol);
+            updateVolumeDisplay(id, newVol);
+        });
+    }
+
+    // Make draggable
+    const panel = document.getElementById(`sonos-${id}-controls`) as SVGElement | null;
+    const createDraggable = Registry.getOptional('createDraggable');
+    const loadSavedPosition = Registry.getOptional('loadSavedPosition');
+    if (panel && typeof createDraggable === 'function') {
+        const storageKey = `sonos${id}Position`;
+        if (typeof loadSavedPosition === 'function') {
+            loadSavedPosition(panel, storageKey);
+        }
+        createDraggable(panel, {
+            storageKey: storageKey,
+            excludeSelector: '.sonos-button',
+        });
+    }
 }
 
 /**
  * Update volume display for a speaker
  */
 function updateVolumeDisplay(id: string, volume: number): void {
-  const volumeEl = document.getElementById(`sonos-${id}-volume-label`);
-  if (volumeEl) {
-    volumeEl.textContent = `Vol: ${volume}`;
-  }
+    const volumeEl = document.getElementById(`sonos-${id}-volume-label`);
+    if (volumeEl) {
+        volumeEl.textContent = `Vol: ${volume}`;
+    }
 }
 
 /**
  * Get default position for speaker based on room
  */
 function getDefaultPosition(id: string): { x: number; y: number } {
-  const positions: Record<string, { x: number; y: number }> = {
-    office: { x: 500, y: 280 },
-    bedroom: { x: 180, y: 280 },
-    lounge: { x: 400, y: 520 },
-    'lounge-2': { x: 440, y: 480 },
-    'lounge-3': { x: 360, y: 480 },
-  };
-  return positions[id] || { x: 300, y: 300 };
+    const positions: Record<string, { x: number; y: number }> = {
+        office: { x: 500, y: 280 },
+        bedroom: { x: 180, y: 280 },
+        lounge: { x: 400, y: 520 },
+        'lounge-2': { x: 440, y: 480 },
+        'lounge-3': { x: 360, y: 480 },
+    };
+    return positions[id] || { x: 300, y: 300 };
 }
 
 /**
  * Render all speaker controls
  */
 async function renderSpeakerControls(): Promise<void> {
-  const container = document.getElementById('sonos-controls-container');
-  if (!container) {
-    Logger.warn('Sonos controls container not found');
-    return;
-  }
-
-  // Clear existing controls
-  container.innerHTML = '';
-
-  // Fetch current speakers
-  await fetchSpeakers();
-  const speakers = getSpeakers();
-
-  if (Object.keys(speakers).length === 0) {
-    Logger.info('No Sonos speakers found');
-    return;
-  }
-
-  Logger.info(`Rendering ${Object.keys(speakers).length} Sonos speakers`);
-
-  // Create control for each speaker
-  for (const [id, speaker] of Object.entries(speakers)) {
-    const control = createSpeakerControl(id, speaker);
-
-    // Set initial position
-    const pos = getDefaultPosition(id);
-    control.setAttribute('transform', `translate(${pos.x}, ${pos.y})`);
-
-    container.appendChild(control);
-
-    // Setup event handlers
-    setupSpeakerControl(id, speaker);
-
-    // Fetch initial volume
-    try {
-      const volume = await SonosAPI.getVolume(speaker.ip);
-      setSpeakerVolume(id, volume);
-      updateVolumeDisplay(id, volume);
-    } catch (_e) {
-      Logger.warn(`Could not get volume for ${id}`);
+    const container = document.getElementById('sonos-controls-container');
+    if (!container) {
+        Logger.warn('Sonos controls container not found');
+        return;
     }
-  }
+
+    // Clear existing controls
+    container.innerHTML = '';
+
+    // Fetch current speakers
+    await fetchSpeakers();
+    const speakers = getSpeakers();
+
+    if (Object.keys(speakers).length === 0) {
+        Logger.info('No Sonos speakers found');
+        return;
+    }
+
+    Logger.info(`Rendering ${Object.keys(speakers).length} Sonos speakers`);
+
+    // Create control for each speaker
+    for (const [id, speaker] of Object.entries(speakers)) {
+        const control = createSpeakerControl(id, speaker);
+
+        // Set initial position
+        const pos = getDefaultPosition(id);
+        control.setAttribute('transform', `translate(${pos.x}, ${pos.y})`);
+
+        container.appendChild(control);
+
+        // Setup event handlers
+        setupSpeakerControl(id, speaker);
+
+        // Fetch initial volume
+        try {
+            const volume = await SonosAPI.getVolume(speaker.ip);
+            setSpeakerVolume(id, volume);
+            updateVolumeDisplay(id, volume);
+        } catch (_e) {
+            Logger.warn(`Could not get volume for ${id}`);
+        }
+    }
 }
 
 /**
  * Update speaker volumes periodically
  */
 async function updateSpeakerVolumes(): Promise<void> {
-  const speakers = getSpeakers();
-  for (const [id, speaker] of Object.entries(speakers)) {
-    try {
-      const volume = await SonosAPI.getVolume(speaker.ip);
-      setSpeakerVolume(id, volume);
-      updateVolumeDisplay(id, volume);
-    } catch (_e) {
-      // Silently fail on volume update
+    const speakers = getSpeakers();
+    for (const [id, speaker] of Object.entries(speakers)) {
+        try {
+            const volume = await SonosAPI.getVolume(speaker.ip);
+            setSpeakerVolume(id, volume);
+            updateVolumeDisplay(id, volume);
+        } catch (_e) {
+            // Silently fail on volume update
+        }
     }
-  }
 }
 
 /**
  * Initialize Sonos UI
  */
 async function initSonosUI(): Promise<void> {
-  // Check if proxy is available
-  const available = await SonosAPI.checkAvailability();
-  if (!available) {
-    Logger.warn('Sonos proxy not available - speaker controls disabled');
-    return;
-  }
+    // Check if proxy is available
+    const available = await SonosAPI.checkAvailability();
+    if (!available) {
+        Logger.warn('Sonos proxy not available - speaker controls disabled');
+        return;
+    }
 
-  // Render controls
-  await renderSpeakerControls();
+    // Render controls
+    await renderSpeakerControls();
 
-  // Register volume polling
-  const config = getAppConfig();
-  const intervalManager = Registry.getOptional('IntervalManager');
-  if (intervalManager && config?.intervals?.sonosVolume) {
-    intervalManager.register(updateSpeakerVolumes, config.intervals.sonosVolume);
-  }
+    // Register volume polling
+    const config = getAppConfig();
+    const intervalManager = Registry.getOptional('IntervalManager');
+    if (intervalManager && config?.intervals?.sonosVolume) {
+        intervalManager.register(updateSpeakerVolumes, config.intervals.sonosVolume);
+    }
 
-  Logger.success('Sonos UI initialized');
+    Logger.success('Sonos UI initialized');
 }
-
-/**
- * Sonos UI module export
- */
-export const SonosUI = {
-  init: initSonosUI,
-  render: renderSpeakerControls,
-  updateVolumes: updateSpeakerVolumes,
-};
 
 // Register with the service registry
 Registry.register({
-  key: 'SonosUI',
-  instance: SonosUI,
+    key: 'SonosUI',
+    instance: {
+        init: initSonosUI,
+        render: renderSpeakerControls,
+        updateVolumes: updateSpeakerVolumes,
+    },
 });
 
 // Auto-initialize with consistent timing
 function onReady(fn: () => void): void {
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => setTimeout(fn, 50));
-  } else {
-    setTimeout(fn, 50);
-  }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => setTimeout(fn, 50));
+    } else {
+        setTimeout(fn, 50);
+    }
 }
 
 if (typeof window !== 'undefined') {
-  onReady(initSonosUI);
+    onReady(initSonosUI);
 }

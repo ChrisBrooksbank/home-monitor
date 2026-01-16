@@ -4,11 +4,3 @@
  */
 
 export { LOCATION } from './constants';
-export {
-    sensorMapping,
-    roomNames,
-    roomPositions,
-    mapLightToRoom,
-    mapMotionSensorToRoom,
-    MAPPINGS,
-} from './mappings';

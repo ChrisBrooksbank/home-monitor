@@ -5,5 +5,4 @@
 
 export { Logger } from './logger';
 export { checkProxyAvailability, retryWithBackoff } from './helpers';
-export { getTemperatureColor, hueStateToColor, darkenColor } from './color-utils';
 export { getAppConfig, getAppState, getAppEvents, getHueConfig } from './registry-helpers';

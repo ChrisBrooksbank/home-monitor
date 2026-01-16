@@ -4,11 +4,8 @@
  */
 
 export {
-  MotionSensorsModule,
-  getMotionSensors,
-  getMotionHistory,
-  initMotionHistory,
-  logMotionEvent,
-  updateMotionLogDisplay,
-  loadMotionSensors,
+    getMotionSensors,
+    initMotionHistory,
+    updateMotionLogDisplay,
+    loadMotionSensors,
 } from './motion-sensors';
