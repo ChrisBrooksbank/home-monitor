@@ -4,213 +4,226 @@
  */
 
 import { Logger } from '../utils/logger';
+import { getHubConfig } from '../config';
 
-// Hub configuration
-const HUB_CONFIG = {
-  ip: '192.168.68.62',
-  port: 8008,
+// Default Hub configuration (fallback if not in config)
+const DEFAULT_HUB_CONFIG = {
+    ip: '192.168.68.62',
+    port: 8008,
 };
 
 interface HubStatus {
-  isPlaying: boolean;
-  appName: string;
-  sessionId: string | null;
+    isPlaying: boolean;
+    appName: string;
+    sessionId: string | null;
 }
 
 interface HubApplicationsResponse {
-  applications?: Array<{
-    displayName?: string;
-    sessionId: string;
-  }>;
+    applications?: Array<{
+        displayName?: string;
+        sessionId: string;
+    }>;
+}
+
+/**
+ * Get Hub configuration from config or use defaults
+ */
+function getHubSettings(): { ip: string; port: number } {
+    try {
+        const config = getHubConfig();
+        return config ?? DEFAULT_HUB_CONFIG;
+    } catch {
+        // Config not loaded yet, use defaults
+        return DEFAULT_HUB_CONFIG;
+    }
 }
 
 /**
  * Get base URL for Hub API
  */
 function getBaseUrl(): string {
-  return `http://${HUB_CONFIG.ip}:${HUB_CONFIG.port}`;
+    const hub = getHubSettings();
+    return `http://${hub.ip}:${hub.port}`;
 }
 
 /**
  * Get current Hub status
  */
 async function getStatus(): Promise<HubStatus> {
-  try {
-    const response = await fetch(`${getBaseUrl()}/apps`);
-    const text = await response.text();
-
     try {
-      const data = JSON.parse(text) as HubApplicationsResponse;
-      if (data.applications && data.applications.length > 0) {
-        return {
-          isPlaying: true,
-          appName: data.applications[0].displayName ?? 'Active',
-          sessionId: data.applications[0].sessionId,
-        };
-      }
-    } catch {
-      // Parse error means idle
-    }
+        const response = await fetch(`${getBaseUrl()}/apps`);
+        const text = await response.text();
 
-    return { isPlaying: false, appName: 'Idle', sessionId: null };
-  } catch (error) {
-    Logger.error('Error getting Hub status:', error);
-    return { isPlaying: false, appName: 'Unavailable', sessionId: null };
-  }
+        try {
+            const data = JSON.parse(text) as HubApplicationsResponse;
+            if (data.applications && data.applications.length > 0) {
+                return {
+                    isPlaying: true,
+                    appName: data.applications[0].displayName ?? 'Active',
+                    sessionId: data.applications[0].sessionId,
+                };
+            }
+        } catch {
+            // Parse error means idle
+        }
+
+        return { isPlaying: false, appName: 'Idle', sessionId: null };
+    } catch (error) {
+        Logger.error('Error getting Hub status:', error);
+        return { isPlaying: false, appName: 'Unavailable', sessionId: null };
+    }
 }
 
 /**
  * Send announcement to Hub using TTS
  */
 async function announce(message: string): Promise<boolean> {
-  if (!message) return false;
+    if (!message) return false;
 
-  try {
-    Logger.info(`Announcing to Hub: "${message}"`);
+    try {
+        Logger.info(`Announcing to Hub: "${message}"`);
 
-    const encodedMessage = encodeURIComponent(message);
-    const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=en&q=${encodedMessage}`;
+        const encodedMessage = encodeURIComponent(message);
+        const ttsUrl = `https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&tl=en&q=${encodedMessage}`;
 
-    const response = await fetch(`${getBaseUrl()}/apps/CC1AD845`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type: 'LOAD',
-        autoplay: true,
-        media: {
-          contentId: ttsUrl,
-          contentType: 'audio/mp3',
-          streamType: 'BUFFERED',
-        },
-      }),
-    });
+        const response = await fetch(`${getBaseUrl()}/apps/CC1AD845`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type: 'LOAD',
+                autoplay: true,
+                media: {
+                    contentId: ttsUrl,
+                    contentType: 'audio/mp3',
+                    streamType: 'BUFFERED',
+                },
+            }),
+        });
 
-    if (response.ok) {
-      Logger.success('Announcement sent');
-      return true;
+        if (response.ok) {
+            Logger.success('Announcement sent');
+            return true;
+        }
+        throw new Error(`HTTP ${response.status}`);
+    } catch (error) {
+        Logger.error('Hub announce failed:', error);
+        return false;
     }
-    throw new Error(`HTTP ${response.status}`);
-  } catch (error) {
-    Logger.error('Hub announce failed:', error);
-    return false;
-  }
 }
 
 /**
  * Stop current playback
  */
 async function stop(): Promise<boolean> {
-  try {
-    Logger.info('Stopping Hub playback...');
+    try {
+        Logger.info('Stopping Hub playback...');
 
-    const status = await getStatus();
-    if (!status.isPlaying) {
-      return true; // Already idle
+        const status = await getStatus();
+        if (!status.isPlaying) {
+            return true; // Already idle
+        }
+
+        await fetch(`${getBaseUrl()}/apps/${status.sessionId}`, {
+            method: 'DELETE',
+        });
+
+        Logger.success('Playback stopped');
+        return true;
+    } catch (error) {
+        Logger.error('Hub stop failed:', error);
+        return false;
     }
-
-    await fetch(`${getBaseUrl()}/apps/${status.sessionId}`, {
-      method: 'DELETE',
-    });
-
-    Logger.success('Playback stopped');
-    return true;
-  } catch (error) {
-    Logger.error('Hub stop failed:', error);
-    return false;
-  }
 }
 
 /**
  * Cast YouTube video to Hub
  */
 async function playYouTube(videoId: string): Promise<boolean> {
-  if (!videoId) return false;
+    if (!videoId) return false;
 
-  try {
-    // Extract video ID if full URL was provided
-    let id = videoId;
-    const urlMatch = videoId.match(
-      /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/
-    );
-    if (urlMatch) {
-      id = urlMatch[1];
+    try {
+        // Extract video ID if full URL was provided
+        let id = videoId;
+        const urlMatch = videoId.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
+        if (urlMatch) {
+            id = urlMatch[1];
+        }
+
+        Logger.info(`Casting YouTube video ${id} to Hub...`);
+
+        const response = await fetch(`${getBaseUrl()}/apps/YouTube`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type: 'LOAD',
+                media: {
+                    contentId: id,
+                    streamType: 'BUFFERED',
+                    contentType: 'video/mp4',
+                },
+            }),
+        });
+
+        if (response.ok) {
+            Logger.success('YouTube video casting');
+            return true;
+        }
+        throw new Error(`HTTP ${response.status}`);
+    } catch (error) {
+        Logger.error('Hub YouTube cast failed:', error);
+        return false;
     }
-
-    Logger.info(`Casting YouTube video ${id} to Hub...`);
-
-    const response = await fetch(`${getBaseUrl()}/apps/YouTube`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type: 'LOAD',
-        media: {
-          contentId: id,
-          streamType: 'BUFFERED',
-          contentType: 'video/mp4',
-        },
-      }),
-    });
-
-    if (response.ok) {
-      Logger.success('YouTube video casting');
-      return true;
-    }
-    throw new Error(`HTTP ${response.status}`);
-  } catch (error) {
-    Logger.error('Hub YouTube cast failed:', error);
-    return false;
-  }
 }
 
 /**
  * Display a URL on the Hub
  */
 async function displayUrl(url: string): Promise<boolean> {
-  try {
-    Logger.info(`Displaying URL on Hub: ${url}`);
+    try {
+        Logger.info(`Displaying URL on Hub: ${url}`);
 
-    const response = await fetch(`${getBaseUrl()}/apps/E8C28D3C`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        type: 'LOAD',
-        media: {
-          contentId: url,
-          contentType: 'text/html',
-          streamType: 'LIVE',
-        },
-      }),
-    });
+        const response = await fetch(`${getBaseUrl()}/apps/E8C28D3C`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                type: 'LOAD',
+                media: {
+                    contentId: url,
+                    contentType: 'text/html',
+                    streamType: 'LIVE',
+                },
+            }),
+        });
 
-    if (response.ok) {
-      Logger.success('URL displayed on Hub');
-      return true;
+        if (response.ok) {
+            Logger.success('URL displayed on Hub');
+            return true;
+        }
+        throw new Error(`HTTP ${response.status}`);
+    } catch (error) {
+        Logger.error('Hub display URL failed:', error);
+        return false;
     }
-    throw new Error(`HTTP ${response.status}`);
-  } catch (error) {
-    Logger.error('Hub display URL failed:', error);
-    return false;
-  }
 }
 
 /**
  * Display current dashboard on Hub
  */
 async function showDashboard(): Promise<boolean> {
-  return await displayUrl(window.location.href);
+    return await displayUrl(window.location.href);
 }
 
 export const HubAPI = {
-  getBaseUrl,
-  getStatus,
-  announce,
-  stop,
-  playYouTube,
-  displayUrl,
-  showDashboard,
+    getBaseUrl,
+    getStatus,
+    announce,
+    stop,
+    playYouTube,
+    displayUrl,
+    showDashboard,
 } as const;
 
 // Expose on window for global access
 if (typeof window !== 'undefined') {
-  (window as unknown as Record<string, unknown>).HubAPI = HubAPI;
+    (window as unknown as Record<string, unknown>).HubAPI = HubAPI;
 }

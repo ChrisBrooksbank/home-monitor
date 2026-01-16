@@ -218,6 +218,46 @@ export function getProxyUrl(service: keyof HomeConfig['proxies']): string {
 }
 
 /**
+ * Get the list of room names
+ */
+export function getRooms(): string[] {
+    const config = getConfig();
+    return config.rooms ?? [];
+}
+
+/**
+ * Get sensor-to-room mapping
+ */
+export function getSensorToRoom(): Record<string, string> {
+    const config = getConfig();
+    return config.sensorToRoom ?? {};
+}
+
+/**
+ * Get light name patterns for room mapping
+ */
+export function getLightPatterns(): Record<string, string> {
+    const config = getConfig();
+    return config.lightPatterns ?? {};
+}
+
+/**
+ * Get motion sensor name patterns for room mapping
+ */
+export function getMotionPatterns(): Record<string, string> {
+    const config = getConfig();
+    return config.motionPatterns ?? {};
+}
+
+/**
+ * Get hub device configuration
+ */
+export function getHubConfig(): { ip: string; port: number } | null {
+    const config = getConfig();
+    return config.devices?.hub ?? null;
+}
+
+/**
  * Reset config (for testing purposes)
  */
 export function resetConfig(): void {

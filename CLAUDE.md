@@ -79,14 +79,27 @@ All configuration is in a single `home.config.json` file:
 Configuration is loaded asynchronously at startup and validated with Zod. Access it via:
 
 ```typescript
-import { getConfig, isServiceConfigured, getProxyUrl } from '@config';
+import { getConfig, isServiceConfigured, getProxyUrl, getRooms, getSensorToRoom } from '@config';
 
 const config = getConfig();
 if (isServiceConfigured('hue')) {
     const bridgeIp = config.services.hue.bridgeIp;
 }
 const sonosUrl = getProxyUrl('sonos'); // http://localhost:3000
+const rooms = getRooms(); // ['Main Bedroom', 'Guest Bedroom', ...]
 ```
+
+### Room Configuration
+
+Rooms and sensor mappings are configurable in `home.config.json`:
+
+- `rooms` - Array of room names in your house
+- `sensorToRoom` - Maps Hue sensor names to room display names
+- `lightPatterns` - Regex patterns to match light names to rooms
+- `motionPatterns` - Regex patterns to match motion sensor names to rooms
+- `devices.hub` - Google Home Hub IP and port
+
+These have sensible defaults if not specified in config.
 
 ## Key Patterns
 

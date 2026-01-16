@@ -8,7 +8,7 @@ import { Logger } from '../../utils/logger';
 import { AppState } from '../../core/state';
 import { AppEvents } from '../../core/events';
 import { HueAPI } from '../../api/hue';
-import { sensorMapping, roomNames } from '../../config/mappings';
+import { sensorMapping, getRoomNames } from '../../config/mappings';
 import { createThermometer, createSparkles } from './thermometer-ui';
 
 /**
@@ -73,7 +73,7 @@ export async function loadTemperatures(showSparkles = true): Promise<void> {
                 const elementId = sensorMapping[sensor.name];
                 if (elementId && sensor.state.temperature != null) {
                     const tempC = (sensor.state.temperature / 100.0).toFixed(1);
-                    const roomName = roomNames[sensor.name] || sensor.name;
+                    const roomName = getRoomNames()[sensor.name] || sensor.name;
                     const tempElement = createThermometer(elementId, parseFloat(tempC), roomName);
                     saveTempData(sensor.name, tempC);
 

@@ -122,6 +122,31 @@ const ServicesSchema = z.object({
 });
 
 // =============================================================================
+// ROOMS & MAPPINGS SCHEMA
+// =============================================================================
+
+const RoomsSchema = z.array(z.string()).optional();
+
+const SensorMappingsSchema = z.record(z.string(), z.string()).optional();
+
+// =============================================================================
+// DEVICES SCHEMA
+// =============================================================================
+
+const HubDeviceSchema = z
+    .object({
+        ip: z.string().min(1),
+        port: z.number().int().positive().default(8008),
+    })
+    .optional();
+
+const DevicesSchema = z
+    .object({
+        hub: HubDeviceSchema,
+    })
+    .optional();
+
+// =============================================================================
 // MAIN CONFIG SCHEMA
 // =============================================================================
 
@@ -134,6 +159,11 @@ export const HomeConfigSchema = z.object({
     retry: RetrySchema,
     history: HistorySchema,
     services: ServicesSchema,
+    rooms: RoomsSchema,
+    sensorToRoom: SensorMappingsSchema,
+    lightPatterns: SensorMappingsSchema,
+    motionPatterns: SensorMappingsSchema,
+    devices: DevicesSchema,
     debug: z.boolean().default(false),
 });
 
@@ -154,6 +184,8 @@ export type WeatherServiceConfig = z.infer<typeof WeatherServiceSchema>;
 export type NestServiceConfig = z.infer<typeof NestServiceSchema>;
 export type NestTokens = z.infer<typeof NestTokensSchema>;
 export type ServicesConfig = z.infer<typeof ServicesSchema>;
+export type HubDeviceConfig = z.infer<typeof HubDeviceSchema>;
+export type DevicesConfig = z.infer<typeof DevicesSchema>;
 
 // =============================================================================
 // VALIDATION ERROR

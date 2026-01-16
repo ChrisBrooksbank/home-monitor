@@ -174,17 +174,12 @@ export interface HueBridgeDiscovery {
 // ROOM & MAPPING TYPES
 // =============================================================================
 
-export type RoomName =
-    | 'Main Bedroom'
-    | 'Guest Bedroom'
-    | 'Bathroom'
-    | 'Landing'
-    | 'Hall'
-    | 'Home Office'
-    | 'Lounge'
-    | 'Kitchen'
-    | 'Extension'
-    | 'Outdoor';
+/**
+ * Room name type - now a string since rooms are configurable
+ * Common room names: 'Main Bedroom', 'Guest Bedroom', 'Bathroom', 'Landing',
+ * 'Hall', 'Home Office', 'Lounge', 'Kitchen', 'Extension', 'Outdoor'
+ */
+export type RoomName = string;
 
 export interface RoomPosition {
     x: number;

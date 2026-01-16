@@ -1,10 +1,24 @@
 /**
  * House Mappings Configuration
  * Single source of truth for all sensor, room, and light mappings
+ *
+ * Room names, sensor mappings, and light/motion patterns are loaded from config.
+ * DOM element IDs, positions, and colors are implementation details kept here.
  */
 
-import type { RoomName, RoomPosition } from '../types';
+import type { RoomPosition } from '../types';
 import { Registry } from '../core/registry';
+import {
+    isConfigLoaded,
+    getRooms,
+    getSensorToRoom,
+    getLightPatterns,
+    getMotionPatterns,
+} from './loader';
+
+// =============================================================================
+// IMPLEMENTATION DETAILS (not in config)
+// =============================================================================
 
 // Temperature sensor name to DOM element ID mapping
 export const sensorMapping: Record<string, string> = {
@@ -18,20 +32,6 @@ export const sensorMapping: Record<string, string> = {
     ExtensionDimmer: 'temp-extension',
     KitchenSensor: 'temp-kitchen',
     'Hue outdoor temp. sensor 1': 'temp-outdoor',
-};
-
-// Sensor name to display room name mapping
-export const roomNames: Record<string, string> = {
-    landing: 'Landing',
-    'main bedroom': 'Main Bedroom',
-    'guest room': 'Guest Bedroom',
-    'Hue temperature sensor 1': 'Home Office',
-    bathroom: 'Bathroom',
-    Hall: 'Hall',
-    lounge: 'Lounge',
-    ExtensionDimmer: 'Extension',
-    KitchenSensor: 'Kitchen',
-    'Hue outdoor temp. sensor 1': 'Outdoor',
 };
 
 // Room colors for UI elements
@@ -62,8 +62,38 @@ export const roomPositions: Record<string, RoomPosition> = {
     'temp-outdoor': { x: 60, y: 10, isOutdoor: true },
 };
 
-// Light name patterns to room mapping (regex patterns)
-const lightMappings: Record<string, RoomName> = {
+// Light indicator positions on house SVG
+const lightPositions: Record<string, { x: number; y: number }> = {
+    'Main Bedroom': { x: 180, y: 240 },
+    Landing: { x: 340, y: 240 },
+    'Home Office': { x: 500, y: 240 },
+    Bathroom: { x: 660, y: 240 },
+    'Guest Bedroom': { x: 820, y: 240 },
+    Hall: { x: 200, y: 405 },
+    Lounge: { x: 400, y: 405 },
+    Kitchen: { x: 600, y: 405 },
+    Extension: { x: 800, y: 405 },
+};
+
+// =============================================================================
+// CONFIG-BASED VALUES (with fallbacks for when config not loaded)
+// =============================================================================
+
+// Fallback values used before config is loaded
+const fallbackRoomNames: Record<string, string> = {
+    landing: 'Landing',
+    'main bedroom': 'Main Bedroom',
+    'guest room': 'Guest Bedroom',
+    'Hue temperature sensor 1': 'Home Office',
+    bathroom: 'Bathroom',
+    Hall: 'Hall',
+    lounge: 'Lounge',
+    ExtensionDimmer: 'Extension',
+    KitchenSensor: 'Kitchen',
+    'Hue outdoor temp. sensor 1': 'Outdoor',
+};
+
+const fallbackLightPatterns: Record<string, string> = {
     'outdoor|outside|garden': 'Outdoor',
     guest: 'Guest Bedroom',
     'main bedroom|mainbedroom|^bedroomlight$|^bedroom$': 'Main Bedroom',
@@ -76,29 +106,14 @@ const lightMappings: Record<string, RoomName> = {
     kitchen: 'Kitchen',
 };
 
-// Motion sensor name patterns to room mapping (regex patterns)
-const motionSensorMappings: Record<string, string> = {
+const fallbackMotionPatterns: Record<string, string> = {
     'outdoor|outside|garden': 'Outdoor',
     'hall|frontdoor|front door': 'Hall',
     landing: 'Landing',
     'bathroom|bath': 'Bathroom',
 };
 
-// Light indicator positions on house SVG
-const lightPositions: Partial<Record<RoomName, { x: number; y: number }>> = {
-    'Main Bedroom': { x: 180, y: 240 },
-    Landing: { x: 340, y: 240 },
-    'Home Office': { x: 500, y: 240 },
-    Bathroom: { x: 660, y: 240 },
-    'Guest Bedroom': { x: 820, y: 240 },
-    Hall: { x: 200, y: 405 },
-    Lounge: { x: 400, y: 405 },
-    Kitchen: { x: 600, y: 405 },
-    Extension: { x: 800, y: 405 },
-};
-
-// List of all rooms
-const rooms: RoomName[] = [
+const fallbackRooms: string[] = [
     'Main Bedroom',
     'Guest Bedroom',
     'Bathroom',
@@ -112,12 +127,60 @@ const rooms: RoomName[] = [
 ];
 
 /**
+ * Get sensor-to-room name mapping (from config or fallback)
+ */
+export function getRoomNames(): Record<string, string> {
+    if (isConfigLoaded()) {
+        return getSensorToRoom();
+    }
+    return fallbackRoomNames;
+}
+
+/**
+ * Get light pattern mappings (from config or fallback)
+ */
+function getLightMappings(): Record<string, string> {
+    if (isConfigLoaded()) {
+        return getLightPatterns();
+    }
+    return fallbackLightPatterns;
+}
+
+/**
+ * Get motion sensor pattern mappings (from config or fallback)
+ */
+function getMotionMappings(): Record<string, string> {
+    if (isConfigLoaded()) {
+        return getMotionPatterns();
+    }
+    return fallbackMotionPatterns;
+}
+
+/**
+ * Get list of all rooms (from config or fallback)
+ */
+function getRoomList(): string[] {
+    if (isConfigLoaded()) {
+        return getRooms();
+    }
+    return fallbackRooms;
+}
+
+// Legacy export for backward compatibility
+export const roomNames = fallbackRoomNames;
+
+// =============================================================================
+// HELPER FUNCTIONS
+// =============================================================================
+
+/**
  * Map a light name to a room using pattern matching
  */
-export function mapLightToRoom(lightName: string): RoomName | null {
+export function mapLightToRoom(lightName: string): string | null {
     if (!lightName) return null;
     const nameLower = lightName.toLowerCase();
-    for (const [pattern, room] of Object.entries(lightMappings)) {
+    const patterns = getLightMappings();
+    for (const [pattern, room] of Object.entries(patterns)) {
         if (new RegExp(pattern, 'i').test(nameLower)) return room;
     }
     return null;
@@ -129,22 +192,40 @@ export function mapLightToRoom(lightName: string): RoomName | null {
 export function mapMotionSensorToRoom(sensorName: string): string | null {
     if (!sensorName) return null;
     const nameLower = sensorName.toLowerCase();
-    for (const [pattern, room] of Object.entries(motionSensorMappings)) {
+    const patterns = getMotionMappings();
+    for (const [pattern, room] of Object.entries(patterns)) {
         if (new RegExp(pattern, 'i').test(nameLower)) return room;
     }
     return null;
 }
 
-// Combined exports object
+// =============================================================================
+// COMBINED EXPORTS OBJECT
+// =============================================================================
+
+// Combined exports object with getters for config-based values
 export const MAPPINGS = {
+    // Static implementation details
     sensorMapping,
-    roomNames,
     roomColors,
     roomPositions,
-    lightMappings,
-    motionSensorMappings,
     lightPositions,
-    rooms,
+
+    // Config-based values (via getters)
+    get roomNames() {
+        return getRoomNames();
+    },
+    get lightMappings() {
+        return getLightMappings();
+    },
+    get motionSensorMappings() {
+        return getMotionMappings();
+    },
+    get rooms() {
+        return getRoomList();
+    },
+
+    // Helper functions
     mapLightToRoom,
     mapMotionSensorToRoom,
 } as const;

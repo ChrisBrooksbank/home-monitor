@@ -21,6 +21,11 @@ export {
     isConfigLoaded,
     isServiceConfigured,
     getProxyUrl,
+    getRooms,
+    getSensorToRoom,
+    getLightPatterns,
+    getMotionPatterns,
+    getHubConfig,
     resetConfig,
     setConfig,
 } from './loader';
