@@ -11,171 +11,168 @@ import { getAppConfig } from './registry-helpers';
  * Sanitize HTML to prevent XSS attacks
  */
 export function sanitizeHTML(html: string): string {
-  const temp = document.createElement('div');
-  temp.textContent = html;
-  return temp.innerHTML;
+    const temp = document.createElement('div');
+    temp.textContent = html;
+    return temp.innerHTML;
 }
 
 /**
  * Safely set innerHTML with sanitization
  */
-export function safeSetHTML(element: HTMLElement, html: string): void {
-  const temp = document.createElement('div');
-  temp.innerHTML = html;
+function safeSetHTML(element: HTMLElement, html: string): void {
+    const temp = document.createElement('div');
+    temp.innerHTML = html;
 
-  // Remove any script tags
-  const scripts = temp.querySelectorAll('script');
-  scripts.forEach((script) => script.remove());
+    // Remove any script tags
+    const scripts = temp.querySelectorAll('script');
+    scripts.forEach(script => script.remove());
 
-  // Set the sanitized HTML
-  element.innerHTML = temp.innerHTML;
+    // Set the sanitized HTML
+    element.innerHTML = temp.innerHTML;
 }
 
 /**
  * Check if a proxy server is available
  */
-export async function checkProxyAvailability(
-  url: string,
-  name: string
-): Promise<boolean> {
-  const config = getAppConfig();
-  try {
-    const response = await fetch(url, {
-      method: 'HEAD',
-      signal: AbortSignal.timeout(config?.timeouts?.proxyCheck ?? 2000),
-    });
-    if (response.ok) {
-      Logger.success(`${name} proxy is available`);
-      return true;
+export async function checkProxyAvailability(url: string, name: string): Promise<boolean> {
+    const config = getAppConfig();
+    try {
+        const response = await fetch(url, {
+            method: 'HEAD',
+            signal: AbortSignal.timeout(config?.timeouts?.proxyCheck ?? 2000),
+        });
+        if (response.ok) {
+            Logger.success(`${name} proxy is available`);
+            return true;
+        }
+        Logger.warn(`${name} proxy not available - controls will be disabled`);
+        return false;
+    } catch {
+        Logger.warn(`${name} proxy not available - controls will be disabled`);
+        return false;
     }
-    Logger.warn(`${name} proxy not available - controls will be disabled`);
-    return false;
-  } catch {
-    Logger.warn(`${name} proxy not available - controls will be disabled`);
-    return false;
-  }
 }
 
 /**
  * Retry an async function with exponential backoff
  */
 export async function retryWithBackoff<T>(
-  fn: () => Promise<T>,
-  maxAttempts?: number,
-  delay?: number
+    fn: () => Promise<T>,
+    maxAttempts?: number,
+    delay?: number
 ): Promise<T> {
-  const config = getAppConfig();
-  const attempts = maxAttempts ?? config?.retry?.maxAttempts ?? 3;
-  const initialDelay = delay ?? config?.retry?.initialDelay ?? 1000;
-  const backoffMultiplier = config?.retry?.backoffMultiplier ?? 2;
-  const maxDelay = config?.retry?.maxDelay ?? 10000;
+    const config = getAppConfig();
+    const attempts = maxAttempts ?? config?.retry?.maxAttempts ?? 3;
+    const initialDelay = delay ?? config?.retry?.initialDelay ?? 1000;
+    const backoffMultiplier = config?.retry?.backoffMultiplier ?? 2;
+    const maxDelay = config?.retry?.maxDelay ?? 10000;
 
-  let lastError: Error | undefined;
+    let lastError: Error | undefined;
 
-  for (let attempt = 1; attempt <= attempts; attempt++) {
-    try {
-      return await fn();
-    } catch (err) {
-      lastError = err instanceof Error ? err : new Error(String(err));
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+        try {
+            return await fn();
+        } catch (err) {
+            lastError = err instanceof Error ? err : new Error(String(err));
 
-      if (attempt === attempts) {
-        Logger.error(`Failed after ${attempts} attempts:`, lastError.message);
-        throw lastError;
-      }
+            if (attempt === attempts) {
+                Logger.error(`Failed after ${attempts} attempts:`, lastError.message);
+                throw lastError;
+            }
 
-      const backoffDelay = Math.min(
-        initialDelay * Math.pow(backoffMultiplier, attempt - 1),
-        maxDelay
-      );
+            const backoffDelay = Math.min(
+                initialDelay * Math.pow(backoffMultiplier, attempt - 1),
+                maxDelay
+            );
 
-      Logger.warn(`Attempt ${attempt} failed, retrying in ${backoffDelay}ms...`);
-      await new Promise((resolve) => setTimeout(resolve, backoffDelay));
+            Logger.warn(`Attempt ${attempt} failed, retrying in ${backoffDelay}ms...`);
+            await new Promise(resolve => setTimeout(resolve, backoffDelay));
+        }
     }
-  }
 
-  throw lastError;
+    throw lastError;
 }
 
 /**
  * Debounce function to limit execution rate
  */
 export function debounce<T extends (...args: Parameters<T>) => ReturnType<T>>(
-  fn: T,
-  delay: number
+    fn: T,
+    delay: number
 ): (...args: Parameters<T>) => void {
-  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
-  return function (this: ThisParameterType<T>, ...args: Parameters<T>): void {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => fn.apply(this, args), delay);
-  };
+    return function (this: ThisParameterType<T>, ...args: Parameters<T>): void {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => fn.apply(this, args), delay);
+    };
 }
 
 /**
  * Throttle function to limit execution frequency
  */
 export function throttle<T extends (...args: Parameters<T>) => ReturnType<T>>(
-  fn: T,
-  limit: number
+    fn: T,
+    limit: number
 ): (...args: Parameters<T>) => void {
-  let inThrottle = false;
+    let inThrottle = false;
 
-  return function (this: ThisParameterType<T>, ...args: Parameters<T>): void {
-    if (!inThrottle) {
-      fn.apply(this, args);
-      inThrottle = true;
-      setTimeout(() => (inThrottle = false), limit);
-    }
-  };
+    return function (this: ThisParameterType<T>, ...args: Parameters<T>): void {
+        if (!inThrottle) {
+            fn.apply(this, args);
+            inThrottle = true;
+            setTimeout(() => (inThrottle = false), limit);
+        }
+    };
 }
 
 /**
  * Interval manager to track and cleanup intervals
  */
 class IntervalManagerClass {
-  private intervals: ReturnType<typeof setInterval>[] = [];
+    private intervals: ReturnType<typeof setInterval>[] = [];
 
-  /**
-   * Register a new interval
-   */
-  register(fn: () => void, delay: number): ReturnType<typeof setInterval> {
-    const id = setInterval(fn, delay);
-    this.intervals.push(id);
-    Logger.debug(`Registered interval ${String(id)} with ${delay}ms delay`);
-    return id;
-  }
+    /**
+     * Register a new interval
+     */
+    register(fn: () => void, delay: number): ReturnType<typeof setInterval> {
+        const id = setInterval(fn, delay);
+        this.intervals.push(id);
+        Logger.debug(`Registered interval ${String(id)} with ${delay}ms delay`);
+        return id;
+    }
 
-  /**
-   * Clear a specific interval
-   */
-  clear(id: ReturnType<typeof setInterval>): void {
-    clearInterval(id);
-    this.intervals = this.intervals.filter((i) => i !== id);
-    Logger.debug(`Cleared interval ${String(id)}`);
-  }
+    /**
+     * Clear a specific interval
+     */
+    clear(id: ReturnType<typeof setInterval>): void {
+        clearInterval(id);
+        this.intervals = this.intervals.filter(i => i !== id);
+        Logger.debug(`Cleared interval ${String(id)}`);
+    }
 
-  /**
-   * Clear all registered intervals
-   */
-  clearAll(): void {
-    Logger.info(`Clearing ${this.intervals.length} intervals`);
-    this.intervals.forEach((id) => clearInterval(id));
-    this.intervals = [];
-  }
+    /**
+     * Clear all registered intervals
+     */
+    clearAll(): void {
+        Logger.info(`Clearing ${this.intervals.length} intervals`);
+        this.intervals.forEach(id => clearInterval(id));
+        this.intervals = [];
+    }
 }
 
 export const IntervalManager = new IntervalManagerClass();
 
 // Register with the service registry
 Registry.register({
-  key: 'IntervalManager',
-  instance: IntervalManager,
+    key: 'IntervalManager',
+    instance: IntervalManager,
 });
 
 // Cleanup on page unload
 if (typeof window !== 'undefined') {
-  window.addEventListener('beforeunload', () => {
-    Logger.info('Page unloading - cleaning up resources');
-    IntervalManager.clearAll();
-  });
+    window.addEventListener('beforeunload', () => {
+        Logger.info('Page unloading - cleaning up resources');
+        IntervalManager.clearAll();
+    });
 }

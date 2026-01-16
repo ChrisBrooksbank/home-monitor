@@ -10,109 +10,111 @@ import { Registry } from '../core/registry';
 
 // Helper to get LayersPanel from Registry
 function getLayersPanel() {
-  return Registry.getOptional('LayersPanel') as { getLayerState: (layer: string) => boolean } | undefined;
+    return Registry.getOptional('LayersPanel') as
+        | { getLayerState: (layer: string) => boolean }
+        | undefined;
 }
 
 // News item interface
 interface NewsItem {
-  headline: string;
-  link?: string;
+    headline: string;
+    link?: string;
 }
 
 // Plane configuration
 interface PlaneConfig {
-  MIN_INTERVAL: number;
-  MAX_INTERVAL: number;
-  FLIGHT_DURATION: number;
-  PROXY_URL: string;
-  DEBUG_MODE: boolean;
-  MAX_HEADLINE_LENGTH: number;
+    MIN_INTERVAL: number;
+    MAX_INTERVAL: number;
+    FLIGHT_DURATION: number;
+    PROXY_URL: string;
+    DEBUG_MODE: boolean;
+    MAX_HEADLINE_LENGTH: number;
 }
 
 // Use getter for PROXY_URL since APP_CONFIG may not be available at module load time
 function getProxyUrl(): string {
-  const config = getAppConfig();
-  return config?.proxies?.sonos?.replace(':3000', ':3002') || 'http://localhost:3002';
+    const config = getAppConfig();
+    return config?.proxies?.sonos?.replace(':3000', ':3002') || 'http://localhost:3002';
 }
 
 const PLANE_CONFIG: PlaneConfig = {
-  MIN_INTERVAL: 10 * 60 * 1000, // 10 minutes
-  MAX_INTERVAL: 15 * 60 * 1000, // 15 minutes
-  FLIGHT_DURATION: 18000, // 18 seconds to cross screen
-  PROXY_URL: 'http://localhost:3002', // Initial value, use getProxyUrl() at runtime
-  DEBUG_MODE: false, // Set to true for 30-60 sec intervals
-  MAX_HEADLINE_LENGTH: 55, // Truncate headlines longer than this
+    MIN_INTERVAL: 10 * 60 * 1000, // 10 minutes
+    MAX_INTERVAL: 15 * 60 * 1000, // 15 minutes
+    FLIGHT_DURATION: 18000, // 18 seconds to cross screen
+    PROXY_URL: 'http://localhost:3002', // Initial value, use getProxyUrl() at runtime
+    DEBUG_MODE: false, // Set to true for 30-60 sec intervals
+    MAX_HEADLINE_LENGTH: 55, // Truncate headlines longer than this
 };
 
 // Plane state interface
 interface PlaneState {
-  isActive: boolean;
-  currentHeadline: string | null;
-  currentLink: string | null;
-  nextFlightTime: number | null;
-  currentTimeout: ReturnType<typeof setTimeout> | null;
+    isActive: boolean;
+    currentHeadline: string | null;
+    currentLink: string | null;
+    nextFlightTime: number | null;
+    currentTimeout: ReturnType<typeof setTimeout> | null;
 }
 
 // Plane state
 const planeState: PlaneState = {
-  isActive: false,
-  currentHeadline: null,
-  currentLink: null,
-  nextFlightTime: null,
-  currentTimeout: null,
+    isActive: false,
+    currentHeadline: null,
+    currentLink: null,
+    nextFlightTime: null,
+    currentTimeout: null,
 };
 
 /**
  * Fetch a random headline from the news proxy
  */
 async function fetchHeadline(): Promise<NewsItem | null> {
-  try {
-    const response = await fetch(`${getProxyUrl()}/random`, {
-      signal: AbortSignal.timeout(5000),
-    });
+    try {
+        const response = await fetch(`${getProxyUrl()}/random`, {
+            signal: AbortSignal.timeout(5000),
+        });
 
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (error) {
+        Logger.warn('News plane: Failed to fetch headline:', (error as Error).message);
+        return null;
     }
-
-    return await response.json();
-  } catch (error) {
-    Logger.warn('News plane: Failed to fetch headline:', (error as Error).message);
-    return null;
-  }
 }
 
 /**
  * Truncate headline to fit on banner
  */
 function truncateHeadline(text: string, maxLength: number): string {
-  if (text.length <= maxLength) return text;
-  return text.substring(0, maxLength - 3) + '...';
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength - 3) + '...';
 }
 
 /**
  * Escape HTML entities
  */
 function escapeHtml(text: string): string {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 /**
  * Create the SVG plane with banner
  */
 function createPlaneSVG(headline: string): HTMLDivElement {
-  const container = document.createElement('div');
-  container.className = 'news-plane';
-  container.id = 'active-news-plane';
+    const container = document.createElement('div');
+    container.className = 'news-plane';
+    container.id = 'active-news-plane';
 
-  // Calculate banner width based on headline length
-  const charWidth = 7;
-  const padding = 20;
-  const bannerWidth = Math.min(300, headline.length * charWidth + padding);
+    // Calculate banner width based on headline length
+    const charWidth = 7;
+    const padding = 20;
+    const bannerWidth = Math.min(300, headline.length * charWidth + padding);
 
-  container.innerHTML = `
+    container.innerHTML = `
     <svg width="380" height="80" viewBox="0 0 380 80" xmlns="http://www.w3.org/2000/svg">
       <!-- Plane body -->
       <g class="plane-body" transform="translate(280, 10)">
@@ -157,164 +159,166 @@ function createPlaneSVG(headline: string): HTMLDivElement {
     </svg>
   `;
 
-  return container;
+    return container;
 }
 
 /**
  * Show the plane flying across the screen
  */
 async function showPlane(): Promise<void> {
-  if (planeState.isActive) return;
+    if (planeState.isActive) return;
 
-  // Check if news layer is visible
-  const layersPanel = getLayersPanel();
-  if (layersPanel && !layersPanel.getLayerState('news')) {
-    Logger.debug('News plane: Layer is hidden, skipping flight');
-    schedulePlaneFlight();
-    return;
-  }
-
-  // Fetch headline
-  const newsItem = await fetchHeadline();
-  if (!newsItem) {
-    Logger.warn('News plane: No headline available, rescheduling');
-    schedulePlaneFlight();
-    return;
-  }
-
-  const headline = truncateHeadline(newsItem.headline, PLANE_CONFIG.MAX_HEADLINE_LENGTH);
-  planeState.currentHeadline = headline;
-  planeState.currentLink = newsItem.link || null;
-
-  Logger.info(`News plane flying: "${headline}"`);
-
-  // Create and add plane to DOM
-  const planeElement = createPlaneSVG(headline);
-
-  // Add click handler
-  planeElement.addEventListener('click', () => {
-    if (planeState.currentLink) {
-      window.open(planeState.currentLink, '_blank');
-      Logger.info('News plane: Opened article in new tab');
+    // Check if news layer is visible
+    const layersPanel = getLayersPanel();
+    if (layersPanel && !layersPanel.getLayerState('news')) {
+        Logger.debug('News plane: Layer is hidden, skipping flight');
+        schedulePlaneFlight();
+        return;
     }
-  });
 
-  // Add to body (fixed position)
-  document.body.appendChild(planeElement);
+    // Fetch headline
+    const newsItem = await fetchHeadline();
+    if (!newsItem) {
+        Logger.warn('News plane: No headline available, rescheduling');
+        schedulePlaneFlight();
+        return;
+    }
 
-  planeState.isActive = true;
+    const headline = truncateHeadline(newsItem.headline, PLANE_CONFIG.MAX_HEADLINE_LENGTH);
+    planeState.currentHeadline = headline;
+    planeState.currentLink = newsItem.link || null;
 
-  // Remove plane after animation completes
-  setTimeout(() => {
-    removePlane(planeElement);
-  }, PLANE_CONFIG.FLIGHT_DURATION);
+    Logger.info(`News plane flying: "${headline}"`);
+
+    // Create and add plane to DOM
+    const planeElement = createPlaneSVG(headline);
+
+    // Add click handler
+    planeElement.addEventListener('click', () => {
+        if (planeState.currentLink) {
+            window.open(planeState.currentLink, '_blank');
+            Logger.info('News plane: Opened article in new tab');
+        }
+    });
+
+    // Add to body (fixed position)
+    document.body.appendChild(planeElement);
+
+    planeState.isActive = true;
+
+    // Remove plane after animation completes
+    setTimeout(() => {
+        removePlane(planeElement);
+    }, PLANE_CONFIG.FLIGHT_DURATION);
 }
 
 /**
  * Remove plane and schedule next appearance
  */
 function removePlane(element: HTMLElement): void {
-  if (element && element.parentNode) {
-    element.remove();
-  }
+    if (element && element.parentNode) {
+        element.remove();
+    }
 
-  planeState.isActive = false;
-  planeState.currentHeadline = null;
-  planeState.currentLink = null;
+    planeState.isActive = false;
+    planeState.currentHeadline = null;
+    planeState.currentLink = null;
 
-  Logger.debug('News plane: Flight complete');
-  schedulePlaneFlight();
+    Logger.debug('News plane: Flight complete');
+    schedulePlaneFlight();
 }
 
 /**
  * Schedule next plane flight
  */
 function schedulePlaneFlight(): void {
-  const minInterval = PLANE_CONFIG.DEBUG_MODE ? 30 * 1000 : PLANE_CONFIG.MIN_INTERVAL;
-  const maxInterval = PLANE_CONFIG.DEBUG_MODE ? 60 * 1000 : PLANE_CONFIG.MAX_INTERVAL;
-  const randomInterval = Math.floor(Math.random() * (maxInterval - minInterval)) + minInterval;
+    const minInterval = PLANE_CONFIG.DEBUG_MODE ? 30 * 1000 : PLANE_CONFIG.MIN_INTERVAL;
+    const maxInterval = PLANE_CONFIG.DEBUG_MODE ? 60 * 1000 : PLANE_CONFIG.MAX_INTERVAL;
+    const randomInterval = Math.floor(Math.random() * (maxInterval - minInterval)) + minInterval;
 
-  if (planeState.currentTimeout) {
-    clearTimeout(planeState.currentTimeout);
-  }
+    if (planeState.currentTimeout) {
+        clearTimeout(planeState.currentTimeout);
+    }
 
-  planeState.currentTimeout = setTimeout(showPlane, randomInterval);
-  planeState.nextFlightTime = Date.now() + randomInterval;
-  localStorage.setItem('planeNextFlight', String(planeState.nextFlightTime));
+    planeState.currentTimeout = setTimeout(showPlane, randomInterval);
+    planeState.nextFlightTime = Date.now() + randomInterval;
+    localStorage.setItem('planeNextFlight', String(planeState.nextFlightTime));
 
-  const minutes = Math.round(randomInterval / 60000);
-  Logger.debug(`News plane: Next flight in ~${minutes} minutes`);
+    const minutes = Math.round(randomInterval / 60000);
+    Logger.debug(`News plane: Next flight in ~${minutes} minutes`);
 }
 
 /**
  * Handle visibility change (pause/resume)
  */
 function handleVisibilityChange(): void {
-  if (document.hidden) {
-    if (planeState.currentTimeout) {
-      clearTimeout(planeState.currentTimeout);
-      localStorage.setItem('planeNextFlight', String(planeState.nextFlightTime));
+    if (document.hidden) {
+        if (planeState.currentTimeout) {
+            clearTimeout(planeState.currentTimeout);
+            localStorage.setItem('planeNextFlight', String(planeState.nextFlightTime));
+        }
+    } else {
+        const savedTime = localStorage.getItem('planeNextFlight');
+        if (savedTime && !planeState.isActive) {
+            const timeRemaining = parseInt(savedTime) - Date.now();
+            if (timeRemaining > 0) {
+                planeState.currentTimeout = setTimeout(showPlane, timeRemaining);
+            } else {
+                schedulePlaneFlight();
+            }
+        }
     }
-  } else {
-    const savedTime = localStorage.getItem('planeNextFlight');
-    if (savedTime && !planeState.isActive) {
-      const timeRemaining = parseInt(savedTime) - Date.now();
-      if (timeRemaining > 0) {
-        planeState.currentTimeout = setTimeout(showPlane, timeRemaining);
-      } else {
-        schedulePlaneFlight();
-      }
-    }
-  }
 }
 
 /**
  * Initialize plane system
  */
 function initPlaneSystem(debugMode = false): void {
-  PLANE_CONFIG.DEBUG_MODE = debugMode;
+    PLANE_CONFIG.DEBUG_MODE = debugMode;
 
-  Logger.info('News plane system initialized!');
-  Logger.info(`Debug mode: ${debugMode ? 'ON (30-60 sec)' : 'OFF (10-15 min)'}`);
+    Logger.info('News plane system initialized!');
+    Logger.info(`Debug mode: ${debugMode ? 'ON (30-60 sec)' : 'OFF (10-15 min)'}`);
 
-  document.addEventListener('visibilitychange', handleVisibilityChange);
-  schedulePlaneFlight();
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    schedulePlaneFlight();
 }
 
 /**
  * Get current plane state
  */
 function getPlaneState(): PlaneState {
-  return { ...planeState };
+    return { ...planeState };
 }
 
 /**
  * Plane System module export
  */
-export const PlaneSystem = {
-  init: initPlaneSystem,
-  show: showPlane,
-  getState: getPlaneState,
-  config: PLANE_CONFIG,
+const PlaneSystem = {
+    init: initPlaneSystem,
+    show: showPlane,
+    getState: getPlaneState,
+    config: PLANE_CONFIG,
 };
 
 // Register with the service registry
 Registry.register({
-  key: 'PlaneSystem',
-  instance: PlaneSystem,
+    key: 'PlaneSystem',
+    instance: PlaneSystem,
 });
 
 // Subscribe to app:ready event for automatic initialization
 if (typeof window !== 'undefined') {
-  setTimeout(() => {
-    const appEvents = getAppEvents();
-    if (appEvents) {
-      appEvents.on('app:ready', () => {
-        const config = getAppConfig();
-        const debugMode = config?.debug || PLANE_CONFIG.DEBUG_MODE;
-        initPlaneSystem(debugMode);
-        Logger.info(`News plane auto-initialized via app:ready event (debug: ${debugMode})`);
-      });
-    }
-  }, 0);
+    setTimeout(() => {
+        const appEvents = getAppEvents();
+        if (appEvents) {
+            appEvents.on('app:ready', () => {
+                const config = getAppConfig();
+                const debugMode = config?.debug || PLANE_CONFIG.DEBUG_MODE;
+                initPlaneSystem(debugMode);
+                Logger.info(
+                    `News plane auto-initialized via app:ready event (debug: ${debugMode})`
+                );
+            });
+        }
+    }, 0);
 }

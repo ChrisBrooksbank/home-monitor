@@ -23,6 +23,9 @@ npm run test:run -- src/api/hue.test.ts  # Run single test file
 npm run test:coverage  # Coverage report
 npm run test:ui        # Vitest UI
 
+# Code quality
+npm run knip           # Find unused code, exports, and dependencies
+
 # Individual proxies
 npm run proxy:sonos    # Sonos proxy (port 3000)
 npm run proxy:tapo     # Tapo proxy (port 3001)
@@ -33,7 +36,9 @@ npm run proxy:news     # News proxy (port 3002)
 ## Architecture
 
 ### TypeScript with ES Modules
+
 The codebase uses TypeScript with ES module imports/exports. Path aliases are configured:
+
 - `@api/*` → `src/api/*`
 - `@core/*` → `src/core/*`
 - `@features/*` → `src/features/*`
@@ -43,6 +48,7 @@ The codebase uses TypeScript with ES module imports/exports. Path aliases are co
 - `@types/*` → `src/types/*`
 
 ### Source Structure (`src/`)
+
 - `main.ts` - Entry point, bootstraps on DOMContentLoaded
 - `app.ts` - Main application (Hue sensors, lights, thermometers, voice)
 - `types/index.ts` - All TypeScript interfaces and types
@@ -56,6 +62,7 @@ The codebase uses TypeScript with ES module imports/exports. Path aliases are co
 - `scripts/` - CLI scripts for device discovery and control
 
 ### Key Modules
+
 - **AppState** (`core/state.ts`) - Centralized reactive state with `get<T>(key)` and `set(key, value)`
 - **AppEvents** (`core/events.ts`) - Event bus for module communication
 - **Poller** (`core/poller.ts`) - Manages polling intervals for sensors
@@ -63,6 +70,7 @@ The codebase uses TypeScript with ES module imports/exports. Path aliases are co
 - **Logger** (`utils/logger.ts`) - Use `Logger.info()`, `.warn()`, `.error()`, `.success()` instead of console.log
 
 ### Configuration
+
 - `APP_CONFIG` in `config/constants.ts` - Proxy URLs, intervals, timeouts
 - `config.js` (root, not committed) - Hue Bridge IP/username, Weather API key
 - `.env` - Tapo credentials (TAPO_EMAIL, TAPO_PASSWORD)
@@ -70,6 +78,7 @@ The codebase uses TypeScript with ES module imports/exports. Path aliases are co
 ## Key Patterns
 
 ### Importing Modules
+
 ```typescript
 import { HueAPI } from '@api/hue';
 import { Logger } from '@utils/logger';
@@ -78,18 +87,21 @@ import type { LightInfo, RoomName } from '@types';
 ```
 
 ### Retry Logic
+
 ```typescript
 import { retryWithBackoff } from '@utils/helpers';
 const data = await retryWithBackoff(() => fetchData());
 ```
 
 ### Interval Management
+
 ```typescript
 import { IntervalManager } from '@utils/helpers';
 IntervalManager.register(() => pollSensors(), APP_CONFIG.intervals.lights);
 ```
 
 ### Draggable Elements
+
 ```typescript
 import { createDraggable } from '@ui/draggable';
 createDraggable(element, { storageKey: 'myPosition' });
@@ -117,17 +129,18 @@ createDraggable(element, { storageKey: 'myPosition' });
 1. Create a Google Cloud project and enable Smart Device Management API
 2. Create OAuth2 credentials (Web application type)
 3. Create `nest-config.json`:
-   ```json
-   {
-     "CLIENT_ID": "your-client-id",
-     "CLIENT_SECRET": "your-client-secret",
-     "PROJECT_ID": "your-sdm-project-id",
-     "REDIRECT_URI": "http://localhost:8080/auth/callback"
-   }
-   ```
+    ```json
+    {
+        "CLIENT_ID": "your-client-id",
+        "CLIENT_SECRET": "your-client-secret",
+        "PROJECT_ID": "your-sdm-project-id",
+        "REDIRECT_URI": "http://localhost:8080/auth/callback"
+    }
+    ```
 4. Run `npx tsx src/scripts/setup/nest-auth.ts` to authorize
 
 ### Refreshing Expired Tokens
+
 ```bash
 npx tsx src/scripts/setup/nest-auth.ts
 ```

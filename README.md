@@ -5,60 +5,71 @@ A real-time, interactive smart home dashboard for monitoring and controlling Phi
 ## Features
 
 ### Temperature Monitoring
+
 - Mercury thermometer graphics with color-coded temperatures
 - 24-hour temperature history
 - Draggable thermometer positions (saved to localStorage)
 - Sparkle effects on temperature updates
 
 ### Motion Detection
+
 - Animated monkey face indicators when motion is detected
 - Voice announcements for Outdoor, Hall, Landing, Bathroom
 - 48-hour motion event log with timestamps
 - Real-time updates every 3 seconds
 
 ### Smart Lighting
+
 - Light indicators show **actual Hue bulb colors** (HSV, color temperature, CIE xy)
 - Narnia-style lamppost for outdoor lighting
 - Double-click any light to toggle on/off
 - Light effects: Red Alert, Party Mode, Disco, Wave, Sunset
 
 ### Monty the Moose
+
 - Animated moose character appears every 10-20 minutes
 - Various activities: cleaning windows, mowing lawn, watering plants, picnics
 - Voice announcement: "It's me, Monty!"
 - Night-only star gazing activity
 
 ### Sonos Speaker Control
+
 - Play/pause, volume control
 - Speaker discovery and status display
 - SOAP/UPnP integration via proxy server
 
 ### TP-Link Tapo Smart Plugs
+
 - UK socket faceplate design with rocker switch
 - Auto-discovery of plugs on network
 - Toggle on/off with visual feedback
 - Draggable plug positions
 
 ### NVIDIA SHIELD TV
+
 - Launch apps (Netflix, YouTube, Plex, Spotify, etc.)
 - ADB-based control via proxy server
 
 ### Google Nest Thermostat
+
 - Current and target temperature display
 - Visual thermostat control
 - OAuth2 token management
 
 ### Weather Integration
+
 - Live weather from WeatherAPI.com
 - Temperature, conditions, humidity, UV index
 - Auto-updates every 15 minutes
 
 ### Connection Status
+
 - Header displays real-time status of all services
 - Hue Bridge, Sonos, Tapo, and SHIELD proxy indicators
 - Visual feedback (green = online, red = offline)
 
 ### UI Features
+
 - Pixel art UK semi-detached house design
 - Day/night sky transitions based on sunrise/sunset
 - Animated smoke, clouds, and birds
@@ -66,6 +77,7 @@ A real-time, interactive smart home dashboard for monitoring and controlling Phi
 - Compact/Full view mode toggle
 
 ### Progressive Web App
+
 - Install on any device
 - Offline support with service worker
 - Auto-cache invalidation on updates
@@ -73,49 +85,57 @@ A real-time, interactive smart home dashboard for monitoring and controlling Phi
 ## Quick Start
 
 ### Prerequisites
+
 - Node.js 18+
 - npm
 
 ### Installation
 
 1. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+
+    ```bash
+    npm install
+    ```
 
 2. **Create environment file:**
-   ```bash
-   cp .env.example .env
-   ```
+
+    ```bash
+    cp .env.example .env
+    ```
 
 3. **Configure `.env`:**
-   ```env
-   TAPO_EMAIL=your-email@example.com
-   TAPO_PASSWORD=your-password
-   FRONTEND_ORIGIN=http://localhost:5173
-   NODE_ENV=development
-   ```
+
+    ```env
+    TAPO_EMAIL=your-email@example.com
+    TAPO_PASSWORD=your-password
+    FRONTEND_ORIGIN=http://localhost:5173
+    NODE_ENV=development
+    ```
 
 4. **Configure Hue Bridge:**
-   ```bash
-   cp config.example.js config.js
-   ```
-   Edit `config.js` with your Hue Bridge IP and API username.
+
+    ```bash
+    cp config.example.js config.js
+    ```
+
+    Edit `config.js` with your Hue Bridge IP and API username.
 
 5. **Start the application:**
-   ```bash
-   npm start
-   ```
-   This starts:
-   - Vite dev server (port 5173)
-   - Sonos proxy (port 3000)
-   - Tapo proxy (port 3001)
-   - SHIELD proxy (port 8082)
+
+    ```bash
+    npm start
+    ```
+
+    This starts:
+    - Vite dev server (port 5173)
+    - Sonos proxy (port 3000)
+    - Tapo proxy (port 3001)
+    - SHIELD proxy (port 8082)
 
 6. **Open browser:**
-   ```
-   http://localhost:5173
-   ```
+    ```
+    http://localhost:5173
+    ```
 
 ## New Machine Setup
 
@@ -123,17 +143,17 @@ When cloning to a new machine, these files are **not in git** and must be create
 
 ### Required Files
 
-| File | Purpose | Template |
-|------|---------|----------|
+| File        | Purpose                                 | Template            |
+| ----------- | --------------------------------------- | ------------------- |
 | `config.js` | Hue Bridge credentials, Weather API key | `config.example.js` |
-| `.env` | Tapo email/password | `.env.example` |
+| `.env`      | Tapo email/password                     | `.env.example`      |
 
 ### Optional Files
 
-| File | Purpose | How to Create |
-|------|---------|---------------|
-| `nest-config.js` | Nest OAuth tokens | Run `node scripts/setup/nest-auth.cjs` |
-| `nest-config.json` | Nest client credentials | See Nest setup below |
+| File               | Purpose                 | How to Create                          |
+| ------------------ | ----------------------- | -------------------------------------- |
+| `nest-config.js`   | Nest OAuth tokens       | Run `node scripts/setup/nest-auth.cjs` |
+| `nest-config.json` | Nest client credentials | See Nest setup below                   |
 
 ### Quick Setup Commands
 
@@ -160,15 +180,18 @@ npm start
 **"APP_CONFIG is not defined"** - The `js/config.js` file should be in git. Run `git pull`.
 
 **"Unexpected token '<'"** - Browser cached a bad response. Clear site data:
+
 1. DevTools (F12) → Application → Storage → Clear site data
 2. Hard refresh (Ctrl+Shift+R)
 
 **Greyed out status indicators** - Check:
+
 1. Node.js 18+ installed (`node --version`)
 2. `config.js` exists in project root with correct Hue credentials
 3. Devices are on same network (VPN may block local access)
 
 **Proxies not starting** - Ports may be in use. Check with:
+
 ```bash
 netstat -ano | findstr ":3000 :3001 :8082"
 ```
@@ -176,20 +199,24 @@ netstat -ano | findstr ":3000 :3001 :8082"
 ## Configuration
 
 ### Hue Bridge (Required)
+
 Edit `config.js`:
+
 ```javascript
 const HUE_CONFIG = {
-    BRIDGE_IP: "192.168.1.XXX",
-    USERNAME: "your-hue-api-username"
+    BRIDGE_IP: '192.168.1.XXX',
+    USERNAME: 'your-hue-api-username',
 };
 ```
 
 ### Weather API (Optional)
+
 Sign up at [weatherapi.com](https://www.weatherapi.com/signup.aspx) and add to `config.js`:
+
 ```javascript
 const WEATHER_CONFIG = {
-    API_KEY: "your-api-key",
-    LOCATION: "CM1 6UG"
+    API_KEY: 'your-api-key',
+    LOCATION: 'CM1 6UG',
 };
 ```
 
@@ -198,21 +225,23 @@ const WEATHER_CONFIG = {
 1. Create Google Cloud project with Smart Device Management API
 2. Create OAuth2 credentials with redirect URI: `http://localhost:8080/auth/callback`
 3. Create `nest-config.json`:
-   ```json
-   {
-     "CLIENT_ID": "your-client-id.apps.googleusercontent.com",
-     "CLIENT_SECRET": "your-client-secret",
-     "PROJECT_ID": "your-sdm-project-id",
-     "REDIRECT_URI": "http://localhost:8080/auth/callback"
-   }
-   ```
+    ```json
+    {
+        "CLIENT_ID": "your-client-id.apps.googleusercontent.com",
+        "CLIENT_SECRET": "your-client-secret",
+        "PROJECT_ID": "your-sdm-project-id",
+        "REDIRECT_URI": "http://localhost:8080/auth/callback"
+    }
+    ```
 4. Run authorization:
-   ```bash
-   node scripts/setup/nest-auth.cjs
-   ```
+    ```bash
+    node scripts/setup/nest-auth.cjs
+    ```
 
 #### Refreshing Expired Tokens
+
 If you see "Token has been expired or revoked":
+
 ```bash
 node scripts/setup/nest-auth.cjs
 ```
@@ -228,6 +257,12 @@ npm run dev            # Vite dev server only
 npm run proxy:sonos    # Sonos proxy (port 3000)
 npm run proxy:tapo     # Tapo proxy (port 3001)
 npm run proxy:shield   # SHIELD proxy (port 8082)
+
+# Code quality
+npm run lint           # ESLint check
+npm run lint:fix       # ESLint auto-fix
+npm run format         # Prettier format
+npm run knip           # Find unused code/exports/dependencies
 
 # Production
 npm run build          # Build for production
@@ -283,6 +318,7 @@ home/
 ## Health Checks
 
 Verify proxy servers are running:
+
 ```bash
 curl http://localhost:3000/health  # Sonos
 curl http://localhost:3001/health  # Tapo
@@ -291,17 +327,17 @@ curl http://localhost:8082/health  # SHIELD
 
 ## Update Intervals
 
-| Data | Interval | Notes |
-|------|----------|-------|
-| Motion sensors | 3 sec | Real-time detection |
-| Lights | 10 sec | Frequent updates |
-| Temperatures | 60 sec | Slow changes |
-| Connection status | 30 sec | Service health |
-| Sonos volume | 30 sec | Speaker status |
-| Tapo status | 30 sec | Plug states |
-| Weather | 15 min | API rate friendly |
-| Nest | 15 min | Avoid rate limits |
-| Sun times | 24 hr | Sunrise/sunset |
+| Data              | Interval | Notes               |
+| ----------------- | -------- | ------------------- |
+| Motion sensors    | 3 sec    | Real-time detection |
+| Lights            | 10 sec   | Frequent updates    |
+| Temperatures      | 60 sec   | Slow changes        |
+| Connection status | 30 sec   | Service health      |
+| Sonos volume      | 30 sec   | Speaker status      |
+| Tapo status       | 30 sec   | Plug states         |
+| Weather           | 15 min   | API rate friendly   |
+| Nest              | 15 min   | Avoid rate limits   |
+| Sun times         | 24 hr    | Sunrise/sunset      |
 
 ## Room Layout
 
@@ -314,6 +350,7 @@ curl http://localhost:8082/health  # SHIELD
 ## Technologies
 
 ### Frontend
+
 - Vanilla JavaScript (ES6+)
 - SVG graphics
 - Web Speech API
@@ -321,6 +358,7 @@ curl http://localhost:8082/health  # SHIELD
 - Service Workers (PWA)
 
 ### Backend
+
 - Node.js proxy servers
 - Philips Hue Bridge API
 - Sonos SOAP/UPnP
@@ -331,6 +369,7 @@ curl http://localhost:8082/health  # SHIELD
 - Sunrise-Sunset API
 
 ### Architecture
+
 - Feature-based modular structure
 - Centralized config with validation
 - IntervalManager for polling
