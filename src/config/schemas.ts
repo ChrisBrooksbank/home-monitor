@@ -12,13 +12,6 @@ import { z } from 'zod';
 export const HueConfigSchema = z.object({
     BRIDGE_IP: z.string().min(1, 'Bridge IP is required'),
     USERNAME: z.string().min(1, 'API username is required'),
-    IFTTT: z
-        .object({
-            enabled: z.boolean(),
-            webhookKey: z.string(),
-            events: z.record(z.string(), z.string()),
-        })
-        .optional(),
 });
 
 // =============================================================================
