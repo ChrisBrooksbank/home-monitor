@@ -4,7 +4,7 @@
  */
 
 import { Logger } from '../utils/logger';
-import { Registry } from '../core/registry';
+import { Config } from '../config/Config';
 
 // Weather data interface
 export interface WeatherData {
@@ -18,20 +18,13 @@ export interface WeatherData {
     windDir: string;
 }
 
-// Helper to get weather config from Registry
-function getWeatherConfig() {
-    return Registry.getOptional('WEATHER_CONFIG') as
-        | { API_KEY?: string; LOCATION?: string }
-        | undefined;
-}
-
-// Weather configuration
+// Weather configuration using Config facade
 const WEATHER_CONFIG = {
     get apiKey(): string {
-        return getWeatherConfig()?.API_KEY || '';
+        return Config.weather?.API_KEY || '';
     },
     get location(): string {
-        return getWeatherConfig()?.LOCATION || 'Chelmsford,UK';
+        return Config.weather?.LOCATION || Config.app.defaults.weather.LOCATION;
     },
 };
 

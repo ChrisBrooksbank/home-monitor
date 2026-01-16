@@ -3,19 +3,18 @@
  * Handles Google Nest thermostat communication and display
  */
 
-import { Logger, getAppConfig } from '../utils';
+import { Logger } from '../utils';
 import { Registry } from '../core/registry';
-import { getNestConfigWithFallback } from '../config/config-bridge';
+import { Config } from '../config/Config';
 import type { NestThermostat } from '../types';
 
-// Internal Nest configuration interface (with legacy snake_case support)
+// Internal Nest configuration interface (normalized to UPPER_CASE by config-bridge)
 interface NestConfigInternal {
     clientId: string | undefined;
     clientSecret: string | undefined;
     projectId: string | undefined;
     refreshToken: string | undefined;
     accessToken: string | undefined;
-    expiresAt: number | undefined;
 }
 
 // Thermostat status interface
@@ -34,19 +33,15 @@ let nestDevices: NestThermostat[] = [];
 let nestAccessToken: string | null = null;
 let nestTokenExpiry = 0;
 
-// Get Nest configuration from global config (supports both UPPER_CASE and snake_case)
+// Get Nest configuration from Config facade (normalized by config-bridge)
 const getNestConfig = (): NestConfigInternal => {
-    // Use fallback function that checks Registry then window global
-    const cfg = getNestConfigWithFallback() as
-        | Record<string, string | number | undefined>
-        | undefined;
+    const cfg = Config.nest;
     return {
-        clientId: cfg?.CLIENT_ID as string | undefined,
-        clientSecret: cfg?.CLIENT_SECRET as string | undefined,
-        projectId: cfg?.PROJECT_ID as string | undefined,
-        refreshToken: (cfg?.REFRESH_TOKEN || cfg?.refresh_token) as string | undefined,
-        accessToken: (cfg?.ACCESS_TOKEN || cfg?.access_token) as string | undefined,
-        expiresAt: (cfg?.expires_at || cfg?.EXPIRES_AT) as number | undefined,
+        clientId: cfg?.CLIENT_ID,
+        clientSecret: cfg?.CLIENT_SECRET,
+        projectId: cfg?.PROJECT_ID,
+        refreshToken: cfg?.REFRESH_TOKEN,
+        accessToken: cfg?.ACCESS_TOKEN,
     };
 };
 
@@ -56,7 +51,7 @@ const getNestConfig = (): NestConfigInternal => {
 function initTokens(): void {
     const config = getNestConfig();
     nestAccessToken = config.accessToken || null;
-    nestTokenExpiry = config.expiresAt || 0;
+    nestTokenExpiry = 0; // Token needs refresh on first use
 }
 
 /**
@@ -500,12 +495,10 @@ if (typeof window !== 'undefined') {
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', () => {
             const intervalManager = Registry.getOptional('IntervalManager');
-            const config = getAppConfig();
-            initNestIntegration(intervalManager, config?.intervals?.nest ?? 15 * 60 * 1000);
+            initNestIntegration(intervalManager, Config.app.intervals.nest);
         });
     } else {
         const intervalManager = Registry.getOptional('IntervalManager');
-        const config = getAppConfig();
-        initNestIntegration(intervalManager, config?.intervals?.nest ?? 15 * 60 * 1000);
+        initNestIntegration(intervalManager, Config.app.intervals.nest);
     }
 }

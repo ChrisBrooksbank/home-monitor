@@ -4,9 +4,9 @@
  */
 
 import type { ConnectionStatus, ConnectionsState } from '../types';
-import { Logger, getAppConfig, getAppEvents, getHueConfig } from '../utils';
+import { Logger, getAppEvents } from '../utils';
 import { Registry } from './registry';
-import { getNestConfigWithFallback } from '../config/config-bridge';
+import { Config } from '../config/Config';
 
 interface FullConnectionStatus extends ConnectionStatus {
     name?: string | null;
@@ -61,18 +61,13 @@ interface HueBridgeConfigResponse {
  * Check Hue bridge connectivity
  */
 async function checkHueBridgeHealth(): Promise<boolean> {
-    const hueConfig = getHueConfig();
-    const appConfig = getAppConfig();
-    const BRIDGE_IP = hueConfig?.BRIDGE_IP ?? '192.168.68.51';
+    const BRIDGE_IP = Config.hue?.BRIDGE_IP ?? Config.app.defaults.hue.BRIDGE_IP;
 
     updateIndicator('status-hue', 'checking');
 
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(
-            () => controller.abort(),
-            appConfig?.timeouts?.proxyCheck ?? 2000
-        );
+        const timeoutId = setTimeout(() => controller.abort(), Config.app.timeouts.proxyCheck);
 
         const response = await fetch(`http://${BRIDGE_IP}/api/config`, {
             signal: controller.signal,
@@ -142,15 +137,11 @@ async function checkProxyHealth(
     proxyName: 'sonos' | 'tapo' | 'shield',
     url: string
 ): Promise<boolean> {
-    const appConfig = getAppConfig();
     updateIndicator(`status-${proxyName}`, 'checking');
 
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(
-            () => controller.abort(),
-            appConfig?.timeouts?.proxyCheck ?? 2000
-        );
+        const timeoutId = setTimeout(() => controller.abort(), Config.app.timeouts.proxyCheck);
 
         const response = await fetch(`${url}/health`, { signal: controller.signal });
         clearTimeout(timeoutId);
@@ -207,7 +198,7 @@ async function checkProxyHealth(
 function checkNestHealth(): boolean {
     updateIndicator('status-nest', 'checking');
 
-    const config = getNestConfigWithFallback();
+    const config = Config.nest;
 
     // Check if config exists
     if (!config) {
@@ -227,29 +218,9 @@ function checkNestHealth(): boolean {
         return false;
     }
 
-    // Get access token (handle both camelCase and UPPER_CASE)
-    const accessToken = config.access_token ?? config.ACCESS_TOKEN;
-    if (!accessToken) {
+    // Get access token (normalized to UPPER_CASE by config-bridge)
+    if (!config.ACCESS_TOKEN) {
         const errorMsg = 'Access token missing - re-run auth setup';
-        const wasOnline = connectionStatus.nest.online;
-        connectionStatus.nest = {
-            online: false,
-            lastCheck: new Date(),
-            error: errorMsg,
-        };
-        updateIndicator('status-nest', 'offline', `Nest: ${errorMsg}`);
-
-        if (wasOnline) {
-            const events = getAppEvents();
-            events?.emit('connection:nest:offline', { error: errorMsg });
-        }
-        return false;
-    }
-
-    // Check token expiry (handle both camelCase and UPPER_CASE)
-    const expiresAt = config.expires_at ?? config.EXPIRES_AT;
-    if (expiresAt && Date.now() > expiresAt) {
-        const errorMsg = 'Token expired - run auth refresh';
         const wasOnline = connectionStatus.nest.online;
         connectionStatus.nest = {
             online: false,
@@ -290,7 +261,6 @@ async function checkAllConnections(): Promise<ConnectionsState> {
         return connectionStatus;
     }
 
-    const appConfig = getAppConfig();
     isCheckingConnections = true;
     try {
         // Check Nest synchronously (no network call)
@@ -299,9 +269,9 @@ async function checkAllConnections(): Promise<ConnectionsState> {
         // Check others in parallel (network calls)
         await Promise.all([
             checkHueBridgeHealth(),
-            checkProxyHealth('sonos', appConfig?.proxies?.sonos ?? 'http://localhost:3000'),
-            checkProxyHealth('tapo', appConfig?.proxies?.tapo ?? 'http://localhost:3001'),
-            checkProxyHealth('shield', appConfig?.proxies?.shield ?? 'http://localhost:8082'),
+            checkProxyHealth('sonos', Config.app.proxies.sonos),
+            checkProxyHealth('tapo', Config.app.proxies.tapo),
+            checkProxyHealth('shield', Config.app.proxies.shield),
         ]);
     } finally {
         isCheckingConnections = false;

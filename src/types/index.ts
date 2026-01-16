@@ -41,12 +41,23 @@ export interface RetryConfig {
     backoffMultiplier: number;
 }
 
+export interface ConfigDefaults {
+    hue: {
+        BRIDGE_IP: string;
+    };
+    weather: {
+        LOCATION: string;
+        UPDATE_INTERVAL: number;
+    };
+}
+
 export interface AppConfig {
     proxies: ProxyConfig;
     intervals: IntervalsConfig;
     timeouts: TimeoutsConfig;
     retry: RetryConfig;
     debug: boolean;
+    defaults: ConfigDefaults;
 }
 
 export interface HueConfig {

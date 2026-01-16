@@ -1,12 +1,19 @@
 /**
  * Config Bridge
- * Bridges external config.js values into the Registry
+ * Bridges external config.js values into the Registry with validation
  *
  * config.js is loaded via script tag before the app and sets window globals.
- * This module copies those values into the Registry after they're available.
+ * This module validates and copies those values into the Registry.
  */
 
 import { Registry } from '../core/registry';
+import { Logger } from '../utils/logger';
+import {
+    HueConfigSchema,
+    WeatherConfigSchema,
+    NestConfigRawSchema,
+    validateConfig,
+} from './schemas';
 import type { HueConfig, WeatherConfig, NestConfig } from '../types';
 
 // Declare window properties that may be set by external config.js
@@ -24,34 +31,69 @@ declare const window: Window & {
 };
 
 /**
+ * Normalize Nest config to use consistent UPPER_CASE
+ * Handles both ACCESS_TOKEN and access_token conventions
+ */
+function normalizeNestConfig(raw: typeof window.NEST_CONFIG): NestConfig | undefined {
+    if (!raw) return undefined;
+
+    return {
+        CLIENT_ID: raw.CLIENT_ID,
+        CLIENT_SECRET: raw.CLIENT_SECRET,
+        PROJECT_ID: raw.PROJECT_ID,
+        REDIRECT_URI: raw.REDIRECT_URI,
+        ACCESS_TOKEN: raw.ACCESS_TOKEN ?? raw.access_token,
+        REFRESH_TOKEN: raw.REFRESH_TOKEN ?? raw.refresh_token,
+    };
+}
+
+/**
  * Bridge external config from window globals into the Registry
- * Call this after DOMContentLoaded when config.js has been executed
+ * Validates configs and logs warnings for invalid values (but doesn't block)
  */
 function bridgeExternalConfig(): void {
     if (typeof window === 'undefined') return;
 
-    // Bridge HUE_CONFIG if present
+    // Bridge HUE_CONFIG if present (with validation)
     if (window.HUE_CONFIG) {
+        const result = validateConfig(HueConfigSchema, window.HUE_CONFIG, 'HUE_CONFIG');
+        if (!result.success && result.errors) {
+            Logger.warn('HUE_CONFIG validation issues:', result.errors);
+        }
         Registry.register({
             key: 'HUE_CONFIG',
             instance: window.HUE_CONFIG,
         });
     }
 
-    // Bridge WEATHER_CONFIG if present
+    // Bridge WEATHER_CONFIG if present (with validation)
     if (window.WEATHER_CONFIG) {
+        const result = validateConfig(WeatherConfigSchema, window.WEATHER_CONFIG, 'WEATHER_CONFIG');
+        if (!result.success && result.errors) {
+            Logger.warn('WEATHER_CONFIG validation issues:', result.errors);
+        }
         Registry.register({
             key: 'WEATHER_CONFIG',
             instance: window.WEATHER_CONFIG,
         });
     }
 
-    // Bridge NEST_CONFIG if present
+    // Bridge NEST_CONFIG if present (with normalization and validation)
     if (window.NEST_CONFIG) {
-        Registry.register({
-            key: 'NEST_CONFIG',
-            instance: window.NEST_CONFIG,
-        });
+        // Validate raw config first
+        const rawResult = validateConfig(NestConfigRawSchema, window.NEST_CONFIG, 'NEST_CONFIG');
+        if (!rawResult.success && rawResult.errors) {
+            Logger.warn('NEST_CONFIG validation issues:', rawResult.errors);
+        }
+
+        // Normalize to consistent casing
+        const normalized = normalizeNestConfig(window.NEST_CONFIG);
+        if (normalized) {
+            Registry.register({
+                key: 'NEST_CONFIG',
+                instance: normalized,
+            });
+        }
     }
 }
 

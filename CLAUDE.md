@@ -126,21 +126,46 @@ createDraggable(element, { storageKey: 'myPosition' });
 
 ## Nest Thermostat Setup
 
-1. Create a Google Cloud project and enable Smart Device Management API
-2. Create OAuth2 credentials (Web application type)
-3. Create `nest-config.json`:
+### 1. Google Cloud Setup
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project (or select existing)
+3. Enable the **Smart Device Management API**
+4. Go to **APIs & Services > Credentials**
+5. Create **OAuth 2.0 Client ID** (Web application type)
+6. Add authorized redirect URI: `http://localhost:3003/auth/callback`
+7. Note your **Client ID** and **Client Secret**
+
+### 2. Smart Device Management Setup
+
+1. Go to [Device Access Console](https://console.nest.google.com/device-access)
+2. Create a project (costs $5 one-time fee)
+3. Add your OAuth Client ID from step 1
+4. Note your **Project ID**
+
+### 3. Configure the App
+
+1. Copy the example config:
+    ```bash
+    cp nest-config.example.json nest-config.json
+    ```
+2. Fill in your credentials:
     ```json
     {
-        "CLIENT_ID": "your-client-id",
+        "CLIENT_ID": "your-client-id.apps.googleusercontent.com",
         "CLIENT_SECRET": "your-client-secret",
-        "PROJECT_ID": "your-sdm-project-id",
-        "REDIRECT_URI": "http://localhost:8080/auth/callback"
+        "PROJECT_ID": "your-sdm-project-id"
     }
     ```
-4. Run `npx tsx src/scripts/setup/nest-auth.ts` to authorize
+
+### 4. Authorize
+
+1. Start the app: `npm start`
+2. Click the wheelie bin in the UI
+3. Click the "Auth" link next to Nest status
+4. Complete Google authorization in the popup
+5. Tokens are saved automatically
 
 ### Refreshing Expired Tokens
 
-```bash
-npx tsx src/scripts/setup/nest-auth.ts
-```
+Click the "Auth" link in the wheelie bin popup - no CLI needed.

@@ -79,6 +79,17 @@ export const APP_CONFIG: AppConfig = {
 
     // Debug Mode
     debug: false,
+
+    // Default values for external configs
+    defaults: {
+        hue: {
+            BRIDGE_IP: '192.168.68.51',
+        },
+        weather: {
+            LOCATION: 'Chelmsford,UK',
+            UPDATE_INTERVAL: 15,
+        },
+    },
 };
 
 // Register with the service registry
