@@ -1,6 +1,7 @@
 {
     "name": "home-monitor",
     "version": "2.0.0",
+    "license": "MIT",
     "description": "Smart home monitoring dashboard with modular architecture",
     "type": "module",
     "scripts": {
