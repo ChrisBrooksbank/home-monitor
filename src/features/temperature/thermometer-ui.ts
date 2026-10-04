@@ -7,6 +7,11 @@ import { roomPositions } from '../../config/mappings';
 import { getTemperatureColor } from '../../utils/color-utils';
 import { createDraggable, loadSavedPosition } from '../../ui/draggable';
 
+// Drag cleanup per thermometer. Thermometers are rebuilt on every temperature
+// poll, and createDraggable adds document-level listeners, so the previous
+// instance's listeners must be removed or they accumulate indefinitely.
+const dragCleanups = new Map<string, () => void>();
+
 /**
  * Create a pixel-art thermometer SVG element
  */
@@ -145,7 +150,8 @@ export function createThermometer(
     // Make thermometer draggable
     const storageKey = `thermometer-${elementId}`;
     loadSavedPosition(group, storageKey);
-    createDraggable(group, { storageKey: storageKey });
+    dragCleanups.get(elementId)?.();
+    dragCleanups.set(elementId, createDraggable(group, { storageKey: storageKey }));
 
     return tempText;
 }

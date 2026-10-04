@@ -230,7 +230,9 @@ async function updateShieldStatus(): Promise<void> {
     try {
         const info = await ShieldAPI.getInfo();
         if (info) {
-            shieldInfo = { name: info.deviceName, model: info.model, connected: info.connected };
+            // The proxy's device info (from eureka_info) uses `name`, not `deviceName`
+            const name = info.deviceName ?? (info as { name?: string }).name ?? 'SHIELD';
+            shieldInfo = { name, model: info.model, connected: info.connected };
         } else {
             shieldInfo = null;
         }

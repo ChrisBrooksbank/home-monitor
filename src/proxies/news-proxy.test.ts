@@ -4,20 +4,15 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import {
-  parseRSS,
-  _resetCache,
-  _setCache,
-  CACHE_DURATION,
-} from './news-proxy';
+import { parseRSS, _resetCache, _setCache, CACHE_DURATION } from './news-proxy';
 
 // ============================================
 // parseRSS Tests - Pure function, high value
 // ============================================
 
 describe('parseRSS', () => {
-  it('should parse items with CDATA-wrapped titles', () => {
-    const xml = `
+    it('should parse items with CDATA-wrapped titles', () => {
+        const xml = `
             <rss>
                 <channel>
                     <item>
@@ -30,103 +25,117 @@ describe('parseRSS', () => {
             </rss>
         `;
 
-    const result = parseRSS(xml);
+        const result = parseRSS(xml);
 
-    expect(result).toHaveLength(1);
-    expect(result[0]).toEqual({
-      headline: 'Breaking News Story',
-      link: 'https://example.com/story1',
-      source: 'BBC News',
-      pubDate: 'Sat, 11 Jan 2025 12:00:00 GMT',
+        expect(result).toHaveLength(1);
+        expect(result[0]).toEqual({
+            headline: 'Breaking News Story',
+            link: 'https://example.com/story1',
+            source: 'BBC News',
+            pubDate: 'Sat, 11 Jan 2025 12:00:00 GMT',
+        });
     });
-  });
 
-  it('should parse items with plain text titles', () => {
-    const xml = `
+    it('should decode XML entities in plain text titles', () => {
+        const xml = `
+            <item>
+                <title>Fish &amp; chips &#39;returns&#x27; - The Times</title>
+                <link>https://example.com/a?x=1&amp;y=2</link>
+            </item>
+        `;
+
+        const result = parseRSS(xml);
+
+        expect(result[0].headline).toBe("Fish & chips 'returns'");
+        expect(result[0].link).toBe('https://example.com/a?x=1&y=2');
+    });
+
+    it('should parse items with plain text titles', () => {
+        const xml = `
             <item>
                 <title>Plain Text Headline</title>
                 <link>https://example.com/story2</link>
             </item>
         `;
 
-    const result = parseRSS(xml);
+        const result = parseRSS(xml);
 
-    expect(result).toHaveLength(1);
-    expect(result[0].headline).toBe('Plain Text Headline');
-  });
+        expect(result).toHaveLength(1);
+        expect(result[0].headline).toBe('Plain Text Headline');
+    });
 
-  it('should remove source suffix from title (e.g., " - BBC News")', () => {
-    const xml = `
+    it('should remove source suffix from title (e.g., " - BBC News")', () => {
+        const xml = `
             <item>
                 <title><![CDATA[Major Event Happening Now - BBC News]]></title>
                 <link>https://example.com/event</link>
             </item>
         `;
 
-    const result = parseRSS(xml);
+        const result = parseRSS(xml);
 
-    expect(result[0].headline).toBe('Major Event Happening Now');
-  });
+        expect(result[0].headline).toBe('Major Event Happening Now');
+    });
 
-  it('should handle title with multiple dashes correctly', () => {
-    const xml = `
+    it('should handle title with multiple dashes correctly', () => {
+        const xml = `
             <item>
                 <title><![CDATA[UK-US Trade Deal - What It Means - Reuters]]></title>
                 <link>https://example.com/trade</link>
             </item>
         `;
 
-    const result = parseRSS(xml);
+        const result = parseRSS(xml);
 
-    // Should only remove the last " - Source" part
-    expect(result[0].headline).toBe('UK-US Trade Deal - What It Means');
-  });
+        // Should only remove the last " - Source" part
+        expect(result[0].headline).toBe('UK-US Trade Deal - What It Means');
+    });
 
-  it('should use "News" as default source when source tag is missing', () => {
-    const xml = `
+    it('should use "News" as default source when source tag is missing', () => {
+        const xml = `
             <item>
                 <title>Story Without Source</title>
                 <link>https://example.com/nosource</link>
             </item>
         `;
 
-    const result = parseRSS(xml);
+        const result = parseRSS(xml);
 
-    expect(result[0].source).toBe('News');
-  });
+        expect(result[0].source).toBe('News');
+    });
 
-  it('should set pubDate to null when missing', () => {
-    const xml = `
+    it('should set pubDate to null when missing', () => {
+        const xml = `
             <item>
                 <title>Story Without Date</title>
                 <link>https://example.com/nodate</link>
             </item>
         `;
 
-    const result = parseRSS(xml);
+        const result = parseRSS(xml);
 
-    expect(result[0].pubDate).toBeNull();
-  });
+        expect(result[0].pubDate).toBeNull();
+    });
 
-  it('should limit results to 20 items', () => {
-    // Generate 25 items
-    let xml = '';
-    for (let i = 0; i < 25; i++) {
-      xml += `
+    it('should limit results to 20 items', () => {
+        // Generate 25 items
+        let xml = '';
+        for (let i = 0; i < 25; i++) {
+            xml += `
                 <item>
                     <title>Story ${i}</title>
                     <link>https://example.com/story${i}</link>
                 </item>
             `;
-    }
+        }
 
-    const result = parseRSS(xml);
+        const result = parseRSS(xml);
 
-    expect(result).toHaveLength(20);
-  });
+        expect(result).toHaveLength(20);
+    });
 
-  it('should skip items without title', () => {
-    const xml = `
+    it('should skip items without title', () => {
+        const xml = `
             <item>
                 <link>https://example.com/notitle</link>
             </item>
@@ -136,14 +145,14 @@ describe('parseRSS', () => {
             </item>
         `;
 
-    const result = parseRSS(xml);
+        const result = parseRSS(xml);
 
-    expect(result).toHaveLength(1);
-    expect(result[0].headline).toBe('Has Title');
-  });
+        expect(result).toHaveLength(1);
+        expect(result[0].headline).toBe('Has Title');
+    });
 
-  it('should skip items without link', () => {
-    const xml = `
+    it('should skip items without link', () => {
+        const xml = `
             <item>
                 <title>No Link Story</title>
             </item>
@@ -153,28 +162,28 @@ describe('parseRSS', () => {
             </item>
         `;
 
-    const result = parseRSS(xml);
+        const result = parseRSS(xml);
 
-    expect(result).toHaveLength(1);
-    expect(result[0].headline).toBe('Has Link');
-  });
+        expect(result).toHaveLength(1);
+        expect(result[0].headline).toBe('Has Link');
+    });
 
-  it('should handle empty XML', () => {
-    const result = parseRSS('');
+    it('should handle empty XML', () => {
+        const result = parseRSS('');
 
-    expect(result).toEqual([]);
-  });
+        expect(result).toEqual([]);
+    });
 
-  it('should handle malformed XML gracefully', () => {
-    const xml = '<item><title>Broken<item>';
+    it('should handle malformed XML gracefully', () => {
+        const xml = '<item><title>Broken<item>';
 
-    const result = parseRSS(xml);
+        const result = parseRSS(xml);
 
-    expect(result).toEqual([]);
-  });
+        expect(result).toEqual([]);
+    });
 
-  it('should trim whitespace from extracted values', () => {
-    const xml = `
+    it('should trim whitespace from extracted values', () => {
+        const xml = `
             <item>
                 <title>   Spaced Title   </title>
                 <link>   https://example.com/spaced   </link>
@@ -182,15 +191,15 @@ describe('parseRSS', () => {
             </item>
         `;
 
-    const result = parseRSS(xml);
+        const result = parseRSS(xml);
 
-    expect(result[0].headline).toBe('Spaced Title');
-    expect(result[0].link).toBe('https://example.com/spaced');
-    expect(result[0].source).toBe('Spaced Source');
-  });
+        expect(result[0].headline).toBe('Spaced Title');
+        expect(result[0].link).toBe('https://example.com/spaced');
+        expect(result[0].source).toBe('Spaced Source');
+    });
 
-  it('should parse multiple items correctly', () => {
-    const xml = `
+    it('should parse multiple items correctly', () => {
+        const xml = `
             <item>
                 <title>First Story</title>
                 <link>https://example.com/first</link>
@@ -208,16 +217,16 @@ describe('parseRSS', () => {
             </item>
         `;
 
-    const result = parseRSS(xml);
+        const result = parseRSS(xml);
 
-    expect(result).toHaveLength(3);
-    expect(result[0].headline).toBe('First Story');
-    expect(result[1].headline).toBe('Second Story');
-    expect(result[2].headline).toBe('Third Story');
-  });
+        expect(result).toHaveLength(3);
+        expect(result[0].headline).toBe('First Story');
+        expect(result[1].headline).toBe('Second Story');
+        expect(result[2].headline).toBe('Third Story');
+    });
 
-  it('should handle source tag with attributes', () => {
-    const xml = `
+    it('should handle source tag with attributes', () => {
+        const xml = `
             <item>
                 <title>Story</title>
                 <link>https://example.com/story</link>
@@ -225,10 +234,10 @@ describe('parseRSS', () => {
             </item>
         `;
 
-    const result = parseRSS(xml);
+        const result = parseRSS(xml);
 
-    expect(result[0].source).toBe('BBC News');
-  });
+        expect(result[0].source).toBe('BBC News');
+    });
 });
 
 // ============================================
@@ -236,18 +245,18 @@ describe('parseRSS', () => {
 // ============================================
 
 describe('Cache helpers', () => {
-  beforeEach(() => {
-    _resetCache();
-  });
+    beforeEach(() => {
+        _resetCache();
+    });
 
-  it('_resetCache should clear cache', () => {
-    _setCache([{ headline: 'Test', link: '', source: '', pubDate: null }], Date.now());
-    _resetCache();
-    // Can't directly access cachedHeadlines, but this tests the function runs
-    expect(true).toBe(true);
-  });
+    it('_resetCache should clear cache', () => {
+        _setCache([{ headline: 'Test', link: '', source: '', pubDate: null }], Date.now());
+        _resetCache();
+        // Can't directly access cachedHeadlines, but this tests the function runs
+        expect(true).toBe(true);
+    });
 
-  it('CACHE_DURATION should be 10 minutes', () => {
-    expect(CACHE_DURATION).toBe(10 * 60 * 1000);
-  });
+    it('CACHE_DURATION should be 10 minutes', () => {
+        expect(CACHE_DURATION).toBe(10 * 60 * 1000);
+    });
 });

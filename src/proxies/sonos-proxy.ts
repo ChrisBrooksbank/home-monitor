@@ -58,7 +58,7 @@ let lastDiscovery: string | null = null;
  * Probe a single IP for Sonos API (port 1400)
  */
 function probeSonos(ip: string, timeout = 2000): Promise<ProbeResult> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
         const req: ClientRequest = http.request(
             {
                 hostname: ip,
@@ -119,7 +119,7 @@ async function scanForSpeakers(
             batch.push(probeSonos(`${baseIp}.${j}`));
         }
         const batchResults = await Promise.all(batch);
-        results.push(...batchResults.filter((r) => r.isSonos));
+        results.push(...batchResults.filter(r => r.isSonos));
     }
 
     return results;
@@ -190,13 +190,9 @@ function createApp(): FastifyInstance {
     });
 
     // Parse text/xml content for SOAP requests
-    fastify.addContentTypeParser(
-        'text/xml',
-        { parseAs: 'string' },
-        (_req, body, done) => {
-            done(null, body);
-        }
-    );
+    fastify.addContentTypeParser('text/xml', { parseAs: 'string' }, (_req, body, done) => {
+        done(null, body);
+    });
 
     // Health check (Fastify auto-creates HEAD for GET routes)
     fastify.get('/health', async () => ({
@@ -206,14 +202,12 @@ function createApp(): FastifyInstance {
         timestamp: new Date().toISOString(),
     }));
 
-
     // List speakers
     fastify.get('/speakers', async () => ({
         speakers: discoveredSpeakers,
         lastDiscovery,
         count: Object.keys(discoveredSpeakers).length,
     }));
-
 
     // Discover speakers
     fastify.post('/discover', async () => {
@@ -236,13 +230,21 @@ function createApp(): FastifyInstance {
             return { error: 'Missing X-Sonos-IP header' };
         }
 
+        // Only forward to discovered speakers - otherwise this endpoint (bound to
+        // 0.0.0.0) relays arbitrary POSTs to any host on the network
+        const isKnownSpeaker = Object.values(discoveredSpeakers).some(s => s.ip === targetIP);
+        if (!isKnownSpeaker) {
+            reply.code(403);
+            return { error: `Unknown Sonos speaker: ${targetIP}` };
+        }
+
         const path = request.url;
         const soapAction = request.headers.soapaction;
-        const body = request.body as string;
+        const body = typeof request.body === 'string' ? request.body : '';
 
         console.log(`POST ${path} -> ${targetIP}`);
 
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
             const options = {
                 hostname: targetIP,
                 port: SONOS_PORT,
@@ -269,6 +271,11 @@ function createApp(): FastifyInstance {
                         .send(responseData);
                     resolve(undefined);
                 });
+            });
+
+            // Don't hang forever on an unresponsive speaker
+            proxyReq.setTimeout(10000, () => {
+                proxyReq.destroy(new Error('Sonos speaker timed out'));
             });
 
             proxyReq.on('error', (error: Error) => {
@@ -339,12 +346,12 @@ export {
 
 // Test helpers
 export function _setDiscoveredSpeakers(speakers: SpeakerMap): void {
-    Object.keys(discoveredSpeakers).forEach((k) => delete discoveredSpeakers[k]);
+    Object.keys(discoveredSpeakers).forEach(k => delete discoveredSpeakers[k]);
     Object.assign(discoveredSpeakers, speakers);
 }
 
 export function _resetDiscoveredSpeakers(): void {
-    Object.keys(discoveredSpeakers).forEach((k) => delete discoveredSpeakers[k]);
+    Object.keys(discoveredSpeakers).forEach(k => delete discoveredSpeakers[k]);
 }
 
 // Export types

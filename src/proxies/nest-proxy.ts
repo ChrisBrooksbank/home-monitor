@@ -136,6 +136,18 @@ function saveTokens(tokens: TokenResponse, config: NestConfigFile): void {
 }
 
 /**
+ * Escape text for inclusion in an HTML page
+ */
+function escapeHtml(text: string): string {
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+/**
  * Generate OAuth authorization URL
  */
 function getAuthUrl(config: NestConfigFile): string {
@@ -229,7 +241,7 @@ function createApp(): FastifyInstance {
                 <head><title>Nest Auth Failed</title></head>
                 <body style="font-family: system-ui; padding: 40px; text-align: center;">
                     <h1 style="color: #d32f2f;">Authorization Failed</h1>
-                    <p>Error: ${error}</p>
+                    <p>Error: ${escapeHtml(String(error))}</p>
                     <p>Please close this window and try again.</p>
                 </body>
                 </html>
@@ -279,7 +291,7 @@ function createApp(): FastifyInstance {
                     <head><title>Nest Auth Failed</title></head>
                     <body style="font-family: system-ui; padding: 40px; text-align: center;">
                         <h1 style="color: #d32f2f;">Token Exchange Failed</h1>
-                        <p>${tokens.error}: ${tokens.error_description || 'Unknown error'}</p>
+                        <p>${escapeHtml(tokens.error)}: ${escapeHtml(tokens.error_description || 'Unknown error')}</p>
                         <p>Please close this window and try again.</p>
                     </body>
                     </html>
@@ -313,7 +325,7 @@ function createApp(): FastifyInstance {
                 <head><title>Nest Auth Error</title></head>
                 <body style="font-family: system-ui; padding: 40px; text-align: center;">
                     <h1 style="color: #d32f2f;">Error</h1>
-                    <p>${error.message}</p>
+                    <p>${escapeHtml(error.message)}</p>
                     <p>Please close this window and try again.</p>
                 </body>
                 </html>
@@ -365,4 +377,4 @@ if (!process.env.VITEST) {
 // EXPORTS
 // ========================================
 
-export { loadConfig, exchangeCodeForTokens, saveTokens, getAuthUrl, createApp, app };
+export { loadConfig, exchangeCodeForTokens, saveTokens, getAuthUrl, escapeHtml, createApp, app };

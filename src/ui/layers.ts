@@ -4,6 +4,7 @@
  */
 
 import { Logger } from '../utils/logger';
+import { Registry } from '../core/registry';
 
 // =============================================================================
 // CONFIGURATION
@@ -411,7 +412,8 @@ const LayersPanel = {
     init,
     setLayerVisibility,
     toggleLayer,
-    getLayerState: (layerId: string): boolean | undefined => layerStates[layerId],
+    getLayerState: (layerId: string): boolean =>
+        layerStates[layerId] ?? LAYER_CONFIG[layerId]?.default ?? true,
     getAllStates: (): Record<string, boolean> => ({ ...layerStates }),
     showAll: (): void => {
         Object.keys(LAYER_CONFIG).forEach(id => setLayerVisibility(id, true));
@@ -422,6 +424,13 @@ const LayersPanel = {
     // Re-apply states (useful after dynamic content is loaded)
     refresh: applyAllLayerStates,
 };
+
+// Register with the service registry (the news plane looks this up to skip
+// flights while the News layer is hidden)
+Registry.register({
+    key: 'LayersPanel',
+    instance: LayersPanel,
+});
 
 // Auto-initialize when DOM is ready
 if (typeof document !== 'undefined') {
