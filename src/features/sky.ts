@@ -64,6 +64,9 @@ export async function fetchSunTimes(): Promise<SunTimes | null> {
         sunsetTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 17, 0);
     }
 
+    // Still update the sky with the fallback times rather than waiting for the
+    // next scheduled refresh
+    updateSky();
     return null;
 }
 
@@ -173,6 +176,9 @@ export function updateSky(): void {
         stops[0].setAttribute('style', `stop-color:${skyConfig.color1};stop-opacity:1`);
         stops[1].setAttribute('style', `stop-color:${skyConfig.color2};stop-opacity:1`);
     }
+
+    // Light the house windows after dark
+    document.body?.classList.toggle('is-night', !skyConfig.showSun);
 
     // Show/hide sun, moon, and stars
     if (sun) sun.style.display = skyConfig.showSun ? 'block' : 'none';

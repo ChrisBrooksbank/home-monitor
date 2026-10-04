@@ -1114,14 +1114,28 @@
             filter: brightness(1.08);
         }
 
-        /* Room overlay hover states */
-        #room-overlays rect {
-            transition: fill 0.3s ease, filter 0.3s ease;
+        /* Room overlay hover states (transparent hit areas over the facade) */
+        #room-overlays .room-area {
+            transition: fill-opacity 0.3s ease;
             cursor: pointer;
         }
 
-        #room-overlays rect:hover {
-            filter: brightness(1.1) saturate(1.1);
+        #room-overlays .room-area:hover {
+            fill-opacity: 0.08;
+        }
+
+        #room-overlays .room-label {
+            pointer-events: none;
+        }
+
+        /* Cosy lit windows after dark (body.is-night is set by the sky module) */
+        #house-main .glass {
+            transition: fill 1.5s ease;
+        }
+
+        body.is-night #house-main .glass {
+            fill: url(#windowGlassNight);
+            filter: drop-shadow(0 0 3px rgba(255, 196, 92, 0.55));
         }
 
         /* Bay window special styling */

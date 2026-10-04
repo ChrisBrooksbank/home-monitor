@@ -74,10 +74,10 @@
                     </linearGradient>
 
                     <!-- Window Glass Night -->
-                    <linearGradient id="windowGlassNight" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#FFE4B5" />
-                        <stop offset="50%" style="stop-color:#FFDAB9" />
-                        <stop offset="100%" style="stop-color:#FFD39B" />
+                    <linearGradient id="windowGlassNight" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#FFE7A8" />
+                        <stop offset="55%" style="stop-color:#FFCF73" />
+                        <stop offset="100%" style="stop-color:#F2A94A" />
                     </linearGradient>
 
                     <!-- Grass -->
@@ -131,37 +131,88 @@
                          ============================================ -->
 
                     <!-- Detailed UK Brick Pattern -->
-                    <pattern id="pixelBrickPattern" x="0" y="0" width="24" height="12" patternUnits="userSpaceOnUse">
-                        <!-- Row 1 -->
-                        <rect x="0" y="0" width="11" height="5" fill="#C45C3E"/>
-                        <rect x="1" y="1" width="9" height="3" fill="#D46A4C"/>
-                        <rect x="12" y="0" width="11" height="5" fill="#B84C2F"/>
-                        <rect x="13" y="1" width="9" height="3" fill="#C85A3D"/>
-                        <!-- Mortar -->
-                        <rect x="11" y="0" width="1" height="5" fill="#E8E0D0"/>
-                        <rect x="0" y="5" width="24" height="1" fill="#E8E0D0"/>
-                        <!-- Row 2 (offset) -->
-                        <rect x="0" y="6" width="5" height="5" fill="#A63D22"/>
-                        <rect x="1" y="7" width="3" height="3" fill="#B64D32"/>
-                        <rect x="6" y="6" width="11" height="5" fill="#C45C3E"/>
-                        <rect x="7" y="7" width="9" height="3" fill="#D46A4C"/>
-                        <rect x="18" y="6" width="6" height="5" fill="#B84C2F"/>
-                        <rect x="19" y="7" width="4" height="3" fill="#C85A3D"/>
-                        <!-- Mortar -->
-                        <rect x="5" y="6" width="1" height="5" fill="#E8E0D0"/>
-                        <rect x="17" y="6" width="1" height="5" fill="#E8E0D0"/>
-                        <rect x="0" y="11" width="24" height="1" fill="#E8E0D0"/>
+                    <pattern id="pixelBrickPattern" x="0" y="0" width="48" height="12" patternUnits="userSpaceOnUse">
+                        <rect width="48" height="12" fill="#C9B49C"/><!-- Mortar -->
+                        <rect x="0" y="0" width="11" height="5" fill="#B5533A"/>
+                        <rect x="0" y="0" width="11" height="1" fill="#FFFFFF" opacity="0.12"/>
+                        <rect x="0" y="4" width="11" height="1" fill="#000000" opacity="0.12"/>
+                        <rect x="12" y="0" width="11" height="5" fill="#A64832"/>
+                        <rect x="12" y="0" width="11" height="1" fill="#FFFFFF" opacity="0.12"/>
+                        <rect x="12" y="4" width="11" height="1" fill="#000000" opacity="0.12"/>
+                        <rect x="24" y="0" width="11" height="5" fill="#BE5E42"/>
+                        <rect x="24" y="0" width="11" height="1" fill="#FFFFFF" opacity="0.12"/>
+                        <rect x="24" y="4" width="11" height="1" fill="#000000" opacity="0.12"/>
+                        <rect x="36" y="0" width="11" height="5" fill="#9C4330"/>
+                        <rect x="36" y="0" width="11" height="1" fill="#FFFFFF" opacity="0.12"/>
+                        <rect x="36" y="4" width="11" height="1" fill="#000000" opacity="0.12"/>
+                        <rect x="0" y="6" width="5" height="5" fill="#B04F37"/>
+                        <rect x="0" y="6" width="5" height="1" fill="#FFFFFF" opacity="0.12"/>
+                        <rect x="0" y="10" width="5" height="1" fill="#000000" opacity="0.12"/>
+                        <rect x="6" y="6" width="11" height="5" fill="#C26446"/>
+                        <rect x="6" y="6" width="11" height="1" fill="#FFFFFF" opacity="0.12"/>
+                        <rect x="6" y="10" width="11" height="1" fill="#000000" opacity="0.12"/>
+                        <rect x="18" y="6" width="11" height="5" fill="#B5533A"/>
+                        <rect x="18" y="6" width="11" height="1" fill="#FFFFFF" opacity="0.12"/>
+                        <rect x="18" y="10" width="11" height="1" fill="#000000" opacity="0.12"/>
+                        <rect x="30" y="6" width="11" height="5" fill="#A64832"/>
+                        <rect x="30" y="6" width="11" height="1" fill="#FFFFFF" opacity="0.12"/>
+                        <rect x="30" y="10" width="11" height="1" fill="#000000" opacity="0.12"/>
+                        <rect x="42" y="6" width="6" height="5" fill="#BE5E42"/>
+                        <rect x="42" y="6" width="6" height="1" fill="#FFFFFF" opacity="0.12"/>
+                        <rect x="42" y="10" width="6" height="1" fill="#000000" opacity="0.12"/>
                     </pattern>
 
                     <!-- Roof Tile Pattern -->
-                    <pattern id="roofTilePattern" x="0" y="0" width="16" height="10" patternUnits="userSpaceOnUse">
-                        <!-- Tile row 1 -->
-                        <path d="M0,0 L8,0 L8,8 Q4,10 0,8 Z" fill="#8B4513"/>
-                        <path d="M8,0 L16,0 L16,8 Q12,10 8,8 Z" fill="#A0522D"/>
-                        <!-- Highlights -->
-                        <rect x="1" y="1" width="6" height="2" fill="#9D5B2A" opacity="0.6"/>
-                        <rect x="9" y="1" width="6" height="2" fill="#B06530" opacity="0.6"/>
+                    <pattern id="roofTilePattern" x="0" y="0" width="20" height="12" patternUnits="userSpaceOnUse">
+                        <!-- Welsh slate: two staggered courses -->
+                        <rect width="20" height="12" fill="#5A6470"/>
+                        <rect x="0" y="0" width="20" height="1" fill="#74808C"/>
+                        <rect x="0" y="5" width="20" height="1" fill="#3C444D"/>
+                        <rect x="9" y="0" width="1" height="5" fill="#434B55"/>
+                        <rect x="19" y="0" width="1" height="5" fill="#434B55"/>
+                        <rect x="11" y="1" width="7" height="4" fill="#626D79"/>
+                        <rect x="0" y="6" width="20" height="1" fill="#6E7A86"/>
+                        <rect x="0" y="11" width="20" height="1" fill="#3C444D"/>
+                        <rect x="4" y="6" width="1" height="5" fill="#434B55"/>
+                        <rect x="14" y="6" width="1" height="5" fill="#434B55"/>
+                        <rect x="5" y="7" width="8" height="4" fill="#535D68"/>
                     </pattern>
+
+                    <!-- Frosted bathroom glass -->
+                    <pattern id="frostedPattern" x="0" y="0" width="4" height="4" patternUnits="userSpaceOnUse">
+                        <rect width="4" height="4" fill="#DCEBF0"/>
+                        <rect x="0" y="0" width="1" height="1" fill="#FFFFFF"/>
+                        <rect x="2" y="2" width="1" height="1" fill="#C3D8E0"/>
+                    </pattern>
+
+                    <!-- Gingham cafe curtain (kitchen) -->
+                    <pattern id="ginghamPattern" x="0" y="0" width="6" height="6" patternUnits="userSpaceOnUse">
+                        <rect width="6" height="6" fill="#FFF6EC"/>
+                        <rect x="0" y="0" width="3" height="6" fill="#E9A3A3" opacity="0.7"/>
+                        <rect x="0" y="0" width="6" height="3" fill="#E9A3A3" opacity="0.7"/>
+                    </pattern>
+
+                    <!-- Lawn with mowing stripes -->
+                    <pattern id="lawnStripes" x="0" y="0" width="64" height="8" patternUnits="userSpaceOnUse">
+                        <rect width="32" height="8" fill="#6E9A4E"/>
+                        <rect x="32" width="32" height="8" fill="#5F8C44"/>
+                        <rect x="5" y="3" width="1" height="2" fill="#83AD5E"/>
+                        <rect x="21" y="5" width="1" height="2" fill="#83AD5E"/>
+                        <rect x="40" y="2" width="1" height="2" fill="#507A38"/>
+                        <rect x="55" y="5" width="1" height="2" fill="#507A38"/>
+                    </pattern>
+
+                    <!-- Soft light falling on the facade (lighter top, darker base) -->
+                    <linearGradient id="wallShade" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#FFE7C2;stop-opacity:0.10" />
+                        <stop offset="60%" style="stop-color:#000000;stop-opacity:0" />
+                        <stop offset="100%" style="stop-color:#2A140A;stop-opacity:0.18" />
+                    </linearGradient>
+
+                    <linearGradient id="roofShade" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#FFD9B0;stop-opacity:0.14" />
+                        <stop offset="100%" style="stop-color:#2A0F05;stop-opacity:0.22" />
+                    </linearGradient>
 
                     <!-- Garden Fence Pattern -->
                     <pattern id="fencePattern" x="0" y="0" width="12" height="40" patternUnits="userSpaceOnUse">
@@ -220,19 +271,19 @@
                 </g>
 
                 <!-- Sun -->
-                <g id="sun" style="animation: spin 30s linear infinite; transform-origin: 880px 100px;">
-                    <circle cx="880" cy="100" r="50" fill="#FFD700" opacity="0.8" filter="url(#glow)"/>
-                    <circle cx="880" cy="100" r="40" fill="#FFA500"/>
+                <g id="sun" style="animation: spin 30s linear infinite; transform-origin: 300px 62px;">
+                    <circle cx="300" cy="62" r="46" fill="#FFD700" opacity="0.8" filter="url(#glow)"/>
+                    <circle cx="300" cy="62" r="36" fill="#FFA500"/>
                 </g>
 
                 <!-- Moon (hidden during day) -->
                 <g id="moon" style="display: none;">
-                    <circle cx="850" cy="120" r="45" fill="#F0F0F0" filter="url(#glow)"/>
-                    <circle cx="860" cy="115" r="40" fill="#E8E8E8"/>
+                    <circle cx="300" cy="66" r="40" fill="#F0F0F0" filter="url(#glow)"/>
+                    <circle cx="308" cy="62" r="35" fill="#E8E8E8"/>
                     <!-- Craters -->
-                    <circle cx="845" cy="110" r="8" fill="#D0D0D0" opacity="0.6"/>
-                    <circle cx="870" cy="125" r="6" fill="#D0D0D0" opacity="0.5"/>
-                    <circle cx="855" cy="135" r="5" fill="#D0D0D0" opacity="0.7"/>
+                    <circle cx="296" cy="56" r="7" fill="#D0D0D0" opacity="0.6"/>
+                    <circle cx="316" cy="70" r="5" fill="#D0D0D0" opacity="0.5"/>
+                    <circle cx="302" cy="80" r="4" fill="#D0D0D0" opacity="0.7"/>
                 </g>
 
                 <!-- Stars (hidden during day) -->
@@ -376,76 +427,135 @@
                      GARDEN & GROUND
                      ============================================ -->
 
-                <!-- Main grass area -->
-                <ellipse cx="500" cy="655" rx="550" ry="60" fill="url(#grassGradient)"/>
-                <ellipse cx="300" cy="645" rx="180" ry="30" fill="#4A7A3A" opacity="0.5"/>
-                <ellipse cx="700" cy="648" rx="200" ry="35" fill="#4A7A3A" opacity="0.5"/>
+                <!-- Lawn with mowing stripes -->
+                <rect x="0" y="596" width="1000" height="60" fill="url(#lawnStripes)"/>
+                <rect x="0" y="596" width="1000" height="3" fill="#86B05F"/>
+                <rect x="0" y="599" width="1000" height="2" fill="#4E7A36" opacity="0.5"/>
 
-                <!-- Garden path to front door -->
-                <path d="M200,650 L200,600 Q200,590 210,590 L190,590 Q180,590 180,600 L180,650" fill="url(#pathGradient)" stroke="#A09080" stroke-width="1"/>
-                <rect x="175" y="595" width="50" height="55" fill="url(#pathGradient)" stroke="#A09080" stroke-width="1"/>
-                <!-- Path stones -->
-                <rect x="178" y="600" width="20" height="12" fill="#C8B898" rx="1"/>
-                <rect x="202" y="600" width="18" height="12" fill="#D4C4A8" rx="1"/>
-                <rect x="180" y="615" width="18" height="12" fill="#D4C4A8" rx="1"/>
-                <rect x="202" y="615" width="16" height="12" fill="#C8B898" rx="1"/>
-                <rect x="178" y="630" width="22" height="12" fill="#D4C4A8" rx="1"/>
-                <rect x="204" y="630" width="16" height="12" fill="#C8B898" rx="1"/>
+                <!-- Garden path to front door (stone flags) -->
+                <g id="garden-path">
+                    <rect x="170" y="600" width="60" height="56" fill="#A89880"/>
+                    <rect x="173" y="602" width="26" height="12" fill="#D8CBB0"/>
+                    <rect x="201" y="602" width="26" height="12" fill="#CDBFA2"/>
+                    <rect x="173" y="616" width="17" height="12" fill="#CDBFA2"/>
+                    <rect x="192" y="616" width="35" height="12" fill="#D8CBB0"/>
+                    <rect x="173" y="630" width="30" height="12" fill="#D8CBB0"/>
+                    <rect x="205" y="630" width="22" height="12" fill="#CDBFA2"/>
+                    <rect x="173" y="644" width="20" height="12" fill="#CDBFA2"/>
+                    <rect x="195" y="644" width="32" height="12" fill="#D8CBB0"/>
+                    <rect x="173" y="602" width="54" height="1" fill="#EEE4D0"/>
+                    <rect x="173" y="616" width="54" height="1" fill="#EEE4D0"/>
+                    <rect x="173" y="630" width="54" height="1" fill="#EEE4D0"/>
+                    <rect x="173" y="644" width="54" height="1" fill="#EEE4D0"/>
+                </g>
+
+                <!-- Side fence beside the house -->
+                <rect x="904" y="548" width="60" height="50" fill="url(#fencePattern)"/>
+                <rect x="904" y="548" width="60" height="3" fill="#6E5638"/>
 
                 <!-- ============================================
                      PIXEL ART UK SEMI-DETACHED HOUSE
                      ============================================ -->
-                <g id="house-main" filter="url(#shadow)">
+                <g id="house-main" filter="url(#shadow)" shape-rendering="crispEdges">
 
-                    <!-- ========== NEIGHBOR HOUSE (LEFT PARTIAL) ========== -->
-                    <rect x="20" y="240" width="85" height="360" fill="#B84C2F"/>
+                    <!-- ========== NEIGHBOUR HOUSE (LEFT, ATTACHED) ========== -->
+                    <rect x="20" y="240" width="85" height="360" fill="#A9503A"/>
                     <rect x="20" y="240" width="85" height="360" fill="url(#pixelBrickPattern)"/>
-                    <!-- Neighbor roof edge -->
-                    <polygon points="20,240 60,180 105,240" fill="url(#roofTile)"/>
-                    <rect x="20" y="235" width="85" height="8" fill="#6B3410"/>
+                    <rect x="20" y="240" width="85" height="360" fill="#3A2416" opacity="0.12"/>
+                    <polygon points="12,242 70,186 112,242" fill="url(#roofTilePattern)"/>
+                    <polygon points="12,242 70,186 112,242" fill="url(#roofShade)"/>
+                    <rect x="12" y="238" width="96" height="5" fill="#F2EDE2"/>
+                    <rect x="12" y="243" width="96" height="4" fill="#2E2E2E"/>
+                    <!-- Neighbour's window (with net curtain) -->
+                    <rect x="42" y="282" width="44" height="58" fill="#F2EDE2"/>
+                    <rect class="glass" x="46" y="286" width="36" height="50" fill="url(#windowGlass)"/>
+                    <rect x="46" y="286" width="36" height="22" fill="#FFFFFF" opacity="0.45"/>
+                    <rect x="62" y="286" width="3" height="50" fill="#F2EDE2"/>
+                    <rect x="46" y="309" width="36" height="3" fill="#F2EDE2"/>
+                    <rect x="38" y="340" width="52" height="5" fill="#E6DCC8"/>
+                    <rect x="38" y="274" width="52" height="8" fill="#E6DCC8"/>
+                    <rect x="42" y="430" width="44" height="80" fill="#F2EDE2"/>
+                    <rect class="glass" x="46" y="434" width="36" height="72" fill="url(#windowGlass)"/>
+                    <rect x="62" y="434" width="3" height="72" fill="#F2EDE2"/>
+                    <rect x="46" y="468" width="36" height="3" fill="#F2EDE2"/>
+                    <rect x="38" y="510" width="52" height="5" fill="#E6DCC8"/>
+                    <rect x="38" y="422" width="52" height="8" fill="#E6DCC8"/>
 
                     <!-- ========== MAIN HOUSE STRUCTURE ========== -->
                     <!-- Base brick walls -->
-                    <rect x="105" y="230" width="795" height="370" fill="#C45C3E"/>
+                    <rect x="105" y="230" width="795" height="370" fill="#B5533A"/>
                     <rect x="105" y="230" width="795" height="370" fill="url(#pixelBrickPattern)"/>
+                    <rect x="105" y="230" width="795" height="370" fill="url(#wallShade)"/>
+                    <!-- Shadow under the eaves -->
+                    <rect x="105" y="235" width="795" height="6" fill="#1E0E06" opacity="0.22"/>
+                    <rect x="105" y="241" width="795" height="4" fill="#1E0E06" opacity="0.1"/>
 
-                    <!-- Stone foundation strip -->
-                    <rect x="100" y="590" width="805" height="12" fill="url(#stoneGradient)" stroke="#A09080" stroke-width="1"/>
+                    <!-- Stone string course between floors -->
+                    <rect x="103" y="350" width="799" height="6" fill="#E6DCC8"/>
+                    <rect x="103" y="350" width="799" height="1" fill="#F6F0E2"/>
+                    <rect x="103" y="356" width="799" height="2" fill="#000000" opacity="0.15"/>
 
-                    <!-- ========== PITCHED ROOF ========== -->
+                    <!-- Plinth (engineering brick) and damp course -->
+                    <rect x="101" y="586" width="803" height="16" fill="#6B3A2C"/>
+                    <rect x="101" y="586" width="803" height="16" fill="url(#pixelBrickPattern)" opacity="0.35"/>
+                    <rect x="101" y="585" width="803" height="2" fill="#3E2219"/>
+
+                    <!-- ========== HIPPED ROOF ========== -->
                     <!-- Main roof shape -->
-                    <polygon points="85,230 500,100 915,230" fill="url(#roofTile)"/>
-                    <polygon points="85,230 500,100 915,230" fill="url(#roofTilePattern)" opacity="0.8"/>
+                    <polygon points="85,230 500,100 915,230" fill="#5A6470"/>
+                    <polygon points="85,230 500,100 915,230" fill="url(#roofTilePattern)"/>
+                    <polygon points="85,230 500,100 915,230" fill="url(#roofShade)"/>
 
-                    <!-- Roof edge/fascia -->
-                    <polygon points="80,235 500,102 920,235 915,230 500,100 85,230" fill="#5A3010"/>
+                    <!-- Hip ridge tiles -->
+                    <line x1="500" y1="100" x2="85" y2="230" stroke="#8A3F28" stroke-width="7"/>
+                    <line x1="500" y1="100" x2="915" y2="230" stroke="#8A3F28" stroke-width="7"/>
+                    <line x1="500" y1="98" x2="85" y2="228" stroke="#B5603E" stroke-width="2"/>
+                    <line x1="500" y1="98" x2="915" y2="228" stroke="#B5603E" stroke-width="2"/>
+                    <rect x="494" y="94" width="12" height="8" fill="#8A3F28"/>
+                    <rect x="497" y="89" width="6" height="6" fill="#A04A2E"/><!-- Finial -->
 
-                    <!-- Roof ridge tiles -->
-                    <line x1="500" y1="100" x2="85" y2="230" stroke="#6B3410" stroke-width="4"/>
-                    <line x1="500" y1="100" x2="915" y2="230" stroke="#6B3410" stroke-width="4"/>
+                    <!-- Roof light (skylight) -->
+                    <g id="roof-skylight" transform="translate(410, 160)">
+                        <rect x="-2" y="-2" width="34" height="26" fill="#3C3C3C"/>
+                        <rect class="glass" x="2" y="2" width="26" height="18" fill="url(#windowGlass)"/>
+                        <rect x="4" y="4" width="4" height="2" fill="#FFFFFF" opacity="0.6"/>
+                        <rect x="-2" y="22" width="34" height="3" fill="#5A5A5A"/>
+                    </g>
 
-                    <!-- Decorative roof lines -->
-                    <line x1="290" y1="165" x2="85" y2="230" stroke="#7A4420" stroke-width="1" opacity="0.5"/>
-                    <line x1="710" y1="165" x2="915" y2="230" stroke="#7A4420" stroke-width="1" opacity="0.5"/>
+                    <!-- White fascia board and black guttering along the eaves -->
+                    <rect x="82" y="225" width="836" height="6" fill="#F2EDE2"/>
+                    <rect x="82" y="230" width="836" height="1" fill="#C9BFAE"/>
 
                     <!-- ========== CHIMNEY ========== -->
                     <g id="chimney">
-                        <!-- Chimney stack -->
-                        <rect x="680" y="95" width="55" height="135" fill="#C45C3E"/>
-                        <rect x="680" y="95" width="55" height="135" fill="url(#pixelBrickPattern)"/>
+                        <!-- Chimney stack (rises out of the roof slope) -->
+                        <polygon points="680,95 735,95 735,174 680,157" fill="#B5533A"/>
+                        <polygon points="680,95 735,95 735,174 680,157" fill="url(#pixelBrickPattern)"/>
+                        <polygon points="680,95 690,95 690,160 680,157" fill="#FFE7C2" opacity="0.1"/>
+                        <polygon points="725,95 735,95 735,174 725,171" fill="#000000" opacity="0.15"/>
+                        <!-- Corbelled brick band -->
+                        <rect x="676" y="104" width="63" height="6" fill="#A64832"/>
+                        <rect x="676" y="104" width="63" height="1" fill="#C26446"/>
                         <!-- Chimney cap -->
-                        <rect x="675" y="88" width="65" height="10" fill="#5A3010"/>
-                        <rect x="678" y="82" width="59" height="8" fill="#6B3410"/>
+                        <rect x="674" y="88" width="67" height="9" fill="#5A2E1A"/>
+                        <rect x="678" y="82" width="59" height="7" fill="#6B3A22"/>
+                        <!-- Lead flashing where the stack meets the roof -->
+                        <polygon points="677,153 738,172 738,178 677,159" fill="#8C979F"/>
+                        <polygon points="677,153 738,172 738,173 677,154" fill="#B4BEC5"/>
 
                         <!-- Chimney pots (terracotta) -->
                         <g id="chimney-pots">
                             <!-- Pot 1 -->
-                            <rect x="688" y="62" width="14" height="22" fill="#B84C2F" stroke="#8B3A1E" stroke-width="1"/>
-                            <rect x="686" y="60" width="18" height="4" fill="#A63D22"/>
+                            <rect x="688" y="62" width="14" height="22" fill="#C0643E"/>
+                            <rect x="688" y="62" width="3" height="22" fill="#D77A50"/>
+                            <rect x="699" y="62" width="3" height="22" fill="#9C4A2C"/>
+                            <rect x="686" y="59" width="18" height="5" fill="#A8522F"/>
                             <rect x="687" y="80" width="16" height="4" fill="#8B3A1E"/>
                             <!-- Pot 2 -->
-                            <rect x="712" y="62" width="14" height="22" fill="#C45C3E" stroke="#8B3A1E" stroke-width="1"/>
-                            <rect x="710" y="60" width="18" height="4" fill="#B84C2F"/>
+                            <rect x="712" y="66" width="14" height="18" fill="#B85A36"/>
+                            <rect x="712" y="66" width="3" height="18" fill="#CF7048"/>
+                            <rect x="723" y="66" width="3" height="18" fill="#94452A"/>
+                            <rect x="710" y="63" width="18" height="5" fill="#A0502E"/>
                             <rect x="711" y="80" width="16" height="4" fill="#8B3A1E"/>
                         </g>
 
@@ -456,8 +566,8 @@
                                 <animate attributeName="r" values="6;10;14" dur="4s" repeatCount="indefinite"/>
                                 <animate attributeName="opacity" values="0.4;0.2;0" dur="4s" repeatCount="indefinite"/>
                             </circle>
-                            <circle cx="720" cy="48" r="5" fill="#E0E0E0" opacity="0.35">
-                                <animate attributeName="cy" values="48;18;-12" dur="4.5s" repeatCount="indefinite" begin="1s"/>
+                            <circle cx="720" cy="52" r="5" fill="#E0E0E0" opacity="0.35">
+                                <animate attributeName="cy" values="52;22;-8" dur="4.5s" repeatCount="indefinite" begin="1s"/>
                                 <animate attributeName="r" values="5;9;13" dur="4.5s" repeatCount="indefinite" begin="1s"/>
                                 <animate attributeName="opacity" values="0.35;0.15;0" dur="4.5s" repeatCount="indefinite" begin="1s"/>
                             </circle>
@@ -471,54 +581,137 @@
 
                     <!-- ========== FIRST FLOOR WINDOWS (SASH STYLE) ========== -->
                     <g id="first-floor-windows">
-                        <!-- Window 1 - Main Bedroom -->
+                        <!-- Main Bedroom -->
                         <g class="pixel-window" transform="translate(140, 260)">
-                            <rect x="0" y="-8" width="52" height="8" fill="url(#stoneGradient)"/><!-- Lintel -->
-                            <rect x="0" y="0" width="52" height="65" fill="url(#windowGlass)"/>
-                            <rect x="0" y="0" width="52" height="65" fill="none" stroke="#F5F5F0" stroke-width="4"/>
-                            <line x1="26" y1="0" x2="26" y2="65" stroke="#F5F5F0" stroke-width="3"/>
-                            <line x1="0" y1="32" x2="52" y2="32" stroke="#F5F5F0" stroke-width="3"/>
-                            <rect x="-2" y="65" width="56" height="6" fill="url(#stoneGradient)"/><!-- Sill -->
+                            <rect x="-5" y="-11" width="62" height="9" fill="#E6DCC8"/>
+                            <rect x="-5" y="-3" width="62" height="1" fill="#BFB29A"/>
+                            <rect x="21" y="-13" width="10" height="12" fill="#EFE6D4" stroke="#BFB29A" stroke-width="1"/>
+                            <rect x="-4" y="-2" width="60" height="69" fill="#F4EFE4"/>
+                            <rect x="54" y="-2" width="2" height="69" fill="#CFC5B2"/>
+                            <rect class="glass" x="0" y="0" width="52" height="65" fill="url(#windowGlass)"/>
+                            <rect x="3" y="3" width="3" height="2" fill="#FFFFFF" opacity="0.55"/>
+                            <rect x="6" y="6" width="3" height="2" fill="#FFFFFF" opacity="0.55"/>
+                            <rect x="29" y="36" width="3" height="2" fill="#FFFFFF" opacity="0.55"/>
+                            <g class="curtains">
+                                <rect x="0" y="0" width="10" height="65" fill="#C9768A"/>
+                                <rect x="2" y="0" width="1" height="65" fill="#A85B6E"/>
+                                <rect x="5" y="0" width="1" height="65" fill="#A85B6E"/>
+                                <rect x="8" y="0" width="1" height="65" fill="#A85B6E"/>
+                                <rect x="0" y="36" width="10" height="2" fill="#E8C872"/>
+                                <rect x="42" y="0" width="10" height="65" fill="#C9768A"/>
+                                <rect x="44" y="0" width="1" height="65" fill="#A85B6E"/>
+                                <rect x="47" y="0" width="1" height="65" fill="#A85B6E"/>
+                                <rect x="50" y="0" width="1" height="65" fill="#A85B6E"/>
+                                <rect x="42" y="36" width="10" height="2" fill="#E8C872"/>
+                                <rect x="0" y="0" width="52" height="4" fill="#A85B6E"/>
+                            </g>
+                            <rect x="25" y="0" width="3" height="65" fill="#F4EFE4"/>
+                            <rect x="0" y="30" width="52" height="4" fill="#F4EFE4"/>
+                            <rect x="0" y="34" width="52" height="1" fill="#CFC5B2"/>
+                            <rect x="-7" y="67" width="66" height="6" fill="#E6DCC8"/>
+                            <rect x="-7" y="67" width="66" height="1" fill="#F6F0E2"/>
+                            <rect x="-5" y="73" width="62" height="3" fill="#000000" opacity="0.18"/>
                         </g>
-
-                        <!-- Window 2 - Landing -->
+                        <!-- Landing -->
                         <g class="pixel-window" transform="translate(305, 260)">
-                            <rect x="0" y="-8" width="52" height="8" fill="url(#stoneGradient)"/>
-                            <rect x="0" y="0" width="52" height="65" fill="url(#windowGlass)"/>
-                            <rect x="0" y="0" width="52" height="65" fill="none" stroke="#F5F5F0" stroke-width="4"/>
-                            <line x1="26" y1="0" x2="26" y2="65" stroke="#F5F5F0" stroke-width="3"/>
-                            <line x1="0" y1="32" x2="52" y2="32" stroke="#F5F5F0" stroke-width="3"/>
-                            <rect x="-2" y="65" width="56" height="6" fill="url(#stoneGradient)"/>
+                            <rect x="-5" y="-11" width="62" height="9" fill="#E6DCC8"/>
+                            <rect x="-5" y="-3" width="62" height="1" fill="#BFB29A"/>
+                            <rect x="21" y="-13" width="10" height="12" fill="#EFE6D4" stroke="#BFB29A" stroke-width="1"/>
+                            <rect x="-4" y="-2" width="60" height="69" fill="#F4EFE4"/>
+                            <rect x="54" y="-2" width="2" height="69" fill="#CFC5B2"/>
+                            <rect class="glass" x="0" y="0" width="52" height="65" fill="url(#windowGlass)"/>
+                            <rect x="3" y="3" width="3" height="2" fill="#FFFFFF" opacity="0.55"/>
+                            <rect x="6" y="6" width="3" height="2" fill="#FFFFFF" opacity="0.55"/>
+                            <rect x="29" y="36" width="3" height="2" fill="#FFFFFF" opacity="0.55"/>
+                            <rect x="25" y="0" width="3" height="65" fill="#F4EFE4"/>
+                            <rect x="0" y="30" width="52" height="4" fill="#F4EFE4"/>
+                            <rect x="0" y="34" width="52" height="1" fill="#CFC5B2"/>
+                            <rect x="-7" y="67" width="66" height="6" fill="#E6DCC8"/>
+                            <rect x="-7" y="67" width="66" height="1" fill="#F6F0E2"/>
+                            <rect x="-5" y="73" width="62" height="3" fill="#000000" opacity="0.18"/>
+                            <rect x="22" y="58" width="8" height="7" fill="#B5603A"/>
+                            <rect x="21" y="57" width="10" height="2" fill="#C97048"/>
+                            <rect x="23" y="51" width="2" height="6" fill="#4E8A3A"/>
+                            <rect x="26" y="48" width="2" height="9" fill="#5E9C46"/>
+                            <rect x="21" y="53" width="3" height="2" fill="#6DAA50"/>
+                            <rect x="28" y="51" width="3" height="2" fill="#6DAA50"/>
                         </g>
-
-                        <!-- Window 3 - Home Office -->
+                        <!-- Home Office -->
                         <g class="pixel-window" transform="translate(465, 260)">
-                            <rect x="0" y="-8" width="52" height="8" fill="url(#stoneGradient)"/>
-                            <rect x="0" y="0" width="52" height="65" fill="url(#windowGlass)"/>
-                            <rect x="0" y="0" width="52" height="65" fill="none" stroke="#F5F5F0" stroke-width="4"/>
-                            <line x1="26" y1="0" x2="26" y2="65" stroke="#F5F5F0" stroke-width="3"/>
-                            <line x1="0" y1="32" x2="52" y2="32" stroke="#F5F5F0" stroke-width="3"/>
-                            <rect x="-2" y="65" width="56" height="6" fill="url(#stoneGradient)"/>
+                            <rect x="-5" y="-11" width="62" height="9" fill="#E6DCC8"/>
+                            <rect x="-5" y="-3" width="62" height="1" fill="#BFB29A"/>
+                            <rect x="21" y="-13" width="10" height="12" fill="#EFE6D4" stroke="#BFB29A" stroke-width="1"/>
+                            <rect x="-4" y="-2" width="60" height="69" fill="#F4EFE4"/>
+                            <rect x="54" y="-2" width="2" height="69" fill="#CFC5B2"/>
+                            <rect class="glass" x="0" y="0" width="52" height="65" fill="url(#windowGlass)"/>
+                            <rect x="3" y="3" width="3" height="2" fill="#FFFFFF" opacity="0.55"/>
+                            <rect x="6" y="6" width="3" height="2" fill="#FFFFFF" opacity="0.55"/>
+                            <rect x="29" y="36" width="3" height="2" fill="#FFFFFF" opacity="0.55"/>
+                            <g class="curtains">
+                                <rect x="0" y="0" width="10" height="65" fill="#7E9C76"/>
+                                <rect x="2" y="0" width="1" height="65" fill="#62805B"/>
+                                <rect x="5" y="0" width="1" height="65" fill="#62805B"/>
+                                <rect x="8" y="0" width="1" height="65" fill="#62805B"/>
+                                <rect x="0" y="36" width="10" height="2" fill="#E8C872"/>
+                                <rect x="42" y="0" width="10" height="65" fill="#7E9C76"/>
+                                <rect x="44" y="0" width="1" height="65" fill="#62805B"/>
+                                <rect x="47" y="0" width="1" height="65" fill="#62805B"/>
+                                <rect x="50" y="0" width="1" height="65" fill="#62805B"/>
+                                <rect x="42" y="36" width="10" height="2" fill="#E8C872"/>
+                                <rect x="0" y="0" width="52" height="4" fill="#62805B"/>
+                            </g>
+                            <rect x="25" y="0" width="3" height="65" fill="#F4EFE4"/>
+                            <rect x="0" y="30" width="52" height="4" fill="#F4EFE4"/>
+                            <rect x="0" y="34" width="52" height="1" fill="#CFC5B2"/>
+                            <rect x="-7" y="67" width="66" height="6" fill="#E6DCC8"/>
+                            <rect x="-7" y="67" width="66" height="1" fill="#F6F0E2"/>
+                            <rect x="-5" y="73" width="62" height="3" fill="#000000" opacity="0.18"/>
                         </g>
-
-                        <!-- Window 4 - Bathroom (smaller) -->
+                        <!-- Bathroom (frosted) -->
                         <g class="pixel-window" transform="translate(630, 270)">
-                            <rect x="0" y="-6" width="40" height="6" fill="url(#stoneGradient)"/>
-                            <rect x="0" y="0" width="40" height="50" fill="url(#windowGlass)" opacity="0.7"/>
-                            <rect x="0" y="0" width="40" height="50" fill="none" stroke="#F5F5F0" stroke-width="4"/>
-                            <line x1="20" y1="0" x2="20" y2="50" stroke="#F5F5F0" stroke-width="2"/>
-                            <line x1="0" y1="25" x2="40" y2="25" stroke="#F5F5F0" stroke-width="2"/>
-                            <rect x="-2" y="50" width="44" height="5" fill="url(#stoneGradient)"/>
+                            <rect x="-5" y="-11" width="50" height="9" fill="#E6DCC8"/>
+                            <rect x="-5" y="-3" width="50" height="1" fill="#BFB29A"/>
+                            <rect x="15" y="-13" width="10" height="12" fill="#EFE6D4" stroke="#BFB29A" stroke-width="1"/>
+                            <rect x="-4" y="-2" width="48" height="54" fill="#F4EFE4"/>
+                            <rect x="42" y="-2" width="2" height="54" fill="#CFC5B2"/>
+                            <rect x="0" y="0" width="40" height="50" fill="url(#frostedPattern)"/>
+                            <rect x="19" y="0" width="3" height="50" fill="#F4EFE4"/>
+                            <rect x="0" y="23" width="40" height="4" fill="#F4EFE4"/>
+                            <rect x="0" y="27" width="40" height="1" fill="#CFC5B2"/>
+                            <rect x="-7" y="52" width="54" height="6" fill="#E6DCC8"/>
+                            <rect x="-7" y="52" width="54" height="1" fill="#F6F0E2"/>
+                            <rect x="-5" y="58" width="50" height="3" fill="#000000" opacity="0.18"/>
                         </g>
-
-                        <!-- Window 5 - Guest Bedroom -->
+                        <!-- Guest Bedroom -->
                         <g class="pixel-window" transform="translate(780, 260)">
-                            <rect x="0" y="-8" width="52" height="8" fill="url(#stoneGradient)"/>
-                            <rect x="0" y="0" width="52" height="65" fill="url(#windowGlass)"/>
-                            <rect x="0" y="0" width="52" height="65" fill="none" stroke="#F5F5F0" stroke-width="4"/>
-                            <line x1="26" y1="0" x2="26" y2="65" stroke="#F5F5F0" stroke-width="3"/>
-                            <line x1="0" y1="32" x2="52" y2="32" stroke="#F5F5F0" stroke-width="3"/>
-                            <rect x="-2" y="65" width="56" height="6" fill="url(#stoneGradient)"/>
+                            <rect x="-5" y="-11" width="62" height="9" fill="#E6DCC8"/>
+                            <rect x="-5" y="-3" width="62" height="1" fill="#BFB29A"/>
+                            <rect x="21" y="-13" width="10" height="12" fill="#EFE6D4" stroke="#BFB29A" stroke-width="1"/>
+                            <rect x="-4" y="-2" width="60" height="69" fill="#F4EFE4"/>
+                            <rect x="54" y="-2" width="2" height="69" fill="#CFC5B2"/>
+                            <rect class="glass" x="0" y="0" width="52" height="65" fill="url(#windowGlass)"/>
+                            <rect x="3" y="3" width="3" height="2" fill="#FFFFFF" opacity="0.55"/>
+                            <rect x="6" y="6" width="3" height="2" fill="#FFFFFF" opacity="0.55"/>
+                            <rect x="29" y="36" width="3" height="2" fill="#FFFFFF" opacity="0.55"/>
+                            <g class="curtains">
+                                <rect x="0" y="0" width="10" height="65" fill="#9A85B8"/>
+                                <rect x="2" y="0" width="1" height="65" fill="#7C6799"/>
+                                <rect x="5" y="0" width="1" height="65" fill="#7C6799"/>
+                                <rect x="8" y="0" width="1" height="65" fill="#7C6799"/>
+                                <rect x="0" y="36" width="10" height="2" fill="#E8C872"/>
+                                <rect x="42" y="0" width="10" height="65" fill="#9A85B8"/>
+                                <rect x="44" y="0" width="1" height="65" fill="#7C6799"/>
+                                <rect x="47" y="0" width="1" height="65" fill="#7C6799"/>
+                                <rect x="50" y="0" width="1" height="65" fill="#7C6799"/>
+                                <rect x="42" y="36" width="10" height="2" fill="#E8C872"/>
+                                <rect x="0" y="0" width="52" height="4" fill="#7C6799"/>
+                            </g>
+                            <rect x="25" y="0" width="3" height="65" fill="#F4EFE4"/>
+                            <rect x="0" y="30" width="52" height="4" fill="#F4EFE4"/>
+                            <rect x="0" y="34" width="52" height="1" fill="#CFC5B2"/>
+                            <rect x="-7" y="67" width="66" height="6" fill="#E6DCC8"/>
+                            <rect x="-7" y="67" width="66" height="1" fill="#F6F0E2"/>
+                            <rect x="-5" y="73" width="62" height="3" fill="#000000" opacity="0.18"/>
                         </g>
                     </g>
 
@@ -526,145 +719,304 @@
                     <g id="ground-floor-windows">
                         <!-- Bay Window - Lounge (Classic UK feature!) -->
                         <g id="bay-window" transform="translate(340, 420)">
-                            <!-- Bay structure -->
-                            <polygon points="0,0 0,110 -20,110 -20,10 0,0" fill="#C45C3E"/>
-                            <polygon points="0,0 0,110 -20,110 -20,10 0,0" fill="url(#pixelBrickPattern)"/>
-                            <polygon points="80,0 80,110 100,110 100,10 80,0" fill="#C45C3E"/>
-                            <polygon points="80,0 80,110 100,110 100,10 80,0" fill="url(#pixelBrickPattern)"/>
-                            <!-- Bay roof -->
-                            <polygon points="-25,8 40,-8 105,8 100,10 40,-5 -20,10" fill="#5A3010"/>
-                            <!-- Bay windows - 3 panes -->
-                            <rect x="-18" y="15" width="28" height="90" fill="url(#windowGlass)"/>
-                            <rect x="-18" y="15" width="28" height="90" fill="none" stroke="#F5F5F0" stroke-width="3"/>
-                            <line x1="-4" y1="15" x2="-4" y2="105" stroke="#F5F5F0" stroke-width="2"/>
-                            <line x1="-18" y1="60" x2="10" y2="60" stroke="#F5F5F0" stroke-width="2"/>
-
-                            <rect x="12" y="10" width="56" height="95" fill="url(#windowGlass)"/>
-                            <rect x="12" y="10" width="56" height="95" fill="none" stroke="#F5F5F0" stroke-width="3"/>
-                            <line x1="40" y1="10" x2="40" y2="105" stroke="#F5F5F0" stroke-width="2"/>
-                            <line x1="12" y1="57" x2="68" y2="57" stroke="#F5F5F0" stroke-width="2"/>
-
-                            <rect x="70" y="15" width="28" height="90" fill="url(#windowGlass)"/>
-                            <rect x="70" y="15" width="28" height="90" fill="none" stroke="#F5F5F0" stroke-width="3"/>
-                            <line x1="84" y1="15" x2="84" y2="105" stroke="#F5F5F0" stroke-width="2"/>
-                            <line x1="70" y1="60" x2="98" y2="60" stroke="#F5F5F0" stroke-width="2"/>
+                            <!-- Bay side walls -->
+                            <polygon points="0,0 0,112 -22,112 -22,10" fill="#B5533A"/>
+                            <polygon points="0,0 0,112 -22,112 -22,10" fill="url(#pixelBrickPattern)"/>
+                            <polygon points="0,0 0,112 -22,112 -22,10" fill="#000000" opacity="0.12"/>
+                            <polygon points="80,0 80,112 102,112 102,10" fill="#B5533A"/>
+                            <polygon points="80,0 80,112 102,112 102,10" fill="url(#pixelBrickPattern)"/>
+                            <polygon points="80,0 80,112 102,112 102,10" fill="#000000" opacity="0.18"/>
+                            <!-- Tiled bay canopy -->
+                            <polygon points="-30,10 -18,-12 98,-12 110,10" fill="url(#roofTilePattern)"/>
+                            <polygon points="-30,10 -18,-12 98,-12 110,10" fill="url(#roofShade)"/>
+                            <rect x="-18" y="-14" width="116" height="2" fill="#8C979F"/><!-- Lead flashing -->
+                            <rect x="-30" y="9" width="140" height="4" fill="#F2EDE2"/>
+                            <!-- Side panes -->
+                            <rect x="-20" y="15" width="30" height="92" fill="#F4EFE4"/>
+                            <rect class="glass" x="-17" y="18" width="24" height="86" fill="url(#windowGlass)"/>
+                            <rect x="-17" y="18" width="6" height="86" fill="#B8463E"/>
+                            <rect x="-14" y="18" width="1" height="86" fill="#93342E"/>
+                            <rect x="-17" y="59" width="24" height="3" fill="#F4EFE4"/>
+                            <rect x="70" y="15" width="30" height="92" fill="#F4EFE4"/>
+                            <rect class="glass" x="73" y="18" width="24" height="86" fill="url(#windowGlass)"/>
+                            <rect x="91" y="18" width="6" height="86" fill="#B8463E"/>
+                            <rect x="93" y="18" width="1" height="86" fill="#93342E"/>
+                            <rect x="73" y="59" width="24" height="3" fill="#F4EFE4"/>
+                            <!-- Centre pane -->
+                            <rect x="10" y="12" width="60" height="96" fill="#F4EFE4"/>
+                            <rect class="glass" x="14" y="16" width="52" height="88" fill="url(#windowGlass)"/>
+                            <rect x="14" y="16" width="52" height="4" fill="#93342E"/>
+                            <rect x="17" y="22" width="3" height="2" fill="#FFFFFF" opacity="0.55"/>
+                            <rect x="20" y="25" width="3" height="2" fill="#FFFFFF" opacity="0.55"/>
+                            <rect x="38" y="16" width="4" height="88" fill="#F4EFE4"/>
+                            <rect x="14" y="56" width="52" height="4" fill="#F4EFE4"/>
+                            <rect x="14" y="60" width="52" height="1" fill="#CFC5B2"/>
                             <!-- Bay sill -->
-                            <rect x="-22" y="105" width="124" height="8" fill="url(#stoneGradient)"/>
+                            <rect x="-26" y="106" width="132" height="7" fill="#E6DCC8"/>
+                            <rect x="-26" y="106" width="132" height="1" fill="#F6F0E2"/>
+                            <rect x="-24" y="113" width="128" height="3" fill="#000000" opacity="0.18"/>
                         </g>
 
-                        <!-- Kitchen Window -->
+                        <!-- Kitchen Window (gingham cafe curtain, herbs on the sill) -->
                         <g class="pixel-window" transform="translate(545, 430)">
-                            <rect x="0" y="-8" width="70" height="8" fill="url(#stoneGradient)"/>
-                            <rect x="0" y="0" width="70" height="85" fill="url(#windowGlass)"/>
-                            <rect x="0" y="0" width="70" height="85" fill="none" stroke="#F5F5F0" stroke-width="4"/>
-                            <line x1="35" y1="0" x2="35" y2="85" stroke="#F5F5F0" stroke-width="3"/>
-                            <line x1="0" y1="42" x2="70" y2="42" stroke="#F5F5F0" stroke-width="3"/>
-                            <rect x="-3" y="85" width="76" height="7" fill="url(#stoneGradient)"/>
+                            <rect x="-5" y="-11" width="80" height="9" fill="#E6DCC8"/>
+                            <rect x="-5" y="-3" width="80" height="1" fill="#BFB29A"/>
+                            <rect x="30" y="-13" width="10" height="12" fill="#EFE6D4" stroke="#BFB29A" stroke-width="1"/>
+                            <rect x="-4" y="-2" width="78" height="89" fill="#F4EFE4"/>
+                            <rect x="72" y="-2" width="2" height="89" fill="#CFC5B2"/>
+                            <rect class="glass" x="0" y="0" width="70" height="85" fill="url(#windowGlass)"/>
+                            <rect x="3" y="3" width="3" height="2" fill="#FFFFFF" opacity="0.55"/>
+                            <rect x="6" y="6" width="3" height="2" fill="#FFFFFF" opacity="0.55"/>
+                            <rect x="38" y="46" width="3" height="2" fill="#FFFFFF" opacity="0.55"/>
+                            <rect x="0" y="44" width="70" height="40" fill="url(#ginghamPattern)"/>
+                            <rect x="0" y="42" width="70" height="2" fill="#B88A52"/>
+                            <rect x="34" y="0" width="3" height="85" fill="#F4EFE4"/>
+                            <rect x="0" y="40" width="70" height="4" fill="#F4EFE4"/>
+                            <rect x="0" y="44" width="70" height="1" fill="#CFC5B2"/>
+                            <rect x="-7" y="87" width="84" height="6" fill="#E6DCC8"/>
+                            <rect x="-7" y="87" width="84" height="1" fill="#F6F0E2"/>
+                            <rect x="-5" y="93" width="80" height="3" fill="#000000" opacity="0.18"/>
+                            <rect x="10" y="78" width="8" height="7" fill="#B5603A"/>
+                            <rect x="9" y="77" width="10" height="2" fill="#C97048"/>
+                            <rect x="11" y="71" width="2" height="6" fill="#4E8A3A"/>
+                            <rect x="14" y="68" width="2" height="9" fill="#5E9C46"/>
+                            <rect x="9" y="73" width="3" height="2" fill="#6DAA50"/>
+                            <rect x="16" y="71" width="3" height="2" fill="#6DAA50"/>
+                            <rect x="52" y="78" width="8" height="7" fill="#B5603A"/>
+                            <rect x="51" y="77" width="10" height="2" fill="#C97048"/>
+                            <rect x="53" y="71" width="2" height="6" fill="#4E8A3A"/>
+                            <rect x="56" y="68" width="2" height="9" fill="#5E9C46"/>
+                            <rect x="51" y="73" width="3" height="2" fill="#6DAA50"/>
+                            <rect x="58" y="71" width="3" height="2" fill="#6DAA50"/>
                         </g>
-
                         <!-- Extension Window -->
                         <g class="pixel-window" transform="translate(755, 430)">
-                            <rect x="0" y="-8" width="70" height="8" fill="url(#stoneGradient)"/>
-                            <rect x="0" y="0" width="70" height="85" fill="url(#windowGlass)"/>
-                            <rect x="0" y="0" width="70" height="85" fill="none" stroke="#F5F5F0" stroke-width="4"/>
-                            <line x1="35" y1="0" x2="35" y2="85" stroke="#F5F5F0" stroke-width="3"/>
-                            <line x1="0" y1="42" x2="70" y2="42" stroke="#F5F5F0" stroke-width="3"/>
-                            <rect x="-3" y="85" width="76" height="7" fill="url(#stoneGradient)"/>
+                            <rect x="-5" y="-11" width="80" height="9" fill="#E6DCC8"/>
+                            <rect x="-5" y="-3" width="80" height="1" fill="#BFB29A"/>
+                            <rect x="30" y="-13" width="10" height="12" fill="#EFE6D4" stroke="#BFB29A" stroke-width="1"/>
+                            <rect x="-4" y="-2" width="78" height="89" fill="#F4EFE4"/>
+                            <rect x="72" y="-2" width="2" height="89" fill="#CFC5B2"/>
+                            <rect class="glass" x="0" y="0" width="70" height="85" fill="url(#windowGlass)"/>
+                            <rect x="3" y="3" width="3" height="2" fill="#FFFFFF" opacity="0.55"/>
+                            <rect x="6" y="6" width="3" height="2" fill="#FFFFFF" opacity="0.55"/>
+                            <rect x="38" y="46" width="3" height="2" fill="#FFFFFF" opacity="0.55"/>
+                            <g class="curtains">
+                                <rect x="0" y="0" width="14" height="85" fill="#D9A35A"/>
+                                <rect x="2" y="0" width="1" height="85" fill="#B8843E"/>
+                                <rect x="5" y="0" width="1" height="85" fill="#B8843E"/>
+                                <rect x="8" y="0" width="1" height="85" fill="#B8843E"/>
+                                <rect x="11" y="0" width="1" height="85" fill="#B8843E"/>
+                                <rect x="0" y="47" width="14" height="2" fill="#E8C872"/>
+                                <rect x="56" y="0" width="14" height="85" fill="#D9A35A"/>
+                                <rect x="58" y="0" width="1" height="85" fill="#B8843E"/>
+                                <rect x="61" y="0" width="1" height="85" fill="#B8843E"/>
+                                <rect x="64" y="0" width="1" height="85" fill="#B8843E"/>
+                                <rect x="67" y="0" width="1" height="85" fill="#B8843E"/>
+                                <rect x="56" y="47" width="14" height="2" fill="#E8C872"/>
+                                <rect x="0" y="0" width="70" height="4" fill="#B8843E"/>
+                            </g>
+                            <rect x="34" y="0" width="3" height="85" fill="#F4EFE4"/>
+                            <rect x="0" y="40" width="70" height="4" fill="#F4EFE4"/>
+                            <rect x="0" y="44" width="70" height="1" fill="#CFC5B2"/>
+                            <rect x="-7" y="87" width="84" height="6" fill="#E6DCC8"/>
+                            <rect x="-7" y="87" width="84" height="1" fill="#F6F0E2"/>
+                            <rect x="-5" y="93" width="80" height="3" fill="#000000" opacity="0.18"/>
                         </g>
                     </g>
 
                     <!-- ========== FRONT DOOR (HERITAGE STYLE) ========== -->
                     <g id="front-door" transform="translate(160, 450)">
-                        <!-- Door frame/surround -->
-                        <rect x="-8" y="-15" width="96" height="155" fill="url(#stoneGradient)" stroke="#A09080" stroke-width="2"/>
+                        <!-- Tiled porch canopy on brackets -->
+                        <polygon points="-18,-26 40,-50 98,-26" fill="url(#roofTilePattern)"/>
+                        <polygon points="-18,-26 40,-50 98,-26" fill="url(#roofShade)"/>
+                        <polygon points="-20,-24 40,-49 100,-24 100,-22 40,-46 -20,-22" fill="#F2EDE2"/>
+                        <rect x="-18" y="-24" width="116" height="4" fill="#F2EDE2"/>
+                        <rect x="-14" y="-20" width="5" height="12" fill="#F2EDE2"/>
+                        <rect x="89" y="-20" width="5" height="12" fill="#F2EDE2"/>
+                        <rect x="-12" y="-20" width="112" height="4" fill="#000000" opacity="0.2"/>
+                        <!-- Stone surround -->
+                        <rect x="-8" y="-15" width="96" height="155" fill="#E6DCC8"/>
+                        <rect x="-8" y="-15" width="96" height="2" fill="#F6F0E2"/>
+                        <rect x="86" y="-15" width="2" height="155" fill="#BFB29A"/>
+                        <!-- Fanlight -->
+                        <rect x="0" y="-9" width="80" height="12" fill="#1A2A2A"/>
+                        <rect class="glass" x="3" y="-7" width="74" height="8" fill="url(#windowGlass)"/>
+                        <rect x="21" y="-7" width="2" height="8" fill="#E6DCC8"/>
+                        <rect x="39" y="-7" width="2" height="8" fill="#E6DCC8"/>
+                        <rect x="57" y="-7" width="2" height="8" fill="#E6DCC8"/>
                         <!-- Door recess -->
-                        <rect x="0" y="0" width="80" height="140" fill="#1A2A2A"/>
+                        <rect x="0" y="3" width="80" height="137" fill="#122020"/>
                         <!-- The door itself -->
-                        <rect x="3" y="3" width="74" height="134" fill="url(#doorGradient)" stroke="#102020" stroke-width="2"/>
-                        <!-- Door panels (Georgian style) -->
-                        <rect x="10" y="10" width="28" height="35" fill="#244444" stroke="#102020" stroke-width="1" rx="2"/>
-                        <rect x="42" y="10" width="28" height="35" fill="#244444" stroke="#102020" stroke-width="1" rx="2"/>
-                        <rect x="10" y="52" width="28" height="40" fill="#244444" stroke="#102020" stroke-width="1" rx="2"/>
-                        <rect x="42" y="52" width="28" height="40" fill="#244444" stroke="#102020" stroke-width="1" rx="2"/>
-                        <rect x="10" y="98" width="60" height="32" fill="#244444" stroke="#102020" stroke-width="1" rx="2"/>
+                        <rect x="3" y="5" width="74" height="133" fill="url(#doorGradient)"/>
+                        <rect x="3" y="5" width="74" height="2" fill="#3E7474"/>
+                        <rect x="3" y="5" width="2" height="133" fill="#3E7474"/>
+                        <!-- Door panels (Victorian four-panel, bevelled) -->
+                        <rect x="10" y="12" width="27" height="34" fill="#1F3D3D"/>
+                        <rect x="43" y="12" width="27" height="34" fill="#1F3D3D"/>
+                        <rect x="10" y="54" width="27" height="38" fill="#1F3D3D"/>
+                        <rect x="43" y="54" width="27" height="38" fill="#1F3D3D"/>
+                        <rect x="10" y="99" width="60" height="32" fill="#1F3D3D"/>
+                        <rect x="10" y="12" width="27" height="1" fill="#0F2424"/>
+                        <rect x="43" y="12" width="27" height="1" fill="#0F2424"/>
+                        <rect x="10" y="54" width="27" height="1" fill="#0F2424"/>
+                        <rect x="43" y="54" width="27" height="1" fill="#0F2424"/>
+                        <rect x="10" y="99" width="60" height="1" fill="#0F2424"/>
+                        <rect x="10" y="45" width="27" height="1" fill="#3E7474"/>
+                        <rect x="43" y="45" width="27" height="1" fill="#3E7474"/>
+                        <rect x="10" y="91" width="27" height="1" fill="#3E7474"/>
+                        <rect x="43" y="91" width="27" height="1" fill="#3E7474"/>
+                        <rect x="10" y="130" width="60" height="1" fill="#3E7474"/>
                         <!-- Door glass (top panels) -->
-                        <rect x="12" y="12" width="24" height="31" fill="url(#windowGlass)" opacity="0.4"/>
-                        <rect x="44" y="12" width="24" height="31" fill="url(#windowGlass)" opacity="0.4"/>
+                        <rect class="glass" x="13" y="15" width="21" height="28" fill="url(#windowGlass)" opacity="0.55"/>
+                        <rect class="glass" x="46" y="15" width="21" height="28" fill="url(#windowGlass)" opacity="0.55"/>
                         <!-- Letterbox -->
-                        <rect x="25" y="75" width="30" height="8" fill="#C9A227" stroke="#8B7355" stroke-width="1" rx="1"/>
-                        <rect x="28" y="77" width="24" height="4" fill="#1A1A1A"/>
-                        <!-- Door handle -->
-                        <circle cx="65" cy="95" r="5" fill="#C9A227" stroke="#8B7355" stroke-width="1"/>
-                        <rect x="62" y="100" width="6" height="15" fill="#C9A227" stroke="#8B7355" stroke-width="1" rx="1"/>
+                        <rect x="25" y="96" width="30" height="7" fill="#D4AE3A"/>
+                        <rect x="28" y="98" width="24" height="3" fill="#1A1A1A"/>
+                        <!-- Door knob -->
+                        <rect x="64" y="72" width="7" height="7" fill="#D4AE3A"/>
+                        <rect x="64" y="72" width="3" height="3" fill="#F2D77A"/>
                         <!-- Door knocker -->
-                        <circle cx="40" cy="55" r="8" fill="none" stroke="#C9A227" stroke-width="3"/>
-                        <rect x="37" y="55" width="6" height="12" fill="#C9A227" rx="1"/>
+                        <rect x="35" y="49" width="10" height="3" fill="#D4AE3A"/>
+                        <rect x="34" y="52" width="3" height="10" fill="#D4AE3A"/>
+                        <rect x="43" y="52" width="3" height="10" fill="#D4AE3A"/>
+                        <rect x="34" y="62" width="12" height="3" fill="#D4AE3A"/>
+                        <!-- Doormat & stone step -->
+                        <rect x="-12" y="138" width="104" height="6" fill="#E6DCC8"/>
+                        <rect x="-12" y="138" width="104" height="1" fill="#F6F0E2"/>
+                        <rect x="14" y="134" width="52" height="4" fill="#8B5A2B"/>
                     </g>
 
-                    <!-- House Number -->
+                    <!-- House Number (Victorian ceramic tile) -->
                     <g id="house-number" transform="translate(258, 480)">
-                        <rect x="0" y="0" width="36" height="44" fill="#1A2A2A" stroke="#C9A227" stroke-width="2" rx="3"/>
-                        <text x="18" y="32" text-anchor="middle" font-size="24" font-weight="700" font-family="Georgia, serif" fill="#C9A227">28</text>
+                        <rect x="0" y="0" width="36" height="44" fill="#FBF7EE" stroke="#2F5D8C" stroke-width="3"/>
+                        <rect x="4" y="4" width="28" height="36" fill="none" stroke="#7FA6CF" stroke-width="1"/>
+                        <rect x="2" y="2" width="4" height="4" fill="#2F5D8C"/>
+                        <rect x="30" y="2" width="4" height="4" fill="#2F5D8C"/>
+                        <rect x="2" y="38" width="4" height="4" fill="#2F5D8C"/>
+                        <rect x="30" y="38" width="4" height="4" fill="#2F5D8C"/>
+                        <text x="18" y="31" text-anchor="middle" font-size="20" font-weight="700" font-family="Georgia, serif" fill="#2F5D8C">28</text>
+                    </g>
+
+                    <!-- Wall lantern beside the door -->
+                    <g id="porch-lantern" transform="translate(130, 455)">
+                        <rect x="4" y="0" width="2" height="6" fill="#2B2B2B"/>
+                        <rect x="0" y="6" width="10" height="3" fill="#2B2B2B"/>
+                        <rect class="glass" x="1" y="9" width="8" height="10" fill="url(#windowGlass)"/>
+                        <rect x="4" y="9" width="2" height="10" fill="#2B2B2B"/>
+                        <rect x="0" y="19" width="10" height="2" fill="#2B2B2B"/>
                     </g>
 
                     <!-- ========== FLOWER BOXES ========== -->
                     <g id="flower-boxes">
                         <!-- Under first floor windows -->
-                        <g transform="translate(138, 335)">
-                            <rect x="0" y="0" width="56" height="12" fill="#5A3010" stroke="#3A2008" stroke-width="1"/>
-                            <circle cx="10" cy="-4" r="5" fill="#FF69B4"/>
-                            <circle cx="22" cy="-6" r="4" fill="#FFB6C1"/>
-                            <circle cx="34" cy="-3" r="5" fill="#FF1493"/>
-                            <circle cx="46" cy="-5" r="4" fill="#FF69B4"/>
-                            <rect x="8" y="-2" width="2" height="4" fill="#228B22"/>
-                            <rect x="20" y="-3" width="2" height="5" fill="#228B22"/>
-                            <rect x="32" y="-1" width="2" height="3" fill="#228B22"/>
-                            <rect x="44" y="-3" width="2" height="5" fill="#228B22"/>
+                        <g transform="translate(138, 336)">
+                            <rect x="0" y="-4" width="4" height="4" fill="#5E9C46"/>
+                            <rect x="4" y="-4" width="4" height="4" fill="#4E8A3A"/>
+                            <rect x="8" y="-4" width="4" height="4" fill="#5E9C46"/>
+                            <rect x="12" y="-4" width="4" height="4" fill="#4E8A3A"/>
+                            <rect x="16" y="-4" width="4" height="4" fill="#5E9C46"/>
+                            <rect x="20" y="-4" width="4" height="4" fill="#4E8A3A"/>
+                            <rect x="24" y="-4" width="4" height="4" fill="#5E9C46"/>
+                            <rect x="28" y="-4" width="4" height="4" fill="#4E8A3A"/>
+                            <rect x="32" y="-4" width="4" height="4" fill="#5E9C46"/>
+                            <rect x="36" y="-4" width="4" height="4" fill="#4E8A3A"/>
+                            <rect x="40" y="-4" width="4" height="4" fill="#5E9C46"/>
+                            <rect x="44" y="-4" width="4" height="4" fill="#4E8A3A"/>
+                            <rect x="48" y="-4" width="4" height="4" fill="#5E9C46"/>
+                            <rect x="52" y="-4" width="4" height="4" fill="#4E8A3A"/>
+                            <circle cx="7" cy="-6" r="3.5" fill="#F06A9B"/>
+                            <rect x="6" y="-7" width="2" height="2" fill="#FFE27A"/>
+                            <circle cx="18" cy="-8" r="3.5" fill="#FFB3C7"/>
+                            <rect x="17" y="-9" width="2" height="2" fill="#FFE27A"/>
+                            <circle cx="29" cy="-6" r="3.5" fill="#E8457A"/>
+                            <rect x="28" y="-7" width="2" height="2" fill="#FFE27A"/>
+                            <circle cx="40" cy="-8" r="3.5" fill="#F06A9B"/>
+                            <rect x="39" y="-9" width="2" height="2" fill="#FFE27A"/>
+                            <circle cx="50" cy="-6" r="3.5" fill="#FFB3C7"/>
+                            <rect x="49" y="-7" width="2" height="2" fill="#FFE27A"/>
+                            <rect x="0" y="0" width="56" height="11" fill="#7A4A26"/>
+                            <rect x="0" y="0" width="56" height="2" fill="#9A6236"/>
+                            <rect x="0" y="9" width="56" height="2" fill="#56331A"/>
+                            <rect x="18" y="2" width="1" height="7" fill="#56331A"/>
+                            <rect x="37" y="2" width="1" height="7" fill="#56331A"/>
                         </g>
-                        <g transform="translate(778, 335)">
-                            <rect x="0" y="0" width="56" height="12" fill="#5A3010" stroke="#3A2008" stroke-width="1"/>
-                            <circle cx="10" cy="-5" r="4" fill="#9370DB"/>
-                            <circle cx="22" cy="-4" r="5" fill="#8A2BE2"/>
-                            <circle cx="34" cy="-6" r="4" fill="#9370DB"/>
-                            <circle cx="46" cy="-4" r="5" fill="#BA55D3"/>
-                            <rect x="8" y="-3" width="2" height="5" fill="#228B22"/>
-                            <rect x="20" y="-2" width="2" height="4" fill="#228B22"/>
-                            <rect x="32" y="-4" width="2" height="6" fill="#228B22"/>
-                            <rect x="44" y="-2" width="2" height="4" fill="#228B22"/>
+                        <g transform="translate(778, 336)">
+                            <rect x="0" y="-4" width="4" height="4" fill="#5E9C46"/>
+                            <rect x="4" y="-4" width="4" height="4" fill="#4E8A3A"/>
+                            <rect x="8" y="-4" width="4" height="4" fill="#5E9C46"/>
+                            <rect x="12" y="-4" width="4" height="4" fill="#4E8A3A"/>
+                            <rect x="16" y="-4" width="4" height="4" fill="#5E9C46"/>
+                            <rect x="20" y="-4" width="4" height="4" fill="#4E8A3A"/>
+                            <rect x="24" y="-4" width="4" height="4" fill="#5E9C46"/>
+                            <rect x="28" y="-4" width="4" height="4" fill="#4E8A3A"/>
+                            <rect x="32" y="-4" width="4" height="4" fill="#5E9C46"/>
+                            <rect x="36" y="-4" width="4" height="4" fill="#4E8A3A"/>
+                            <rect x="40" y="-4" width="4" height="4" fill="#5E9C46"/>
+                            <rect x="44" y="-4" width="4" height="4" fill="#4E8A3A"/>
+                            <rect x="48" y="-4" width="4" height="4" fill="#5E9C46"/>
+                            <rect x="52" y="-4" width="4" height="4" fill="#4E8A3A"/>
+                            <circle cx="7" cy="-6" r="3.5" fill="#9C7BD4"/>
+                            <rect x="6" y="-7" width="2" height="2" fill="#FFE27A"/>
+                            <circle cx="18" cy="-8" r="3.5" fill="#C4A8EE"/>
+                            <rect x="17" y="-9" width="2" height="2" fill="#FFE27A"/>
+                            <circle cx="29" cy="-6" r="3.5" fill="#7E5BC2"/>
+                            <rect x="28" y="-7" width="2" height="2" fill="#FFE27A"/>
+                            <circle cx="40" cy="-8" r="3.5" fill="#9C7BD4"/>
+                            <rect x="39" y="-9" width="2" height="2" fill="#FFE27A"/>
+                            <circle cx="50" cy="-6" r="3.5" fill="#C4A8EE"/>
+                            <rect x="49" y="-7" width="2" height="2" fill="#FFE27A"/>
+                            <rect x="0" y="0" width="56" height="11" fill="#7A4A26"/>
+                            <rect x="0" y="0" width="56" height="2" fill="#9A6236"/>
+                            <rect x="0" y="9" width="56" height="2" fill="#56331A"/>
+                            <rect x="18" y="2" width="1" height="7" fill="#56331A"/>
+                            <rect x="37" y="2" width="1" height="7" fill="#56331A"/>
                         </g>
                     </g>
 
                     <!-- ========== CLIMBING ROSES (on wall) ========== -->
-                    <g id="climbing-roses" transform="translate(110, 400)">
+                    <g id="climbing-roses" transform="translate(118, 400)">
                         <!-- Vine -->
-                        <path d="M0,200 Q10,150 5,100 Q0,50 15,0" fill="none" stroke="#2D5A2D" stroke-width="3"/>
-                        <path d="M5,180 Q15,160 10,140" fill="none" stroke="#2D5A2D" stroke-width="2"/>
-                        <path d="M8,120 Q-5,100 10,80" fill="none" stroke="#2D5A2D" stroke-width="2"/>
-                        <!-- Rose blooms -->
-                        <circle cx="5" cy="170" r="7" fill="#E84855"/>
-                        <circle cx="3" cy="168" r="3" fill="#FF6B6B"/>
-                        <circle cx="12" cy="130" r="6" fill="#FF4D6D"/>
-                        <circle cx="10" cy="128" r="2" fill="#FF8FA3"/>
-                        <circle cx="0" cy="90" r="7" fill="#E84855"/>
-                        <circle cx="-2" cy="88" r="3" fill="#FF6B6B"/>
-                        <circle cx="15" cy="50" r="5" fill="#FF4D6D"/>
-                        <circle cx="13" cy="48" r="2" fill="#FF8FA3"/>
+                        <rect x="2" y="20" width="2" height="180" fill="#3F6B2E"/>
+                        <rect x="4" y="60" width="8" height="2" fill="#3F6B2E"/>
+                        <rect x="-4" y="110" width="6" height="2" fill="#3F6B2E"/>
+                        <rect x="4" y="150" width="7" height="2" fill="#3F6B2E"/>
                         <!-- Leaves -->
-                        <ellipse cx="10" cy="150" rx="5" ry="3" fill="#3D8B3D" transform="rotate(-30 10 150)"/>
-                        <ellipse cx="0" cy="110" rx="5" ry="3" fill="#4A9A4A" transform="rotate(20 0 110)"/>
-                        <ellipse cx="12" cy="70" rx="4" ry="2" fill="#3D8B3D" transform="rotate(-15 12 70)"/>
+                        <rect x="-3" y="40" width="5" height="3" fill="#5E9C46"/>
+                        <rect x="4" y="80" width="5" height="3" fill="#4E8A3A"/>
+                        <rect x="-4" y="130" width="5" height="3" fill="#5E9C46"/>
+                        <rect x="5" y="168" width="5" height="3" fill="#4E8A3A"/>
+                        <rect x="-2" y="185" width="4" height="3" fill="#5E9C46"/>
+                        <!-- Rose blooms -->
+                        <circle cx="12" cy="61" r="4" fill="#D93B54"/>
+                        <rect x="11" y="59" width="2" height="2" fill="#FF8FA3"/>
+                        <circle cx="-5" cy="110" r="4.5" fill="#E8556B"/>
+                        <rect x="-6" y="108" width="2" height="2" fill="#FFB0BE"/>
+                        <circle cx="12" cy="150" r="4" fill="#D93B54"/>
+                        <rect x="11" y="148" width="2" height="2" fill="#FF8FA3"/>
+                        <circle cx="3" cy="22" r="4" fill="#E8556B"/>
+                        <rect x="2" y="20" width="2" height="2" fill="#FFB0BE"/>
                     </g>
 
                     <!-- ========== GUTTERING & DOWNPIPES ========== -->
                     <g id="guttering">
-                        <!-- Main gutter -->
-                        <rect x="85" y="228" width="830" height="5" fill="#4A4A4A"/>
-                        <rect x="85" y="230" width="830" height="3" fill="#5A5A5A"/>
+                        <!-- Main gutter (black half-round) -->
+                        <rect x="82" y="231" width="836" height="5" fill="#262626"/>
+                        <rect x="82" y="231" width="836" height="1" fill="#555555"/>
+                        <!-- Hopper heads -->
+                        <rect x="104" y="234" width="16" height="9" fill="#262626"/>
+                        <rect x="886" y="234" width="16" height="9" fill="#262626"/>
                         <!-- Downpipes -->
-                        <rect x="108" y="233" width="8" height="365" fill="#4A4A4A"/>
-                        <rect x="110" y="233" width="4" height="365" fill="#5A5A5A"/>
-                        <rect x="890" y="233" width="8" height="365" fill="#4A4A4A"/>
-                        <rect x="892" y="233" width="4" height="365" fill="#5A5A5A"/>
+                        <rect x="109" y="243" width="6" height="355" fill="#262626"/>
+                        <rect x="110" y="243" width="1" height="355" fill="#555555"/>
+                        <rect x="891" y="243" width="6" height="355" fill="#262626"/>
+                        <rect x="892" y="243" width="1" height="355" fill="#555555"/>
+                        <!-- Pipe brackets -->
+                        <rect x="107" y="300" width="10" height="3" fill="#1A1A1A"/>
+                        <rect x="107" y="420" width="10" height="3" fill="#1A1A1A"/>
+                        <rect x="107" y="540" width="10" height="3" fill="#1A1A1A"/>
+                        <rect x="889" y="300" width="10" height="3" fill="#1A1A1A"/>
+                        <rect x="889" y="420" width="10" height="3" fill="#1A1A1A"/>
+                        <rect x="889" y="540" width="10" height="3" fill="#1A1A1A"/>
                     </g>
 
                 </g>
@@ -673,46 +1025,51 @@
                      INTERIOR ROOMS (Overlays for temperature display)
                      ============================================ -->
                 <g id="room-overlays">
-                    <!-- FIRST FLOOR ROOMS (y: 230-355) -->
                     <!-- Main Bedroom -->
-                    <rect x="105" y="230" width="155" height="125" fill="rgba(255,200,210,0.4)" stroke="rgba(180,140,100,0.6)" stroke-width="2"/>
-                    <text x="182" y="255" text-anchor="middle" font-size="13" font-weight="600" font-family="'Fredoka', sans-serif" fill="#6B4423">Main Bedroom</text>
-
+                    <rect class="room-area" x="105" y="230" width="155" height="125" fill="#FFFFFF" fill-opacity="0"/>
+                    <g class="room-label" transform="translate(144, 346)">
+                        <rect x="0" y="0" width="77" height="13" rx="2" fill="#FFF8E7" fill-opacity="0.88" stroke="#7A5434" stroke-width="1"/>
+                        <text x="38.5" y="9.5" text-anchor="middle" font-size="9" font-weight="600" font-family="'Fredoka', sans-serif" fill="#5B3A1E">Main Bedroom</text>
+                    </g>
                     <!-- Landing -->
-                    <rect x="260" y="230" width="155" height="125" fill="rgba(255,230,200,0.4)" stroke="rgba(180,140,100,0.6)" stroke-width="2"/>
-                    <text x="337" y="255" text-anchor="middle" font-size="13" font-weight="600" font-family="'Fredoka', sans-serif" fill="#6B4423">Landing</text>
-                    <!-- Pixel stairs -->
-                    <g transform="translate(305, 280)">
-                        <rect x="0" y="0" width="65" height="5" fill="rgba(139,90,43,0.5)"/>
-                        <rect x="0" y="8" width="65" height="5" fill="rgba(139,90,43,0.5)"/>
-                        <rect x="0" y="16" width="65" height="5" fill="rgba(139,90,43,0.5)"/>
-                        <rect x="0" y="24" width="65" height="5" fill="rgba(139,90,43,0.5)"/>
-                        <rect x="0" y="32" width="65" height="5" fill="rgba(139,90,43,0.5)"/>
+                    <rect class="room-area" x="260" y="230" width="155" height="125" fill="#FFFFFF" fill-opacity="0"/>
+                    <g class="room-label" transform="translate(313, 346)">
+                        <rect x="0" y="0" width="49" height="13" rx="2" fill="#FFF8E7" fill-opacity="0.88" stroke="#7A5434" stroke-width="1"/>
+                        <text x="24.5" y="9.5" text-anchor="middle" font-size="9" font-weight="600" font-family="'Fredoka', sans-serif" fill="#5B3A1E">Landing</text>
+                    </g>
+                    <!-- Home Office -->
+                    <rect class="room-area" x="415" y="230" width="155" height="125" fill="#FFFFFF" fill-opacity="0"/>
+                    <g class="room-label" transform="translate(456, 346)">
+                        <rect x="0" y="0" width="72" height="13" rx="2" fill="#FFF8E7" fill-opacity="0.88" stroke="#7A5434" stroke-width="1"/>
+                        <text x="36" y="9.5" text-anchor="middle" font-size="9" font-weight="600" font-family="'Fredoka', sans-serif" fill="#5B3A1E">Home Office</text>
+                    </g>
+                    <!-- Bathroom -->
+                    <rect class="room-area" x="570" y="230" width="155" height="125" fill="#FFFFFF" fill-opacity="0"/>
+                    <g class="room-label" transform="translate(620, 346)">
+                        <rect x="0" y="0" width="55" height="13" rx="2" fill="#FFF8E7" fill-opacity="0.88" stroke="#7A5434" stroke-width="1"/>
+                        <text x="27.5" y="9.5" text-anchor="middle" font-size="9" font-weight="600" font-family="'Fredoka', sans-serif" fill="#5B3A1E">Bathroom</text>
+                    </g>
+                    <!-- Guest Bedroom -->
+                    <rect class="room-area" x="725" y="230" width="175" height="125" fill="#FFFFFF" fill-opacity="0"/>
+                    <g class="room-label" transform="translate(771, 346)">
+                        <rect x="0" y="0" width="83" height="13" rx="2" fill="#FFF8E7" fill-opacity="0.88" stroke="#7A5434" stroke-width="1"/>
+                        <text x="41.5" y="9.5" text-anchor="middle" font-size="9" font-weight="600" font-family="'Fredoka', sans-serif" fill="#5B3A1E">Guest Bedroom</text>
+                    </g>
+                    <!-- Hall -->
+                    <rect class="room-area" x="105" y="355" width="195" height="245" fill="#FFFFFF" fill-opacity="0"/>
+                    <g class="room-label" transform="translate(260, 568)">
+                        <rect x="0" y="0" width="32" height="13" rx="2" fill="#FFF8E7" fill-opacity="0.88" stroke="#7A5434" stroke-width="1"/>
+                        <text x="16" y="9.5" text-anchor="middle" font-size="9" font-weight="600" font-family="'Fredoka', sans-serif" fill="#5B3A1E">Hall</text>
+                    </g>
+                    <!-- Lounge -->
+                    <rect class="room-area" x="300" y="355" width="195" height="245" fill="#FFFFFF" fill-opacity="0"/>
+                    <g class="room-label" transform="translate(376, 568)">
+                        <rect x="0" y="0" width="44" height="13" rx="2" fill="#FFF8E7" fill-opacity="0.88" stroke="#7A5434" stroke-width="1"/>
+                        <text x="22" y="9.5" text-anchor="middle" font-size="9" font-weight="600" font-family="'Fredoka', sans-serif" fill="#5B3A1E">Lounge</text>
                     </g>
 
-                    <!-- Home Office -->
-                    <rect x="415" y="230" width="155" height="125" fill="rgba(200,220,240,0.4)" stroke="rgba(180,140,100,0.6)" stroke-width="2"/>
-                    <text x="492" y="255" text-anchor="middle" font-size="13" font-weight="600" font-family="'Fredoka', sans-serif" fill="#6B4423">Home Office</text>
-
-                    <!-- Bathroom -->
-                    <rect x="570" y="230" width="155" height="125" fill="rgba(200,240,220,0.4)" stroke="rgba(180,140,100,0.6)" stroke-width="2"/>
-                    <text x="647" y="255" text-anchor="middle" font-size="13" font-weight="600" font-family="'Fredoka', sans-serif" fill="#6B4423">Bathroom</text>
-
-                    <!-- Guest Bedroom -->
-                    <rect x="725" y="230" width="175" height="125" fill="rgba(230,200,240,0.4)" stroke="rgba(180,140,100,0.6)" stroke-width="2"/>
-                    <text x="812" y="255" text-anchor="middle" font-size="13" font-weight="600" font-family="'Fredoka', sans-serif" fill="#6B4423">Guest Bedroom</text>
-
-                    <!-- GROUND FLOOR ROOMS (y: 355-600) -->
-                    <!-- Hall -->
-                    <rect x="105" y="355" width="195" height="245" fill="rgba(200,230,228,0.4)" stroke="rgba(180,140,100,0.6)" stroke-width="2"/>
-                    <text x="202" y="380" text-anchor="middle" font-size="14" font-weight="600" font-family="'Fredoka', sans-serif" fill="#6B4423">Hall</text>
-
-                    <!-- Lounge -->
-                    <rect x="300" y="355" width="195" height="245" fill="rgba(255,220,180,0.4)" stroke="rgba(180,140,100,0.6)" stroke-width="2"/>
-                    <text x="397" y="380" text-anchor="middle" font-size="14" font-weight="600" font-family="'Fredoka', sans-serif" fill="#6B4423">Lounge</text>
-
-                    <!-- Nest Thermostat on Lounge Wall -->
-                    <g id="nest-thermostat-display" transform="translate(397, 500)">
+                    <!-- Nest Thermostat on the wall between the lounge bay and the kitchen -->
+                    <g id="nest-thermostat-display" transform="translate(470, 470)">
                         <circle cx="0" cy="0" r="26" fill="url(#nestMetalGradient)" stroke="#B8B8B8" stroke-width="1.5"/>
                         <circle id="nest-display-bg" cx="0" cy="0" r="22" fill="#000000"/>
                         <text id="nest-current-temp" x="0" y="4" text-anchor="middle" font-size="15" font-weight="700" font-family="Arial, sans-serif" fill="#FFFFFF">--</text>
@@ -722,12 +1079,17 @@
                     </g>
 
                     <!-- Kitchen -->
-                    <rect x="495" y="355" width="195" height="245" fill="rgba(255,230,200,0.4)" stroke="rgba(180,140,100,0.6)" stroke-width="2"/>
-                    <text x="592" y="380" text-anchor="middle" font-size="14" font-weight="600" font-family="'Fredoka', sans-serif" fill="#6B4423">Kitchen</text>
-
+                    <rect class="room-area" x="495" y="355" width="195" height="245" fill="#FFFFFF" fill-opacity="0"/>
+                    <g class="room-label" transform="translate(568, 568)">
+                        <rect x="0" y="0" width="49" height="13" rx="2" fill="#FFF8E7" fill-opacity="0.88" stroke="#7A5434" stroke-width="1"/>
+                        <text x="24.5" y="9.5" text-anchor="middle" font-size="9" font-weight="600" font-family="'Fredoka', sans-serif" fill="#5B3A1E">Kitchen</text>
+                    </g>
                     <!-- Extension -->
-                    <rect x="690" y="355" width="210" height="245" fill="rgba(200,230,220,0.4)" stroke="rgba(180,140,100,0.6)" stroke-width="2"/>
-                    <text x="795" y="380" text-anchor="middle" font-size="14" font-weight="600" font-family="'Fredoka', sans-serif" fill="#6B4423">Extension</text>
+                    <rect class="room-area" x="690" y="355" width="210" height="245" fill="#FFFFFF" fill-opacity="0"/>
+                    <g class="room-label" transform="translate(765, 568)">
+                        <rect x="0" y="0" width="60" height="13" rx="2" fill="#FFF8E7" fill-opacity="0.88" stroke="#7A5434" stroke-width="1"/>
+                        <text x="30" y="9.5" text-anchor="middle" font-size="9" font-weight="600" font-family="'Fredoka', sans-serif" fill="#5B3A1E">Extension</text>
+                    </g>
                 </g>
 
                 <!-- Thermometers will be dynamically added here by JavaScript -->
@@ -1057,8 +1419,10 @@
 
                 <!-- Garden hedge/border -->
                 <g id="garden-hedge">
-                    <rect x="95" y="598" width="15" height="8" fill="#3D6A2A" rx="2"/>
-                    <rect x="895" y="598" width="15" height="8" fill="#3D6A2A" rx="2"/>
+                    <rect x="88" y="592" width="18" height="10" fill="#3D6A2A"/>
+                    <rect x="90" y="589" width="12" height="4" fill="#4E8A3A"/>
+                    <rect x="899" y="592" width="18" height="10" fill="#3D6A2A"/>
+                    <rect x="901" y="589" width="12" height="4" fill="#4E8A3A"/>
                 </g>
 
                 <!-- Moose character container (dynamically populated) -->
