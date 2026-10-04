@@ -1,204 +1,151 @@
 # Home Monitor Dashboard
 
-A real-time, interactive smart home dashboard for monitoring and controlling Philips Hue sensors, Sonos speakers, TP-Link Tapo smart plugs, NVIDIA SHIELD TV, and Google Nest thermostat. Built as a Progressive Web App (PWA) with a pixel art UK house visualization.
+A cosy, real-time smart home dashboard drawn as a pixel-art UK semi-detached house. It shows live data from Philips Hue sensors and controls Sonos speakers, TP-Link Tapo smart plugs, an NVIDIA SHIELD TV and a Google Nest thermostat. It's built as an installable Progressive Web App (PWA).
+
+![Home Monitor demo: motion in the hall, the kitchen light switching on, Monty the Moose visiting, then nightfall](docs/demo.gif)
+
+_Above: someone walks into the hall, the kitchen light comes on, Monty the Moose drops by to clean a window, and the house lights up as night falls._
 
 ## Features
 
-### Temperature Monitoring
+**House and sensors**
 
-- Mercury thermometer graphics with color-coded temperatures
-- 24-hour temperature history
-- Draggable thermometer positions (saved to localStorage)
-- Sparkle effects on temperature updates
+- **Temperatures:** a pixel thermometer for every room plus outdoors, colour-coded, with 24-hour history and sparkles on each update
+- **Motion:** a monkey pops up where motion is detected, with a voice announcement and a 48-hour activity log
+- **Lights:** each bulb is drawn in the real colour of its Hue light (hue/saturation, colour temperature or CIE xy). Click a bulb to open a colour picker, double-click it to toggle. A Victorian lamppost follows the outdoor lights
+- **Light effects:** a jukebox runs Red Alert, Party, Disco, Wave and Sunset, then restores every light to how it was
 
-### Motion Detection
+**Devices**
 
-- Animated monkey face indicators when motion is detected
-- Voice announcements for Outdoor, Hall, Landing, Bathroom
-- 48-hour motion event log with timestamps
-- Real-time updates every 3 seconds
+- **Sonos:** play, pause and volume for each discovered speaker
+- **Tapo smart plugs:** UK-socket switches, auto-discovered on the network
+- **NVIDIA SHIELD TV:** a remote that launches Netflix, YouTube, Plex, Spotify and more
+- **Nest thermostat:** current/target temperature and heating status. Shift-drag the thermostat to change the setpoint
 
-### Smart Lighting
+**Atmosphere**
 
-- Light indicators show **actual Hue bulb colors** (HSV, color temperature, CIE xy)
-- Narnia-style lamppost for outdoor lighting
-- Double-click any light to toggle on/off
-- Light effects: Red Alert, Party Mode, Disco, Wave, Sunset
+- Day/night sky from real sunrise/sunset times, with sun, moon and stars. Windows glow warm after dark
+- Live weather from WeatherAPI.com, with rain, snow and fog effects
+- **Monty the Moose** visits every 10–20 minutes to mow the lawn, water the plants or star-gaze
+- A news plane flies past towing the latest headline
+- Chimney smoke, clouds, birds, a garden cat and milk bottles on the step
 
-### Monty the Moose
+**App**
 
-- Animated moose character appears every 10-20 minutes
-- Various activities: cleaning windows, mowing lawn, watering plants, picnics
-- Voice announcement: "It's me, Monty!"
-- Night-only star gazing activity
+- The wheelie bin's LEDs show which services are online. Click it for details and Nest authorisation
+- Every element is draggable, and positions are remembered
+- A layers panel shows or hides each group of elements
+- Installable PWA with offline support
 
-### Sonos Speaker Control
+## How it fits together
 
-- Play/pause, volume control
-- Speaker discovery and status display
-- SOAP/UPnP integration via proxy server
+The browser talks straight to services that allow it: the Hue Bridge, the weather and sunrise APIs, and Google's Nest API. Devices that can't be reached from a web page go through small local Node.js proxies. They might use SOAP, ADB or an authenticated protocol, or not send CORS headers. `npm start` launches every proxy, waits for them to report healthy, then starts Vite.
 
-### TP-Link Tapo Smart Plugs
+```mermaid
+flowchart LR
+    subgraph Browser["Browser (PWA on localhost:5173)"]
+        UI["Pixel-art house<br/>(index.html SVG + src/)"]
+    end
 
-- UK socket faceplate design with rocker switch
-- Auto-discovery of plugs on network
-- Toggle on/off with visual feedback
-- Draggable plug positions
+    subgraph Proxies["Local proxies (Node.js, started by npm start)"]
+        SonosP["Sonos proxy<br/>:3000"]
+        TapoP["Tapo proxy<br/>:3001"]
+        NewsP["News proxy<br/>:3002"]
+        NestP["Nest auth proxy<br/>:3003"]
+        ShieldP["SHIELD proxy<br/>:8082"]
+    end
 
-### NVIDIA SHIELD TV
+    subgraph Home["Home network"]
+        Hue["Philips Hue Bridge"]
+        Sonos["Sonos speakers<br/>(UPnP/SOAP :1400)"]
+        Tapo["Tapo smart plugs"]
+        Shield["NVIDIA SHIELD TV<br/>(ADB :5555)"]
+    end
 
-- Launch apps (Netflix, YouTube, Plex, Spotify, etc.)
-- ADB-based control via proxy server
+    subgraph Cloud["Internet"]
+        Weather["WeatherAPI.com"]
+        Sun["Sunrise-Sunset API"]
+        Google["Google OAuth +<br/>Nest SDM API"]
+        RSS["Google News RSS"]
+    end
 
-### Google Nest Thermostat
+    UI -- "REST (direct)" --> Hue
+    UI -- direct --> Weather
+    UI -- direct --> Sun
+    UI -- "token refresh +<br/>thermostat API" --> Google
 
-- Current and target temperature display
-- Visual thermostat control
-- OAuth2 token management
+    UI --> SonosP -- SOAP --> Sonos
+    UI --> TapoP -- "tp-link-tapo-connect" --> Tapo
+    UI --> ShieldP -- "adb shell" --> Shield
+    UI --> NewsP -- "fetch + cache" --> RSS
+    UI -. "Auth link in the<br/>wheelie bin popup" .-> NestP
+    NestP -- "OAuth code exchange,<br/>writes nest-config.js" --> Google
+```
 
-### Weather Integration
+| Proxy  | Port | Why it exists                                                                                                                              | Talks to                         |
+| ------ | ---- | ------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------- |
+| Sonos  | 3000 | Browsers can't make SOAP/UPnP calls to speakers. Discovers speakers by scanning the subnet and only forwards to speakers it has discovered | Sonos speakers on port 1400      |
+| Tapo   | 3001 | Tapo plugs need an authenticated, encrypted session. Discovers plugs and rediscovers them every 5 minutes                                  | Tapo plugs (credentials in .env) |
+| News   | 3002 | Google News RSS has no CORS. Parses it to JSON and caches it for 10 minutes                                                                | news.google.com                  |
+| Nest   | 3003 | Handles the OAuth redirect and code exchange, then saves tokens to `nest-config.js`                                                        | Google OAuth                     |
+| SHIELD | 8082 | Launching apps needs ADB                                                                                                                   | SHIELD over ADB (port 5555)      |
 
-- Live weather from WeatherAPI.com
-- Temperature, conditions, humidity, UV index
-- Auto-updates every 15 minutes
+Each proxy exposes `GET /health`, which the dashboard polls to light the wheelie bin's LEDs.
 
-### Connection Status
+### Inside the front end
 
-- Header displays real-time status of all services
-- Hue Bridge, Sonos, Tapo, and SHIELD proxy indicators
-- Visual feedback (green = online, red = offline)
+Feature modules don't call each other directly. A central poller fetches data, results go into a reactive state store, and features react to events on an event bus.
 
-### UI Features
+```mermaid
+flowchart TB
+    Main["main.ts<br/>imports every module"] --> App["app.ts<br/>wires events, registers polling"]
+    App --> Poller["core/poller<br/>(intervals, no overlapping runs)"]
+    Poller --> API["api/*<br/>Hue · Sonos · Tapo · SHIELD clients"]
+    API --> State["core/state<br/>(AppState, persisted history)"]
+    API --> Events["core/events<br/>(AppEvents bus)"]
+    Events --> Features["features/*<br/>thermometers · lights · motion · voice<br/>moose · news plane · effects · nest"]
+    State --> Features
+    Features --> SVG["SVG house<br/>(index.html)"]
+    Monitor["core/connection-monitor<br/>(health checks)"] --> Events
+    Registry["core/registry<br/>(service lookup)"] -.- App
+    Registry -.- Features
+```
 
-- Pixel art UK semi-detached house design
-- Day/night sky transitions based on sunrise/sunset
-- Animated smoke, clouds, and birds
-- Draggable UI elements with position persistence
-- Compact/Full view mode toggle
-
-### Progressive Web App
-
-- Install on any device
-- Offline support with service worker
-- Auto-cache invalidation on updates
-
-## Quick Start
+## Quick start
 
 ### Prerequisites
 
 - Node.js 18+
-- npm
+- On the same network as your devices (a VPN can block local access)
+- [ADB](https://developer.android.com/tools/releases/platform-tools) on your PATH if you want SHIELD control
 
-### Installation
-
-1. **Install dependencies:**
-
-    ```bash
-    npm install
-    ```
-
-2. **Create environment file:**
-
-    ```bash
-    cp .env.example .env
-    ```
-
-3. **Configure `.env`:**
-
-    ```env
-    TAPO_EMAIL=your-email@example.com
-    TAPO_PASSWORD=your-password
-    FRONTEND_ORIGIN=http://localhost:5173
-    NODE_ENV=development
-    ```
-
-4. **Configure Hue Bridge:**
-
-    ```bash
-    cp config.example.js config.js
-    ```
-
-    Edit `config.js` with your Hue Bridge IP and API username.
-
-5. **Start the application:**
-
-    ```bash
-    npm start
-    ```
-
-    This starts:
-    - Vite dev server (port 5173)
-    - Sonos proxy (port 3000)
-    - Tapo proxy (port 3001)
-    - SHIELD proxy (port 8082)
-
-6. **Open browser:**
-    ```
-    http://localhost:5173
-    ```
-
-## New Machine Setup
-
-When cloning to a new machine, these files are **not in git** and must be created:
-
-### Required Files
-
-| File        | Purpose                                 | Template            |
-| ----------- | --------------------------------------- | ------------------- |
-| `config.js` | Hue Bridge credentials, Weather API key | `config.example.js` |
-| `.env`      | Tapo email/password                     | `.env.example`      |
-
-### Optional Files
-
-| File               | Purpose                 | How to Create                                   |
-| ------------------ | ----------------------- | ----------------------------------------------- |
-| `nest-config.json` | Nest client credentials | Copy from `nest-config.example.json`            |
-| `nest-config.js`   | Nest OAuth tokens       | Auto-created when you authorize via wheelie bin |
-
-### Quick Setup Commands
+### Install and run
 
 ```bash
-# Clone and install
 git clone https://github.com/ChrisBrooksbank/home-monitor.git
 cd home-monitor
 npm install
 
-# Create config files from templates
-cp config.example.js config.js
-cp .env.example .env
+cp config.example.js config.js   # Hue bridge + weather settings
+cp .env.example .env             # Tapo credentials
 
-# Edit with your credentials
-# config.js: Add HUE_CONFIG.BRIDGE_IP and USERNAME
-# .env: Add TAPO_EMAIL and TAPO_PASSWORD
-
-# Start
-npm start
+npm start                        # all proxies + Vite
 ```
 
-### Troubleshooting
+Then open <http://localhost:5173>.
 
-**"APP_CONFIG is not defined"** - The `js/config.js` file should be in git. Run `git pull`.
+### Files that are not in git
 
-**"Unexpected token '<'"** - Browser cached a bad response. Clear site data:
-
-1. DevTools (F12) → Application → Storage → Clear site data
-2. Hard refresh (Ctrl+Shift+R)
-
-**Greyed out status indicators** - Check:
-
-1. Node.js 18+ installed (`node --version`)
-2. `config.js` exists in project root with correct Hue credentials
-3. Devices are on same network (VPN may block local access)
-
-**Proxies not starting** - Ports may be in use. Check with:
-
-```bash
-netstat -ano | findstr ":3000 :3001 :8082"
-```
+| File               | Purpose                                | Create from                                          |
+| ------------------ | -------------------------------------- | ---------------------------------------------------- |
+| `config.js`        | Hue Bridge IP/username, WeatherAPI key | `config.example.js`                                  |
+| `.env`             | Tapo email and password                | `.env.example`                                       |
+| `nest-config.json` | Nest OAuth client details (optional)   | `nest-config.example.json`                           |
+| `nest-config.js`   | Nest tokens for the browser (optional) | Written automatically when you authorise (see below) |
 
 ## Configuration
 
-### Hue Bridge (Required)
+### Hue Bridge (required)
 
 Edit `config.js`:
 
@@ -207,200 +154,119 @@ const HUE_CONFIG = {
     BRIDGE_IP: '192.168.1.XXX',
     USERNAME: 'your-hue-api-username',
 };
+window.HUE_CONFIG = HUE_CONFIG;
 ```
 
-### Weather API (Optional)
+Keep the `window.` lines from the example: the app reads its settings from `window`.
 
-Sign up at [weatherapi.com](https://www.weatherapi.com/signup.aspx) and add to `config.js`:
+To find your bridge, run `npx tsx src/scripts/setup/find-hue-bridge.ts`.
+
+Room names come from sensor and light names via the patterns in `src/config/mappings.ts`. Edit that file if your devices are named differently.
+
+### Weather (optional)
+
+Sign up at [weatherapi.com](https://www.weatherapi.com/signup.aspx), then add to `config.js`:
 
 ```javascript
 const WEATHER_CONFIG = {
     API_KEY: 'your-api-key',
     LOCATION: 'CM1 6UG',
 };
+window.WEATHER_CONFIG = WEATHER_CONFIG;
 ```
 
-### Nest Thermostat (Optional)
+### Tapo plugs (optional)
 
-#### 1. Google Cloud Setup
+Put your Tapo account details in `.env`:
 
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project (or select existing)
-3. Search for and enable the **Smart Device Management API**
-4. Go to **APIs & Services > Credentials**
-5. Click **Create Credentials > OAuth client ID**
-6. Select **Web application** as application type
-7. Add authorized redirect URI: `http://localhost:3003/auth/callback`
-8. Click **Create** and note your **Client ID** and **Client Secret**
+```env
+TAPO_EMAIL=you@example.com
+TAPO_PASSWORD=your-password
+```
 
-#### 2. Smart Device Management Setup
+The proxy scans `192.168.68.50–90` by default. Override this with `TAPO_BASE_IP`, `TAPO_SCAN_START` and `TAPO_SCAN_END`. Sonos uses `SONOS_BASE_IP`, `SONOS_SCAN_START` and `SONOS_SCAN_END`.
 
-1. Go to [Device Access Console](https://console.nest.google.com/device-access)
-2. Click **Create project** ($5 one-time registration fee)
-3. Give your project a name
-4. Enter your OAuth Client ID from step 1
-5. Enable events (optional)
-6. Note your **Project ID** (displayed on the project page)
+### Nest thermostat (optional)
 
-#### 3. Configure the App
+1. **Google Cloud:** in the [Cloud Console](https://console.cloud.google.com/), enable the **Smart Device Management API**. Then create an **OAuth client ID** (Web application) with redirect URI `http://localhost:3003/auth/callback`.
+2. **Device Access:** create a project in the [Device Access Console](https://console.nest.google.com/device-access) ($5 one-time fee), add your OAuth client ID, and note the **Project ID**.
+3. **Configure:** copy `nest-config.example.json` to `nest-config.json` and fill in `CLIENT_ID`, `CLIENT_SECRET` and `PROJECT_ID`.
+4. **Authorise:** run `npm start`, click the **wheelie bin**, then the **Auth** link next to Nest, and finish signing in. The tokens are saved automatically.
 
-Copy the example config and fill in your credentials:
+If you see "Token has been expired or revoked", click **Auth** again. No command line is needed.
+
+## Development
 
 ```bash
-cp nest-config.example.json nest-config.json
+npm start              # Vite + all proxies (recommended)
+npm run dev            # Vite only (port 5173)
+npm run build          # Production build to dist/
+
+npm run proxy:sonos    # Individual proxies
+npm run proxy:tapo
+npm run proxy:news
+npm run proxy:nest
+npm run proxy:shield
+
+npm test               # Vitest (watch)
+npm run test:run       # Vitest once
+npm run lint           # ESLint
+npx tsc --noEmit       # Type check
+npm run format         # Prettier
+npm run knip           # Unused code / exports / dependencies
 ```
 
-Edit `nest-config.json`:
-
-```json
-{
-    "CLIENT_ID": "123456789-abc.apps.googleusercontent.com",
-    "CLIENT_SECRET": "GOCSPX-yourSecretHere",
-    "PROJECT_ID": "your-sdm-project-id"
-}
-```
-
-#### 4. Authorize
-
-1. Start the app: `npm start`
-2. Click the **wheelie bin** icon in the bottom-right of the house
-3. Click the **"Auth"** link next to the Nest status indicator
-4. Complete Google authorization in the popup window
-5. Tokens are saved automatically to `nest-config.json` and `nest-config.js`
-
-#### Refreshing Expired Tokens
-
-If you see "Token has been expired or revoked", simply click the **"Auth"** link in the wheelie bin popup again. No CLI commands needed.
-
-## Development Commands
+Check the proxies are up:
 
 ```bash
-# Development
-npm start              # Start all services (Vite + proxies)
-npm run dev            # Vite dev server only
-
-# Individual proxies
-npm run proxy:sonos    # Sonos proxy (port 3000)
-npm run proxy:tapo     # Tapo proxy (port 3001)
-npm run proxy:shield   # SHIELD proxy (port 8082)
-
-# Code quality
-npm run lint           # ESLint check
-npm run lint:fix       # ESLint auto-fix
-npm run format         # Prettier format
-npm run knip           # Find unused code/exports/dependencies
-
-# Production
-npm run build          # Build for production
-npm run preview        # Preview production build
+for port in 3000 3001 3002 3003 8082; do curl -s localhost:$port/health; echo; done
 ```
 
-## Project Structure
+### Project structure
 
 ```
-home/
-├── index.html              # Main SVG-based house visualization
-├── config.js               # Hue/Weather credentials (not committed)
-├── nest-config.js          # Nest OAuth tokens (not committed)
-├── js/
-│   ├── app.js              # Main application entry point
-│   ├── config.js           # Runtime configuration (intervals, URLs)
-│   ├── config/
-│   │   ├── schema.js       # Config validation schemas
-│   │   ├── loader.js       # Config loading with validation
-│   │   └── index.js        # Config module entry point
-│   ├── api/
-│   │   ├── sonos.js        # Sonos API client
-│   │   ├── tapo.js         # Tapo API client
-│   │   └── shield.js       # SHIELD API client
-│   ├── features/
-│   │   ├── effects.js      # Light effects (party mode, etc.)
-│   │   ├── moose.js        # Monty the Moose character
-│   │   ├── motion-indicators.js  # Monkey motion indicators
-│   │   ├── nest.js         # Nest thermostat
-│   │   ├── shield.js       # SHIELD TV controls
-│   │   ├── sonos.js        # Sonos speaker UI
-│   │   └── tapo.js         # Tapo plug controls
-│   ├── ui/
-│   │   └── draggable.js    # Drag-and-drop functionality
-│   └── utils/
-│       ├── logger.js       # Logging utilities
-│       └── helpers.js      # IntervalManager, retryWithBackoff
-├── proxies/
-│   ├── sonos-proxy.js      # Sonos SOAP/UPnP proxy
-│   ├── tapo-proxy.js       # Tapo API proxy with discovery
-│   ├── shield-proxy.js     # SHIELD ADB proxy
-│   └── middleware.js       # Shared proxy middleware
-├── scripts/
-│   ├── setup/              # Device discovery scripts (.cjs)
-│   ├── testing/            # Testing/debugging scripts (.cjs)
-│   └── control/            # Device control CLI scripts (.cjs)
-├── config/
-│   └── devices.json        # Discovered device registry
-└── css/
-    └── main.css            # Styles including animations
+index.html               SVG house and page markup
+css/main.css             Styles and animations
+config.example.js        Template for config.js (Hue, weather)
+src/
+├── main.ts              Entry point: imports every module
+├── app.ts               Wires events, loads Hue data, registers polling
+├── core/                registry, events, state, poller, connection-monitor, initializer
+├── api/                 Clients for Hue, Sonos, Tapo, SHIELD
+├── features/            Thermometers, lights, motion, voice, sky, weather, nest,
+│                        sonos, tapo, shield, effects, moose, news plane
+├── ui/                  Draggable, colour picker, layers panel
+├── config/              Constants, room mappings, Zod schemas, Config facade
+├── utils/               Logger, helpers (retry, intervals), colour utils
+├── proxies/             Sonos, Tapo, News, Nest and SHIELD proxy servers
+├── scripts/             start.ts (launcher) and setup/ (device discovery)
+└── types/               Shared TypeScript types
+scripts/                 Older CLI tools for device control and testing
+docs/demo.gif            The animation at the top of this README
 ```
 
-## Health Checks
+### Polling intervals
 
-Verify proxy servers are running:
+| Data              | Interval |
+| ----------------- | -------- |
+| Motion sensors    | 3 s      |
+| Lights            | 10 s     |
+| Connection status | 30 s     |
+| Sonos volume      | 30 s     |
+| Tapo status       | 30 s     |
+| Temperatures      | 60 s     |
+| Sky               | 60 s     |
+| Weather           | 15 min   |
+| Nest              | 15 min   |
+| Sunrise/sunset    | 24 h     |
 
-```bash
-curl http://localhost:3000/health  # Sonos
-curl http://localhost:3001/health  # Tapo
-curl http://localhost:8082/health  # SHIELD
-```
+All intervals are set in `src/config/constants.ts`.
 
-## Update Intervals
+## Troubleshooting
 
-| Data              | Interval | Notes               |
-| ----------------- | -------- | ------------------- |
-| Motion sensors    | 3 sec    | Real-time detection |
-| Lights            | 10 sec   | Frequent updates    |
-| Temperatures      | 60 sec   | Slow changes        |
-| Connection status | 30 sec   | Service health      |
-| Sonos volume      | 30 sec   | Speaker status      |
-| Tapo status       | 30 sec   | Plug states         |
-| Weather           | 15 min   | API rate friendly   |
-| Nest              | 15 min   | Avoid rate limits   |
-| Sun times         | 24 hr    | Sunrise/sunset      |
-
-## Room Layout
-
-**First Floor:** Main Bedroom, Guest Bedroom, Landing, Home Office, Bathroom
-
-**Ground Floor:** Lounge, Hall, Extension, Kitchen
-
-**Outdoor:** Garden with lamppost
-
-## Technologies
-
-### Frontend
-
-- Vanilla JavaScript (ES6+)
-- SVG graphics
-- Web Speech API
-- Vite
-- Service Workers (PWA)
-
-### Backend
-
-- Node.js proxy servers
-- Philips Hue Bridge API
-- Sonos SOAP/UPnP
-- TP-Link Tapo API
-- NVIDIA SHIELD ADB
-- Google Nest SDM API
-- WeatherAPI.com
-- Sunrise-Sunset API
-
-### Architecture
-
-- Feature-based modular structure
-- Centralized config with validation
-- IntervalManager for polling
-- Draggable UI with localStorage persistence
-- Connection status monitoring
+- **Wheelie bin LEDs are red:** click the bin to see which service is down. For proxies, make sure `npm start` is running and nothing else is using ports 3000–3003 or 8082.
+- **No Hue data:** check that `config.js` exists, has the right bridge IP and username, and keeps the `window.HUE_CONFIG = HUE_CONFIG;` line.
+- **"Unexpected token '<'" or stale UI:** clear site data (DevTools → Application → Storage → Clear site data), then hard-refresh.
 
 ## Built with
 
