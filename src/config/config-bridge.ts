@@ -110,12 +110,16 @@ export function getNestConfigWithFallback(): typeof window.NEST_CONFIG | undefin
 
     // Fallback to window global (in case bridge hasn't run yet)
     if (typeof window !== 'undefined' && window.NEST_CONFIG) {
-        // Also register it for future calls
-        Registry.register({
-            key: 'NEST_CONFIG',
-            instance: window.NEST_CONFIG,
-        });
-        return window.NEST_CONFIG;
+        // Also register it for future calls - normalized, as bridgeExternalConfig
+        // does, so consumers reading ACCESS_TOKEN/REFRESH_TOKEN find the tokens
+        const normalized = normalizeNestConfig(window.NEST_CONFIG);
+        if (normalized) {
+            Registry.register({
+                key: 'NEST_CONFIG',
+                instance: normalized,
+            });
+        }
+        return normalized;
     }
 
     return undefined;

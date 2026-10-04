@@ -60,6 +60,8 @@ function hsvToHex(h: number, s: number, v: number): string {
  * Convert CIE xy color space to hex
  */
 function xyToHex(x: number, y: number, bri: number): string {
+    // y = 0 would divide by zero and produce "#NaNNaNNaN"
+    if (!(y > 0)) return '#FFD700';
     const z = 1 - x - y;
     const Y = bri / 254;
     const X = (Y / y) * x;

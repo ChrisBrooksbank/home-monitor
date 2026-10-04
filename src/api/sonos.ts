@@ -119,7 +119,21 @@ async function command(
     const soapBody = buildSoapXml(commandName, template.service, params);
     const soapAction = `"urn:schemas-upnp-org:service:${template.service}:1#${commandName}"`;
 
-    return await retryWithBackoff(() => soapRequest(ip, template.path, soapAction, soapBody));
+    // soapRequest reports failures in its result rather than throwing, so throw
+    // on network errors (no HTTP status) to let retryWithBackoff actually retry.
+    // These commands are idempotent, so retrying is safe.
+    try {
+        return await retryWithBackoff(async () => {
+            const result = await soapRequest(ip, template.path, soapAction, soapBody);
+            if (!result.ok && result.status === undefined) {
+                throw new Error(result.error ?? 'Sonos request failed');
+            }
+            return result;
+        });
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        return { ok: false, error: message };
+    }
 }
 
 /**

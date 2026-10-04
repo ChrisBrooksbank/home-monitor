@@ -474,6 +474,59 @@ describe('SonosAPI.changeVolume when volume is unknown', () => {
     });
 });
 
+describe('SonosAPI.command retries', () => {
+    beforeEach(() => {
+        vi.resetAllMocks();
+    });
+
+    it('should surface network failures to retryWithBackoff so they are retried', async () => {
+        // Simulate one retry: call fn again if the first attempt throws
+        vi.mocked(retryWithBackoff).mockImplementationOnce(async fn => {
+            try {
+                return await fn();
+            } catch {
+                return await fn();
+            }
+        });
+        const fetchMock = vi
+            .fn()
+            .mockRejectedValueOnce(new Error('Network error'))
+            .mockResolvedValue({
+                ok: true,
+                status: 200,
+                text: () => Promise.resolve('<CurrentVolume>30</CurrentVolume>'),
+            });
+        (globalThis as typeof globalThis & { fetch: Mock }).fetch = fetchMock;
+
+        expect(await SonosAPI.getVolume('192.168.68.55')).toBe(30);
+        expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('should return a failed result when retries are exhausted', async () => {
+        (globalThis as typeof globalThis & { fetch: Mock }).fetch = vi
+            .fn()
+            .mockRejectedValue(new Error('Network error'));
+
+        const result = await SonosAPI.command('192.168.68.55', 'Play');
+
+        expect(result).toEqual({ ok: false, error: 'Network error' });
+    });
+
+    it('should not treat HTTP errors as retryable', async () => {
+        const fetchMock = vi.fn().mockResolvedValue({
+            ok: false,
+            status: 500,
+            text: () => Promise.resolve('Error'),
+        });
+        (globalThis as typeof globalThis & { fetch: Mock }).fetch = fetchMock;
+
+        const result = await SonosAPI.play('192.168.68.55');
+
+        expect(result).toBe(false);
+        expect(fetchMock).toHaveBeenCalledTimes(1);
+    });
+});
+
 // ============================================
 // SonosAPI.getSpeakers Tests
 // ============================================
