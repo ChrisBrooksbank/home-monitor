@@ -41,14 +41,19 @@ let lastFetchTime: number | null = null;
 /**
  * Fetch RSS feed via HTTPS
  */
-function fetchRSS(url: string): Promise<string> {
+function fetchRSS(url: string, redirectsLeft = 5): Promise<string> {
     return new Promise((resolve, reject) => {
         const request = https.get(url, { timeout: 10000 }, (res: IncomingMessage) => {
-            if (res.statusCode === 301 || res.statusCode === 302) {
-                // Handle redirect
+            if ([301, 302, 303, 307, 308].includes(res.statusCode ?? 0)) {
+                // Handle redirect (bounded, to avoid looping forever)
+                res.resume();
                 const location = res.headers.location;
-                if (location) {
-                    fetchRSS(location).then(resolve).catch(reject);
+                if (redirectsLeft <= 0) {
+                    reject(new Error('Too many redirects'));
+                } else if (location) {
+                    fetchRSS(new URL(location, url).href, redirectsLeft - 1)
+                        .then(resolve)
+                        .catch(reject);
                 } else {
                     reject(new Error('Redirect without location header'));
                 }
@@ -74,6 +79,30 @@ function fetchRSS(url: string): Promise<string> {
 }
 
 /**
+ * Decode XML character entities (titles/links outside CDATA are entity-encoded)
+ */
+function decodeEntities(text: string): string {
+    const named: Record<string, string> = {
+        amp: '&',
+        lt: '<',
+        gt: '>',
+        quot: '"',
+        apos: "'",
+        nbsp: '\u00A0',
+    };
+    return text.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (match, entity: string) => {
+        if (entity[0] === '#') {
+            const code =
+                entity[1] === 'x' || entity[1] === 'X'
+                    ? parseInt(entity.slice(2), 16)
+                    : parseInt(entity.slice(1), 10);
+            return Number.isFinite(code) && code <= 0x10ffff ? String.fromCodePoint(code) : match;
+        }
+        return named[entity.toLowerCase()] ?? match;
+    });
+}
+
+/**
  * Parse RSS XML to extract headlines
  * Simple regex-based parsing (no XML library needed)
  */
@@ -85,16 +114,16 @@ function parseRSS(xml: string): Headline[] {
     while ((match = itemRegex.exec(xml)) !== null && items.length < 20) {
         const itemXml = match[1];
 
-        const titleMatch =
-            itemXml.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/) ||
-            itemXml.match(/<title>(.*?)<\/title>/);
+        const cdataTitle = itemXml.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/);
+        const titleMatch = cdataTitle || itemXml.match(/<title>(.*?)<\/title>/);
         const linkMatch = itemXml.match(/<link>(.*?)<\/link>/);
         const pubDateMatch = itemXml.match(/<pubDate>(.*?)<\/pubDate>/);
         const sourceMatch = itemXml.match(/<source[^>]*>(.*?)<\/source>/);
 
         if (titleMatch && linkMatch) {
             // Clean up title (remove source suffix like " - BBC News")
-            let title = titleMatch[1].trim();
+            // CDATA content is literal; plain text content is entity-encoded
+            let title = cdataTitle ? titleMatch[1].trim() : decodeEntities(titleMatch[1].trim());
             const dashIndex = title.lastIndexOf(' - ');
             if (dashIndex > 0) {
                 title = title.substring(0, dashIndex);
@@ -102,8 +131,8 @@ function parseRSS(xml: string): Headline[] {
 
             items.push({
                 headline: title,
-                link: linkMatch[1].trim(),
-                source: sourceMatch ? sourceMatch[1].trim() : 'News',
+                link: decodeEntities(linkMatch[1].trim()),
+                source: sourceMatch ? decodeEntities(sourceMatch[1].trim()) : 'News',
                 pubDate: pubDateMatch ? pubDateMatch[1].trim() : null,
             });
         }

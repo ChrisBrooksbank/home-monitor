@@ -85,6 +85,20 @@ async function fetchHeadline(): Promise<NewsItem | null> {
 }
 
 /**
+ * Only allow http(s) links from the feed, so a javascript: or data: URL
+ * in a headline can't run script when the plane is clicked
+ */
+function toSafeLink(link: string | undefined): string | null {
+    if (!link) return null;
+    try {
+        const url = new URL(link);
+        return url.protocol === 'http:' || url.protocol === 'https:' ? url.href : null;
+    } catch {
+        return null;
+    }
+}
+
+/**
  * Truncate headline to fit on banner
  */
 function truncateHeadline(text: string, maxLength: number): string {
@@ -178,7 +192,7 @@ async function showPlane(): Promise<void> {
 
     // Fetch headline
     const newsItem = await fetchHeadline();
-    if (!newsItem) {
+    if (!newsItem || typeof newsItem.headline !== 'string') {
         Logger.warn('News plane: No headline available, rescheduling');
         schedulePlaneFlight();
         return;
@@ -186,7 +200,7 @@ async function showPlane(): Promise<void> {
 
     const headline = truncateHeadline(newsItem.headline, PLANE_CONFIG.MAX_HEADLINE_LENGTH);
     planeState.currentHeadline = headline;
-    planeState.currentLink = newsItem.link || null;
+    planeState.currentLink = toSafeLink(newsItem.link);
 
     Logger.info(`News plane flying: "${headline}"`);
 
@@ -196,7 +210,7 @@ async function showPlane(): Promise<void> {
     // Add click handler
     planeElement.addEventListener('click', () => {
         if (planeState.currentLink) {
-            window.open(planeState.currentLink, '_blank');
+            window.open(planeState.currentLink, '_blank', 'noopener');
             Logger.info('News plane: Opened article in new tab');
         }
     });

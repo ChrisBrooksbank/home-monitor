@@ -7,22 +7,22 @@ import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from 'vite
 
 // Mock the constants module before importing sky.ts
 vi.mock('../config/constants', () => ({
-  LOCATION: {
-    LAT: 51.5074,
-    LNG: -0.1278,
-    NAME: 'Test Location',
-  },
+    LOCATION: {
+        LAT: 51.5074,
+        LNG: -0.1278,
+        NAME: 'Test Location',
+    },
 }));
 
 // Now import sky functions
 import {
-  getTimeOfDay,
-  getSkyConfig,
-  getSunPosition,
-  isDaytime,
-  isNighttime,
-  fetchSunTimes,
-  type TimeOfDay,
+    getTimeOfDay,
+    getSkyConfig,
+    getSunPosition,
+    isDaytime,
+    isNighttime,
+    fetchSunTimes,
+    type TimeOfDay,
 } from './sky';
 import { Logger } from '../utils/logger';
 
@@ -32,16 +32,16 @@ import { Logger } from '../utils/logger';
 
 // Mock document
 (globalThis as typeof globalThis & { document: { getElementById: Mock } }).document = {
-  getElementById: vi.fn(),
+    getElementById: vi.fn(),
 };
 
 // Mock window.matchMedia
 (globalThis as typeof globalThis & { window: typeof globalThis }).window =
-  globalThis as typeof globalThis & { window: typeof globalThis };
+    globalThis as typeof globalThis & { window: typeof globalThis };
 (
-  globalThis.window as typeof globalThis & {
-    matchMedia: Mock<[string], { matches: boolean }>;
-  }
+    globalThis.window as typeof globalThis & {
+        matchMedia: Mock<[string], { matches: boolean }>;
+    }
 ).matchMedia = vi.fn(() => ({ matches: false }));
 
 // ============================================
@@ -49,51 +49,51 @@ import { Logger } from '../utils/logger';
 // ============================================
 
 describe('getSkyConfig', () => {
-  it('should return dawn config', () => {
-    const config = getSkyConfig('dawn');
+    it('should return dawn config', () => {
+        const config = getSkyConfig('dawn');
 
-    expect(config.color1).toBe('#FF6B6B');
-    expect(config.color2).toBe('#FFD93D');
-    expect(config.showSun).toBe(true);
-    expect(config.showMoon).toBe(false);
-    expect(config.showStars).toBe(false);
-  });
+        expect(config.color1).toBe('#FF6B6B');
+        expect(config.color2).toBe('#FFD93D');
+        expect(config.showSun).toBe(true);
+        expect(config.showMoon).toBe(false);
+        expect(config.showStars).toBe(false);
+    });
 
-  it('should return day config', () => {
-    const config = getSkyConfig('day');
+    it('should return day config', () => {
+        const config = getSkyConfig('day');
 
-    expect(config.color1).toBe('#87CEEB');
-    expect(config.color2).toBe('#E0F6FF');
-    expect(config.showSun).toBe(true);
-    expect(config.showMoon).toBe(false);
-    expect(config.showStars).toBe(false);
-  });
+        expect(config.color1).toBe('#87CEEB');
+        expect(config.color2).toBe('#E0F6FF');
+        expect(config.showSun).toBe(true);
+        expect(config.showMoon).toBe(false);
+        expect(config.showStars).toBe(false);
+    });
 
-  it('should return dusk config', () => {
-    const config = getSkyConfig('dusk');
+    it('should return dusk config', () => {
+        const config = getSkyConfig('dusk');
 
-    expect(config.color1).toBe('#FF6B35');
-    expect(config.color2).toBe('#6A4C93');
-    expect(config.showSun).toBe(true);
-    expect(config.showMoon).toBe(false);
-    expect(config.showStars).toBe(true);
-  });
+        expect(config.color1).toBe('#FF6B35');
+        expect(config.color2).toBe('#6A4C93');
+        expect(config.showSun).toBe(true);
+        expect(config.showMoon).toBe(false);
+        expect(config.showStars).toBe(true);
+    });
 
-  it('should return night config', () => {
-    const config = getSkyConfig('night');
+    it('should return night config', () => {
+        const config = getSkyConfig('night');
 
-    expect(config.color1).toBe('#0B1026');
-    expect(config.color2).toBe('#1E3A5F');
-    expect(config.showSun).toBe(false);
-    expect(config.showMoon).toBe(true);
-    expect(config.showStars).toBe(true);
-  });
+        expect(config.color1).toBe('#0B1026');
+        expect(config.color2).toBe('#1E3A5F');
+        expect(config.showSun).toBe(false);
+        expect(config.showMoon).toBe(true);
+        expect(config.showStars).toBe(true);
+    });
 
-  it('should return night config for unknown period', () => {
-    const config = getSkyConfig('unknown' as TimeOfDay);
+    it('should return night config for unknown period', () => {
+        const config = getSkyConfig('unknown' as TimeOfDay);
 
-    expect(config).toEqual(getSkyConfig('night'));
-  });
+        expect(config).toEqual(getSkyConfig('night'));
+    });
 });
 
 // ============================================
@@ -101,21 +101,21 @@ describe('getSkyConfig', () => {
 // ============================================
 
 describe('getTimeOfDay', () => {
-  let realDate: DateConstructor;
+    let realDate: DateConstructor;
 
-  beforeEach(() => {
-    realDate = global.Date;
-  });
+    beforeEach(() => {
+        realDate = global.Date;
+    });
 
-  afterEach(() => {
-    global.Date = realDate;
-  });
+    afterEach(() => {
+        global.Date = realDate;
+    });
 
-  it('should return one of the valid periods', () => {
-    const period = getTimeOfDay();
+    it('should return one of the valid periods', () => {
+        const period = getTimeOfDay();
 
-    expect(['night', 'dawn', 'day', 'dusk']).toContain(period);
-  });
+        expect(['night', 'dawn', 'day', 'dusk']).toContain(period);
+    });
 });
 
 // ============================================
@@ -123,25 +123,25 @@ describe('getTimeOfDay', () => {
 // ============================================
 
 describe('getSunPosition', () => {
-  it('should return position object with x and y', () => {
-    const position = getSunPosition();
+    it('should return position object with x and y', () => {
+        const position = getSunPosition();
 
-    expect(position).toHaveProperty('x');
-    expect(position).toHaveProperty('y');
-    expect(typeof position.x).toBe('number');
-    expect(typeof position.y).toBe('number');
-  });
+        expect(position).toHaveProperty('x');
+        expect(position).toHaveProperty('y');
+        expect(typeof position.x).toBe('number');
+        expect(typeof position.y).toBe('number');
+    });
 
-  it('should return default position when sun times not set', () => {
-    // The module uses internal sunriseTime/sunsetTime that may be null initially
-    // If null, it returns default position
-    const position = getSunPosition();
+    it('should return default position when sun times not set', () => {
+        // The module uses internal sunriseTime/sunsetTime that may be null initially
+        // If null, it returns default position
+        const position = getSunPosition();
 
-    expect(position.x).toBeGreaterThanOrEqual(100);
-    expect(position.x).toBeLessThanOrEqual(900);
-    expect(position.y).toBeGreaterThanOrEqual(50);
-    expect(position.y).toBeLessThanOrEqual(150);
-  });
+        expect(position.x).toBeGreaterThanOrEqual(100);
+        expect(position.x).toBeLessThanOrEqual(900);
+        expect(position.y).toBeGreaterThanOrEqual(50);
+        expect(position.y).toBeLessThanOrEqual(150);
+    });
 });
 
 // ============================================
@@ -149,11 +149,11 @@ describe('getSunPosition', () => {
 // ============================================
 
 describe('isDaytime', () => {
-  it('should return boolean', () => {
-    const result = isDaytime();
+    it('should return boolean', () => {
+        const result = isDaytime();
 
-    expect(typeof result).toBe('boolean');
-  });
+        expect(typeof result).toBe('boolean');
+    });
 });
 
 // ============================================
@@ -161,21 +161,21 @@ describe('isDaytime', () => {
 // ============================================
 
 describe('isNighttime', () => {
-  it('should return boolean', () => {
-    const result = isNighttime();
+    it('should return boolean', () => {
+        const result = isNighttime();
 
-    expect(typeof result).toBe('boolean');
-  });
+        expect(typeof result).toBe('boolean');
+    });
 
-  it('should be opposite of isDaytime when period is not dusk/dawn', () => {
-    // At night: isNighttime = true, isDaytime = false
-    // At day: isNighttime = false, isDaytime = true
-    // At dawn/dusk: isNighttime = false, isDaytime = true
-    // So isNighttime implies !isDaytime, but !isNighttime doesn't imply isDaytime
-    if (isNighttime()) {
-      expect(isDaytime()).toBe(false);
-    }
-  });
+    it('should be opposite of isDaytime when period is not dusk/dawn', () => {
+        // At night: isNighttime = true, isDaytime = false
+        // At day: isNighttime = false, isDaytime = true
+        // At dawn/dusk: isNighttime = false, isDaytime = true
+        // So isNighttime implies !isDaytime, but !isNighttime doesn't imply isDaytime
+        if (isNighttime()) {
+            expect(isDaytime()).toBe(false);
+        }
+    });
 });
 
 // ============================================
@@ -183,72 +183,106 @@ describe('isNighttime', () => {
 // ============================================
 
 describe('fetchSunTimes', () => {
-  let infoSpy: ReturnType<typeof vi.spyOn>;
-  let errorSpy: ReturnType<typeof vi.spyOn>;
+    let infoSpy: ReturnType<typeof vi.spyOn>;
+    let errorSpy: ReturnType<typeof vi.spyOn>;
 
-  beforeEach(() => {
-    vi.resetAllMocks();
-    infoSpy = vi.spyOn(Logger, 'info');
-    errorSpy = vi.spyOn(Logger, 'error');
-    (
-      globalThis as typeof globalThis & {
-        document: { getElementById: Mock };
-      }
-    ).document = {
-      getElementById: vi.fn().mockReturnValue(null),
-    };
-  });
-
-  afterEach(() => {
-    vi.restoreAllMocks();
-  });
-
-  it('should fetch sun times from API on success', async () => {
-    const mockSunrise = '2024-01-15T07:00:00+00:00';
-    const mockSunset = '2024-01-15T17:00:00+00:00';
-
-    (globalThis as typeof globalThis & { fetch: Mock }).fetch = vi.fn().mockResolvedValue({
-      json: () =>
-        Promise.resolve({
-          status: 'OK',
-          results: {
-            sunrise: mockSunrise,
-            sunset: mockSunset,
-          },
-        }),
+    beforeEach(() => {
+        vi.resetAllMocks();
+        infoSpy = vi.spyOn(Logger, 'info');
+        errorSpy = vi.spyOn(Logger, 'error');
+        (
+            globalThis as typeof globalThis & {
+                document: { getElementById: Mock };
+            }
+        ).document = {
+            getElementById: vi.fn().mockReturnValue(null),
+        };
     });
 
-    const result = await fetchSunTimes();
-
-    expect(result).not.toBeNull();
-    expect(result?.sunrise).toBeInstanceOf(Date);
-    expect(result?.sunset).toBeInstanceOf(Date);
-    expect(infoSpy).toHaveBeenCalled();
-  });
-
-  it('should return null on API error', async () => {
-    (globalThis as typeof globalThis & { fetch: Mock }).fetch = vi
-      .fn()
-      .mockRejectedValue(new Error('Network error'));
-
-    const result = await fetchSunTimes();
-
-    expect(result).toBeNull();
-    expect(errorSpy).toHaveBeenCalled();
-  });
-
-  it('should return null when API returns non-OK status', async () => {
-    (globalThis as typeof globalThis & { fetch: Mock }).fetch = vi.fn().mockResolvedValue({
-      json: () =>
-        Promise.resolve({
-          status: 'INVALID_REQUEST',
-        }),
+    afterEach(() => {
+        vi.restoreAllMocks();
     });
 
-    const result = await fetchSunTimes();
+    it('should fetch sun times from API on success', async () => {
+        const mockSunrise = '2024-01-15T07:00:00+00:00';
+        const mockSunset = '2024-01-15T17:00:00+00:00';
 
-    expect(result).toBeNull();
-  });
+        (globalThis as typeof globalThis & { fetch: Mock }).fetch = vi.fn().mockResolvedValue({
+            json: () =>
+                Promise.resolve({
+                    status: 'OK',
+                    results: {
+                        sunrise: mockSunrise,
+                        sunset: mockSunset,
+                    },
+                }),
+        });
+
+        const result = await fetchSunTimes();
+
+        expect(result).not.toBeNull();
+        expect(result?.sunrise).toBeInstanceOf(Date);
+        expect(result?.sunset).toBeInstanceOf(Date);
+        expect(infoSpy).toHaveBeenCalled();
+    });
+
+    it('should return null on API error', async () => {
+        (globalThis as typeof globalThis & { fetch: Mock }).fetch = vi
+            .fn()
+            .mockRejectedValue(new Error('Network error'));
+
+        const result = await fetchSunTimes();
+
+        expect(result).toBeNull();
+        expect(errorSpy).toHaveBeenCalled();
+    });
+
+    it('should return null when API returns non-OK status', async () => {
+        (globalThis as typeof globalThis & { fetch: Mock }).fetch = vi.fn().mockResolvedValue({
+            json: () =>
+                Promise.resolve({
+                    status: 'INVALID_REQUEST',
+                }),
+        });
+
+        const result = await fetchSunTimes();
+
+        expect(result).toBeNull();
+    });
+});
+
+// ============================================
+// Day rollover Tests
+// ============================================
+
+describe('getTimeOfDay after day rollover', () => {
+    afterEach(() => {
+        vi.useRealTimers();
+    });
+
+    it('should apply yesterday-fetched sun times to today', async () => {
+        // Fetch times for 15 Jan (local 07:00 / 17:00)
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date(2024, 0, 15, 6, 0));
+        (globalThis as typeof globalThis & { fetch: Mock }).fetch = vi.fn().mockResolvedValue({
+            json: () =>
+                Promise.resolve({
+                    status: 'OK',
+                    results: {
+                        sunrise: new Date(2024, 0, 15, 7, 0).toISOString(),
+                        sunset: new Date(2024, 0, 15, 17, 0).toISOString(),
+                    },
+                }),
+        });
+        await fetchSunTimes();
+
+        // Next day at noon, before the daily refresh has run
+        vi.setSystemTime(new Date(2024, 0, 16, 12, 0));
+        expect(getTimeOfDay()).toBe('day');
+
+        vi.setSystemTime(new Date(2024, 0, 16, 6, 30));
+        expect(getTimeOfDay()).toBe('dawn');
+    });
 });
 
 // ============================================
@@ -256,33 +290,33 @@ describe('fetchSunTimes', () => {
 // ============================================
 
 describe('Sky config completeness', () => {
-  const periods: TimeOfDay[] = ['dawn', 'day', 'dusk', 'night'];
+    const periods: TimeOfDay[] = ['dawn', 'day', 'dusk', 'night'];
 
-  periods.forEach((period) => {
-    it(`${period} config should have all required properties`, () => {
-      const config = getSkyConfig(period);
+    periods.forEach(period => {
+        it(`${period} config should have all required properties`, () => {
+            const config = getSkyConfig(period);
 
-      expect(config).toHaveProperty('color1');
-      expect(config).toHaveProperty('color2');
-      expect(config).toHaveProperty('showSun');
-      expect(config).toHaveProperty('showMoon');
-      expect(config).toHaveProperty('showStars');
+            expect(config).toHaveProperty('color1');
+            expect(config).toHaveProperty('color2');
+            expect(config).toHaveProperty('showSun');
+            expect(config).toHaveProperty('showMoon');
+            expect(config).toHaveProperty('showStars');
+        });
+
+        it(`${period} colors should be valid hex colors`, () => {
+            const config = getSkyConfig(period);
+            const hexColorRegex = /^#[0-9A-Fa-f]{6}$/;
+
+            expect(config.color1).toMatch(hexColorRegex);
+            expect(config.color2).toMatch(hexColorRegex);
+        });
+
+        it(`${period} visibility flags should be booleans`, () => {
+            const config = getSkyConfig(period);
+
+            expect(typeof config.showSun).toBe('boolean');
+            expect(typeof config.showMoon).toBe('boolean');
+            expect(typeof config.showStars).toBe('boolean');
+        });
     });
-
-    it(`${period} colors should be valid hex colors`, () => {
-      const config = getSkyConfig(period);
-      const hexColorRegex = /^#[0-9A-Fa-f]{6}$/;
-
-      expect(config.color1).toMatch(hexColorRegex);
-      expect(config.color2).toMatch(hexColorRegex);
-    });
-
-    it(`${period} visibility flags should be booleans`, () => {
-      const config = getSkyConfig(period);
-
-      expect(typeof config.showSun).toBe('boolean');
-      expect(typeof config.showMoon).toBe('boolean');
-      expect(typeof config.showStars).toBe('boolean');
-    });
-  });
 });

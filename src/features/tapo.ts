@@ -59,9 +59,16 @@ function getPosition(plugName: string): { x: number; y: number } {
         }
     }
 
-    // Check default positions (case insensitive)
-    const lowerName = plugName.toLowerCase();
-    for (const [key, pos] of Object.entries(DEFAULT_POSITIONS)) {
+    // Check default positions (case insensitive). The proxy keys plugs by a
+    // hyphenated slug ("office-plug-2"), so compare with separators normalized.
+    const normalize = (name: string): string =>
+        name
+            .toLowerCase()
+            .replace(/[\s_-]+/g, ' ')
+            .trim();
+    const lowerName = normalize(plugName);
+    for (const [rawKey, pos] of Object.entries(DEFAULT_POSITIONS)) {
+        const key = normalize(rawKey);
         if (lowerName.includes(key) || key.includes(lowerName)) {
             return pos;
         }

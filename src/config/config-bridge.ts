@@ -110,34 +110,19 @@ export function getNestConfigWithFallback(): typeof window.NEST_CONFIG | undefin
 
     // Fallback to window global (in case bridge hasn't run yet)
     if (typeof window !== 'undefined' && window.NEST_CONFIG) {
-        // Also register it for future calls
-        Registry.register({
-            key: 'NEST_CONFIG',
-            instance: window.NEST_CONFIG,
-        });
-        return window.NEST_CONFIG;
+        // Also register it for future calls - normalized, as bridgeExternalConfig
+        // does, so consumers reading ACCESS_TOKEN/REFRESH_TOKEN find the tokens
+        const normalized = normalizeNestConfig(window.NEST_CONFIG);
+        if (normalized) {
+            Registry.register({
+                key: 'NEST_CONFIG',
+                instance: normalized,
+            });
+        }
+        return normalized;
     }
 
     return undefined;
-}
-
-/**
- * Check if external configs are available
- * Useful for conditional initialization
- */
-function hasExternalConfig(config: 'hue' | 'weather' | 'nest'): boolean {
-    if (typeof window === 'undefined') return false;
-
-    switch (config) {
-        case 'hue':
-            return !!window.HUE_CONFIG?.BRIDGE_IP;
-        case 'weather':
-            return !!window.WEATHER_CONFIG?.API_KEY;
-        case 'nest':
-            return !!(window.NEST_CONFIG?.CLIENT_ID && window.NEST_CONFIG?.PROJECT_ID);
-        default:
-            return false;
-    }
 }
 
 // Auto-bridge on module load (before other modules that depend on config)

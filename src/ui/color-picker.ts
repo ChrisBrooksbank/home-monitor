@@ -122,8 +122,10 @@ function show(lightId: string, lightData: LightData, bulbElement: Element): void
     // Close any existing popup
     hide();
 
-    // Check if light supports color
-    const hasColor = lightData.colormode !== undefined;
+    // Check if light supports color. White-ambiance lights also report a
+    // colormode ('ct'), so look for hue/xy support rather than any colormode.
+    const hasColor =
+        lightData.hue !== undefined || lightData.colormode === 'hs' || lightData.colormode === 'xy';
 
     activeLight = { id: lightId, ...lightData };
 
@@ -689,17 +691,20 @@ function createBrightnessSlider(
  * Apply color to the active light
  */
 async function applyColor(state: ColorState): Promise<void> {
-    if (!activeLight) return;
+    // Capture the light now - the popup may be closed (clearing activeLight)
+    // while the request is in flight
+    const light = activeLight;
+    if (!light) return;
 
     // Ensure light is on when setting color
     const fullState = { on: true, ...state };
 
     try {
-        const success = await HueAPI.setLightState(activeLight.id, fullState);
+        const success = await HueAPI.setLightState(light.id, fullState);
         if (success) {
             // Update local state
-            Object.assign(activeLight, state);
-            Logger.info(`Color picker: Set light ${activeLight.id} to`, state);
+            Object.assign(light, state);
+            Logger.info(`Color picker: Set light ${light.id} to`, state);
 
             // Refresh lights display after short delay
             setTimeout(() => {
@@ -709,7 +714,7 @@ async function applyColor(state: ColorState): Promise<void> {
                 }
             }, 300);
         } else {
-            Logger.warn(`Color picker: Failed to set light ${activeLight.id}`);
+            Logger.warn(`Color picker: Failed to set light ${light.id}`);
         }
     } catch (error) {
         Logger.error('Color picker error:', error);

@@ -87,5 +87,3 @@ export const Logger = {
         this.currentLevel = this.levels[level] ?? 0;
     },
 };
-
-type LoggerType = typeof Logger;

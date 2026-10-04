@@ -78,7 +78,7 @@ const MANUAL_PLUGS: PlugMap = {
 // ========================================
 
 function probeTapo(ip: string, timeout = 3000): Promise<ProbeResult> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
         const body = JSON.stringify({ method: 'get_device_info' });
         const req: ClientRequest = http.request(
             {
@@ -111,7 +111,12 @@ function probeTapo(ip: string, timeout = 3000): Promise<ProbeResult> {
     });
 }
 
-async function scanForPlugs(baseIp: string, start: number, end: number, batchSize = 10): Promise<string[]> {
+async function scanForPlugs(
+    baseIp: string,
+    start: number,
+    end: number,
+    batchSize = 10
+): Promise<string[]> {
     console.log(`Scanning ${baseIp}.${start}-${end} for Tapo plugs...`);
     const results: ProbeResult[] = [];
 
@@ -121,10 +126,10 @@ async function scanForPlugs(baseIp: string, start: number, end: number, batchSiz
             batch.push(probeTapo(`${baseIp}.${j}`));
         }
         const batchResults = await Promise.all(batch);
-        results.push(...batchResults.filter((r) => r.isTapo));
+        results.push(...batchResults.filter(r => r.isTapo));
     }
 
-    return results.map((r) => r.ip);
+    return results.map(r => r.ip);
 }
 
 async function getPlugInfo(ip: string): Promise<PlugInfo> {
@@ -158,7 +163,16 @@ async function discoverAndIdentifyPlugs(): Promise<PlugMap> {
         const plugs: PlugMap = {};
         for (const ip of ips) {
             const info = await getPlugInfo(ip);
-            if (!info.error && info.nickname) {
+            if (info.error) {
+                // Device answered the probe but login/info failed (often transient) -
+                // keep the previously known entry rather than dropping the plug
+                const known = Object.entries(discoveredPlugs).find(([, p]) => p.ip === ip);
+                if (known) {
+                    plugs[known[0]] = known[1];
+                }
+                continue;
+            }
+            if (info.nickname) {
                 const key = info.nickname.toLowerCase().replace(/\s+/g, '-');
                 plugs[key] = {
                     ip: info.ip,
@@ -178,7 +192,9 @@ async function discoverAndIdentifyPlugs(): Promise<PlugMap> {
         }
 
         const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
-        console.log(`Discovery complete in ${elapsed}s - found ${Object.keys(plugs).length} plugs\n`);
+        console.log(
+            `Discovery complete in ${elapsed}s - found ${Object.keys(plugs).length} plugs\n`
+        );
 
         discoveredPlugs = plugs;
         lastDiscovery = new Date().toISOString();
@@ -217,14 +233,12 @@ function createApp(): FastifyInstance {
         timestamp: new Date().toISOString(),
     }));
 
-
     // List plugs
     fastify.get('/plugs', async () => ({
         plugs: discoveredPlugs,
         lastDiscovery,
         count: Object.keys(discoveredPlugs).length,
     }));
-
 
     // Discover plugs
     fastify.post('/discover', async () => {
@@ -391,12 +405,12 @@ export {
 };
 
 export function _setDiscoveredPlugs(plugs: PlugMap): void {
-    Object.keys(discoveredPlugs).forEach((k) => delete discoveredPlugs[k]);
+    Object.keys(discoveredPlugs).forEach(k => delete discoveredPlugs[k]);
     Object.assign(discoveredPlugs, plugs);
 }
 
 export function _resetDiscoveredPlugs(): void {
-    Object.keys(discoveredPlugs).forEach((k) => delete discoveredPlugs[k]);
+    Object.keys(discoveredPlugs).forEach(k => delete discoveredPlugs[k]);
 }
 
 export type { TapoPlug, PlugMap, ProbeResult, PlugInfo, PlugNameRequest };

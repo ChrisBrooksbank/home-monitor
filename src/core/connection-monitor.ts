@@ -3,16 +3,10 @@
  * Handles health checks and reconnection logic for all services
  */
 
-import type { ConnectionStatus, ConnectionsState } from '../types';
+import type { ConnectionsState } from '../types';
 import { Logger, getAppEvents } from '../utils';
 import { Registry } from './registry';
 import { Config } from '../config/Config';
-
-interface FullConnectionStatus extends ConnectionStatus {
-    name?: string | null;
-    apiVersion?: string | null;
-    uptime?: number | null;
-}
 
 const connectionStatus: ConnectionsState = {
     hue: { online: false, lastCheck: null, name: null, apiVersion: null, error: null },

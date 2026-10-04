@@ -23,6 +23,7 @@ type ServiceKey =
     | 'HueAPI'
     | 'SonosAPI'
     | 'TapoAPI'
+    | 'ShieldAPI'
     // Features
     | 'SonosUI'
     | 'TapoControls'
@@ -76,11 +77,27 @@ interface ServiceMap {
     HueAPI: typeof import('../api/hue').HueAPI;
     SonosAPI: typeof import('../api/sonos').SonosAPI;
     TapoAPI: typeof import('../api/tapo').TapoAPI;
+    ShieldAPI: typeof import('../api/shield').ShieldAPI;
 
     // Features (use unknown for complex feature types to avoid circular deps)
-    SonosUI: { init: () => Promise<void> };
-    TapoControls: { init: () => Promise<void> };
-    ShieldUI: { init: () => Promise<void> };
+    SonosUI: {
+        init: () => Promise<void>;
+        render: () => Promise<void>;
+        updateVolumes: () => Promise<void>;
+    };
+    TapoControls: {
+        init: () => Promise<void>;
+        refreshAllStatuses: () => Promise<void>;
+        syncPlugsWithDiscovery: () => Promise<void>;
+        togglePlug: (plugName: string) => Promise<void>;
+    };
+    ShieldUI: {
+        init: () => Promise<void>;
+        render: () => Promise<void>;
+        launchApp: (appId: string) => Promise<void>;
+        stop: () => Promise<void>;
+        updateStatus: () => Promise<void>;
+    };
     NestIntegration: unknown;
     LightEffects: unknown;
     MooseSystem: unknown;
@@ -88,7 +105,11 @@ interface ServiceMap {
     MotionIndicators: unknown;
     ColorPicker: unknown;
     HomeMonitor: { loadLights: () => void };
-    Lights: { loadLights: () => Promise<void>; updateLightIndicators: () => void };
+    Lights: {
+        getRoomLights: () => import('../types').RoomLights;
+        loadLights: () => Promise<void>;
+        toggleLight: (lightId: string, currentState: boolean) => Promise<void>;
+    };
 
     // Config
     APP_CONFIG: AppConfig;

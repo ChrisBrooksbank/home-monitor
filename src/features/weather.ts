@@ -42,7 +42,7 @@ async function fetchWeather(): Promise<WeatherData | null> {
 
     try {
         const response = await fetch(
-            `https://api.weatherapi.com/v1/current.json?key=${WEATHER_CONFIG.apiKey}&q=${WEATHER_CONFIG.location}`
+            `https://api.weatherapi.com/v1/current.json?key=${encodeURIComponent(WEATHER_CONFIG.apiKey)}&q=${encodeURIComponent(WEATHER_CONFIG.location)}`
         );
 
         if (!response.ok) {
@@ -138,7 +138,14 @@ function updateWeatherVisuals(weatherData: WeatherData | null): void {
     let skyColor1: string;
     let skyColor2: string;
 
-    if (
+    // Check storms first: conditions like "Patchy light rain with thunder"
+    // also contain "rain" and would otherwise never get the storm sky
+    if (condition.includes('thunder') || condition.includes('storm')) {
+        if (rainEl) rainEl.style.display = 'block';
+        skyColor1 = '#4A5568';
+        skyColor2 = '#6B7F8F';
+        Logger.info('Storm effect activated');
+    } else if (
         condition.includes('rain') ||
         condition.includes('drizzle') ||
         condition.includes('shower')
@@ -165,11 +172,6 @@ function updateWeatherVisuals(weatherData: WeatherData | null): void {
         skyColor1 = '#B0B8C0';
         skyColor2 = '#D0D8E0';
         Logger.info('Fog effect activated');
-    } else if (condition.includes('thunder') || condition.includes('storm')) {
-        if (rainEl) rainEl.style.display = 'block';
-        skyColor1 = '#4A5568';
-        skyColor2 = '#6B7F8F';
-        Logger.info('Storm effect activated');
     } else if (condition.includes('cloud') || condition.includes('overcast')) {
         skyColor1 = '#A0AEC0';
         skyColor2 = '#C0CED8';
@@ -195,7 +197,7 @@ function updateWeatherVisuals(weatherData: WeatherData | null): void {
     // Adjust cloud appearance based on weather
     const cloudOpacity = condition.includes('cloud') || condition.includes('overcast') ? 0.9 : 0.7;
     const cloudColor =
-        condition.includes('rain') || condition.includes('storm')
+        condition.includes('rain') || condition.includes('storm') || condition.includes('thunder')
             ? '#808080'
             : condition.includes('fog') || condition.includes('mist')
               ? '#B0B0B0'

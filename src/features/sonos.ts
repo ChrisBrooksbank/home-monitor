@@ -6,6 +6,7 @@
  */
 
 import { Logger, getAppState, getAppConfig } from '../utils';
+import { sanitizeHTML } from '../utils/helpers';
 import { SonosAPI } from '../api';
 import { Registry } from '../core/registry';
 import type { SonosSpeaker } from '../types';
@@ -53,7 +54,7 @@ function createSpeakerControl(id: string, speaker: SonosSpeaker): SVGGElement {
     <rect x="-35" y="-18" width="70" height="36" rx="5" fill="#2C3E50" opacity="0.85" stroke="#34495E" stroke-width="1.5"/>
 
     <!-- Title -->
-    <text x="0" y="-8" text-anchor="middle" fill="#BDC3C7" font-size="7" font-weight="bold">${speaker.room || id}</text>
+    <text x="0" y="-8" text-anchor="middle" fill="#BDC3C7" font-size="7" font-weight="bold">${sanitizeHTML(speaker.room || id)}</text>
 
     <!-- Play Button -->
     <g id="sonos-${id}-play" class="sonos-button" transform="translate(-20, 5)" style="cursor: pointer;">
@@ -115,24 +116,28 @@ function setupSpeakerControl(id: string, speaker: SonosSpeaker): void {
     if (volUpBtn) {
         volUpBtn.addEventListener('click', async e => {
             e.stopPropagation();
-            const volumes = getSpeakerVolumes();
-            const currentVol = volumes[id] || 0;
+            const currentVol = getSpeakerVolumes()[id];
+            // Volume unknown (initial read failed) - don't step from an assumed 0
+            if (currentVol === undefined) return;
             const newVol = Math.min(100, currentVol + 5);
-            await SonosAPI.setVolume(speaker.ip, newVol);
-            setSpeakerVolume(id, newVol);
-            updateVolumeDisplay(id, newVol);
+            if (await SonosAPI.setVolume(speaker.ip, newVol)) {
+                setSpeakerVolume(id, newVol);
+                updateVolumeDisplay(id, newVol);
+            }
         });
     }
 
     if (volDownBtn) {
         volDownBtn.addEventListener('click', async e => {
             e.stopPropagation();
-            const volumes = getSpeakerVolumes();
-            const currentVol = volumes[id] || 0;
+            const currentVol = getSpeakerVolumes()[id];
+            // Volume unknown (initial read failed) - don't step from an assumed 0
+            if (currentVol === undefined) return;
             const newVol = Math.max(0, currentVol - 5);
-            await SonosAPI.setVolume(speaker.ip, newVol);
-            setSpeakerVolume(id, newVol);
-            updateVolumeDisplay(id, newVol);
+            if (await SonosAPI.setVolume(speaker.ip, newVol)) {
+                setSpeakerVolume(id, newVol);
+                updateVolumeDisplay(id, newVol);
+            }
         });
     }
 
@@ -216,8 +221,10 @@ async function renderSpeakerControls(): Promise<void> {
         // Fetch initial volume
         try {
             const volume = await SonosAPI.getVolume(speaker.ip);
-            setSpeakerVolume(id, volume);
-            updateVolumeDisplay(id, volume);
+            if (volume !== null) {
+                setSpeakerVolume(id, volume);
+                updateVolumeDisplay(id, volume);
+            }
         } catch (_e) {
             Logger.warn(`Could not get volume for ${id}`);
         }
@@ -232,8 +239,10 @@ async function updateSpeakerVolumes(): Promise<void> {
     for (const [id, speaker] of Object.entries(speakers)) {
         try {
             const volume = await SonosAPI.getVolume(speaker.ip);
-            setSpeakerVolume(id, volume);
-            updateVolumeDisplay(id, volume);
+            if (volume !== null) {
+                setSpeakerVolume(id, volume);
+                updateVolumeDisplay(id, volume);
+            }
         } catch (_e) {
             // Silently fail on volume update
         }

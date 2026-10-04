@@ -6,6 +6,8 @@
 import { AppEvents } from '../../core/events';
 import { ConnectionMonitor } from '../../core/connection-monitor';
 import { createDraggable, loadSavedPosition } from '../../ui/draggable';
+import { Config } from '../../config/Config';
+import { Logger } from '../../utils/logger';
 
 // Module state
 let binPopupVisible = false;
@@ -99,10 +101,19 @@ export function initBinStatusDisplay(): void {
     const bin = document.getElementById('wheelie-bin');
     if (!bin) return;
 
-    // Click handler for popup toggle
+    // Click handler for popup toggle. A drag ends with a click on the bin too
+    // (createDraggable only prevents default on mousedown, which doesn't mark
+    // the click), so ignore clicks where the pointer moved since mousedown.
+    let downX = 0;
+    let downY = 0;
+    bin.addEventListener('mousedown', e => {
+        downX = e.clientX;
+        downY = e.clientY;
+    });
     bin.addEventListener('click', e => {
         // Don't toggle if we just finished dragging
         if (e.defaultPrevented) return;
+        if (Math.abs(e.clientX - downX) > 3 || Math.abs(e.clientY - downY) > 3) return;
         toggleBinPopup();
     });
 
@@ -139,9 +150,9 @@ export function initBinStatusDisplay(): void {
         reauthBtn.addEventListener('click', async e => {
             e.stopPropagation(); // Don't close popup when clicking auth button
             try {
-                const response = await fetch('http://localhost:3003/auth/url');
+                const response = await fetch(`${Config.app.proxies.nest}/auth/url`);
                 if (!response.ok) {
-                    console.error('Failed to get auth URL');
+                    Logger.error('Failed to get Nest auth URL');
                     return;
                 }
                 const data = await response.json();
@@ -149,7 +160,7 @@ export function initBinStatusDisplay(): void {
                     window.open(data.url, '_blank', 'width=600,height=700');
                 }
             } catch (err) {
-                console.error('Failed to start Nest auth:', err);
+                Logger.error('Failed to start Nest auth:', err);
             }
         });
     }

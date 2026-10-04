@@ -318,6 +318,8 @@ function makeNestDraggable(group: SVGElement): void {
     let startX: number, startY: number;
     let currentTransform: { x: number; y: number };
     let startTemp: number, currentAdjustedTemp: number;
+    // Font sizes before temperature adjustment, restored when it ends
+    let savedFontSizes: { target: string | null; current: string | null } | null = null;
 
     (group as SVGElement & { style: CSSStyleDeclaration }).style.cursor = 'pointer';
 
@@ -351,6 +353,12 @@ function makeNestDraggable(group: SVGElement): void {
             isAdjustingTemp = true;
             startTemp = getCurrentTargetTemp();
             currentAdjustedTemp = startTemp;
+            savedFontSizes = {
+                target:
+                    document.getElementById('nest-target-temp')?.getAttribute('font-size') ?? null,
+                current:
+                    document.getElementById('nest-current-temp')?.getAttribute('font-size') ?? null,
+            };
 
             const statusRing = document.getElementById('nest-status-ring');
             if (statusRing) {
@@ -420,11 +428,25 @@ function makeNestDraggable(group: SVGElement): void {
                 statusRing.setAttribute('opacity', '0.6');
             }
 
+            // Undo the temporary "SET:" styling applied while adjusting
+            if (savedFontSizes) {
+                const restore = (id: string, size: string | null): void => {
+                    const el = document.getElementById(id);
+                    if (!el) return;
+                    if (size === null) el.removeAttribute('font-size');
+                    else el.setAttribute('font-size', size);
+                };
+                restore('nest-target-temp', savedFontSizes.target);
+                restore('nest-current-temp', savedFontSizes.current);
+                savedFontSizes = null;
+            }
+
             if (Math.abs(currentAdjustedTemp - startTemp) >= 0.5) {
                 await setNestTemperature(currentAdjustedTemp);
-            } else {
-                updateNestDisplay();
             }
+            // Refresh so the display (and cached devices used as the next drag's
+            // starting point) reflect the new setpoint rather than the "SET:" text
+            await updateNestDisplay();
         }
     }
 
