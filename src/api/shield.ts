@@ -155,6 +155,6 @@ export const ShieldAPI = {
 
 // Register with the service registry
 Registry.register({
-    key: 'ShieldAPI' as const,
-    instance: ShieldAPI as unknown as typeof import('./shield').ShieldAPI,
+    key: 'ShieldAPI',
+    instance: ShieldAPI,
 });

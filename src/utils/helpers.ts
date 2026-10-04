@@ -17,21 +17,6 @@ export function sanitizeHTML(html: string): string {
 }
 
 /**
- * Safely set innerHTML with sanitization
- */
-function safeSetHTML(element: HTMLElement, html: string): void {
-    const temp = document.createElement('div');
-    temp.innerHTML = html;
-
-    // Remove any script tags
-    const scripts = temp.querySelectorAll('script');
-    scripts.forEach(script => script.remove());
-
-    // Set the sanitized HTML
-    element.innerHTML = temp.innerHTML;
-}
-
-/**
  * Check if a proxy server is available
  */
 export async function checkProxyAvailability(url: string, name: string): Promise<boolean> {

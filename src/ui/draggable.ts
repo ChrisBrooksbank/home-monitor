@@ -187,33 +187,6 @@ export function createDraggable(
     };
 }
 
-/**
- * Extract position from transform attribute
- */
-function getPositionFromTransform(element: SVGElement | HTMLElement): Position {
-    const transform = element.getAttribute('transform') ?? '';
-    const match = transform.match(/translate\(([^,]+),\s*([^)]+)\)/);
-    return {
-        x: match ? parseFloat(match[1]) : 0,
-        y: match ? parseFloat(match[2]) : 0,
-    };
-}
-
-/**
- * Set position on element while preserving other transforms
- */
-function setPosition(element: SVGElement | HTMLElement, x: number, y: number): void {
-    const transform = element.getAttribute('transform') ?? '';
-    const scaleMatch = transform.match(/scale\([^)]+\)/);
-    const rotateMatch = transform.match(/rotate\([^)]+\)/);
-
-    let newTransform = `translate(${x}, ${y})`;
-    if (scaleMatch) newTransform += ` ${scaleMatch[0]}`;
-    if (rotateMatch) newTransform += ` ${rotateMatch[0]}`;
-
-    element.setAttribute('transform', newTransform);
-}
-
 // Register with the service registry
 Registry.register({
     key: 'createDraggable',

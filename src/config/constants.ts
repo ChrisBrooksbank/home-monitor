@@ -6,36 +6,11 @@
 import type { AppConfig } from '../types';
 import { Registry } from '../core/registry';
 
-// Time constants
-const MS_PER_SECOND = 1000;
-const MS_PER_MINUTE = 60 * MS_PER_SECOND;
-const MS_PER_HOUR = 60 * MS_PER_MINUTE;
-const MS_PER_DAY = 24 * MS_PER_HOUR;
-
-// History retention periods
-const MOTION_HISTORY_RETENTION = 48 * MS_PER_HOUR;
-const TEMP_HISTORY_RETENTION = 24 * MS_PER_HOUR;
-
 // Chelmsford coordinates (for weather/sun times)
 export const LOCATION = {
     LAT: 51.7356,
     LNG: 0.4685,
     NAME: 'Chelmsford, Essex, UK',
-};
-
-// Temperature range for graph
-const TEMPERATURE = {
-    MIN_DISPLAY: 0,
-    MAX_DISPLAY: 30,
-    BUFFER: 2,
-};
-
-// Graph dimensions
-const GRAPH = {
-    WIDTH: 1100,
-    HEIGHT: 300,
-    MARGIN_LEFT: 50,
-    MARGIN_BOTTOM: 50,
 };
 
 export const APP_CONFIG: AppConfig = {

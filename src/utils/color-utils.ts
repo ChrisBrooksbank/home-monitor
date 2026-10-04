@@ -120,14 +120,3 @@ export function darkenColor(hex: string): string {
             .padStart(2, '0');
     return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
-
-/**
- * Color utilities export
- */
-const ColorUtils = {
-    getTemperatureColor,
-    hsvToHex,
-    xyToHex,
-    hueStateToColor,
-    darkenColor,
-};

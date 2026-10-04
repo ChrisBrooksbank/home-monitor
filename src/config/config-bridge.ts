@@ -125,24 +125,5 @@ export function getNestConfigWithFallback(): typeof window.NEST_CONFIG | undefin
     return undefined;
 }
 
-/**
- * Check if external configs are available
- * Useful for conditional initialization
- */
-function hasExternalConfig(config: 'hue' | 'weather' | 'nest'): boolean {
-    if (typeof window === 'undefined') return false;
-
-    switch (config) {
-        case 'hue':
-            return !!window.HUE_CONFIG?.BRIDGE_IP;
-        case 'weather':
-            return !!window.WEATHER_CONFIG?.API_KEY;
-        case 'nest':
-            return !!(window.NEST_CONFIG?.CLIENT_ID && window.NEST_CONFIG?.PROJECT_ID);
-        default:
-            return false;
-    }
-}
-
 // Auto-bridge on module load (before other modules that depend on config)
 bridgeExternalConfig();
