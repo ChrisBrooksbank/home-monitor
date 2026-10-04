@@ -68,6 +68,18 @@ export async function fetchSunTimes(): Promise<SunTimes | null> {
 }
 
 /**
+ * Move a time-of-day onto the same calendar date as `ref`.
+ * Sun times are only fetched once a day, so without this the previous day's
+ * times would be compared against today's clock (e.g. reporting night all
+ * morning until the next fetch).
+ */
+function onSameDay(time: Date, ref: Date): Date {
+    const aligned = new Date(ref);
+    aligned.setHours(time.getHours(), time.getMinutes(), time.getSeconds(), 0);
+    return aligned;
+}
+
+/**
  * Get current time of day period
  */
 export function getTimeOfDay(): TimeOfDay {
@@ -79,10 +91,13 @@ export function getTimeOfDay(): TimeOfDay {
         sunsetTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 17, 0);
     }
 
-    const dawnStart = new Date(sunriseTime.getTime() - 60 * 60 * 1000); // 1 hour before sunrise
-    const dawnEnd = sunriseTime;
-    const duskStart = sunsetTime;
-    const duskEnd = new Date(sunsetTime.getTime() + 90 * 60 * 1000); // 1.5 hours after sunset
+    const sunrise = onSameDay(sunriseTime, now);
+    const sunset = onSameDay(sunsetTime, now);
+
+    const dawnStart = new Date(sunrise.getTime() - 60 * 60 * 1000); // 1 hour before sunrise
+    const dawnEnd = sunrise;
+    const duskStart = sunset;
+    const duskEnd = new Date(sunset.getTime() + 90 * 60 * 1000); // 1.5 hours after sunset
 
     if (now >= dawnStart && now < dawnEnd) return 'dawn';
     if (now >= dawnEnd && now < duskStart) return 'day';
@@ -175,8 +190,10 @@ export function getSunPosition(): SunPosition {
         return { x: 450, y: 80 }; // Default centered position
     }
 
-    const dayLength = sunsetTime.getTime() - sunriseTime.getTime();
-    const currentTime = now.getTime() - sunriseTime.getTime();
+    const sunrise = onSameDay(sunriseTime, now);
+    const sunset = onSameDay(sunsetTime, now);
+    const dayLength = sunset.getTime() - sunrise.getTime();
+    const currentTime = now.getTime() - sunrise.getTime();
     const progress = Math.max(0, Math.min(1, currentTime / dayLength));
 
     // Sun arc from left to right across the sky

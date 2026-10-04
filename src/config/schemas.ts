@@ -88,7 +88,7 @@ export function validateConfig<T>(
         return { success: true, data: result.data };
     }
 
-    const errors = result.error.errors.map(e => `${configName}.${e.path.join('.')}: ${e.message}`);
+    const errors = result.error.issues.map(e => `${configName}.${e.path.join('.')}: ${e.message}`);
 
     return { success: false, errors };
 }

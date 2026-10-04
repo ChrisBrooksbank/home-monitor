@@ -46,12 +46,17 @@ async function saveLightStates(): Promise<boolean> {
 
     const states: Record<string, Partial<HueLightState>> = {};
     for (const [lightId, light] of Object.entries(lights)) {
-        states[lightId] = {
-            on: light.state.on,
-            bri: light.state.bri,
-            hue: light.state.hue,
-            sat: light.state.sat,
-        };
+        const { on, bri, colormode, hue, sat, ct, xy } = light.state;
+        const saved: Partial<HueLightState> = { on, bri };
+        // Only restore the attributes of the light's active color mode,
+        // otherwise ct/xy lights come back in the wrong color
+        if (colormode === 'ct') saved.ct = ct;
+        else if (colormode === 'xy') saved.xy = xy;
+        else if (colormode === 'hs') {
+            saved.hue = hue;
+            saved.sat = sat;
+        }
+        states[lightId] = saved;
     }
     setOriginalStates(states);
     return true;
@@ -63,7 +68,14 @@ async function saveLightStates(): Promise<boolean> {
 async function restoreLightStates(onComplete?: () => void): Promise<void> {
     const originalStates = getOriginalStates();
     for (const [lightId, state] of Object.entries(originalStates)) {
-        await HueAPI.setLightState(lightId, state);
+        if (state.on) {
+            await HueAPI.setLightState(lightId, state);
+        } else {
+            // Color/brightness can only be changed while a light is on, so restore
+            // them first and then switch off, or the light comes back in effect colors
+            await HueAPI.setLightState(lightId, { ...state, on: true, transitiontime: 0 });
+            await HueAPI.setLightState(lightId, { on: false });
+        }
         await new Promise(resolve => setTimeout(resolve, 50));
     }
 
@@ -118,8 +130,8 @@ async function runLightEffect(
     effectCallback: (lights: HueLightsResponse) => Promise<void>,
     onComplete?: () => void
 ): Promise<void> {
-    if (!confirmEffect(effectName)) return;
     if (getEffectInProgress()) return;
+    if (!confirmEffect(effectName)) return;
 
     setEffectInProgress(true);
     setCurrentEffect(effectName);
@@ -128,32 +140,37 @@ async function runLightEffect(
     // Emit effect started event
     getAppEvents()?.emit('effect:started', { effect: effectName, timestamp: Date.now() });
 
+    // restoreLightStates clears the in-progress flag itself after a delay, so
+    // only reset it here if we never got as far as restoring
+    let restoreScheduled = false;
+
     try {
         const success = await saveLightStates();
-        if (!success) {
-            setEffectInProgress(false);
-            setCurrentEffect(null);
-            disableEffectButtons(false);
-            return;
-        }
+        if (!success) return;
 
         const lights = await HueAPI.getAllLights();
-        if (!lights) {
+        if (!lights) return;
+
+        try {
+            await effectCallback(lights);
+        } finally {
+            await restoreLightStates(() => {
+                // Emit effect completed event
+                getAppEvents()?.emit('effect:completed', {
+                    effect: effectName,
+                    timestamp: Date.now(),
+                });
+                if (onComplete) onComplete();
+            });
+            restoreScheduled = true;
+        }
+    } catch (error) {
+        Logger.error(`Light effect '${effectName}' failed:`, error);
+    } finally {
+        if (!restoreScheduled) {
             setEffectInProgress(false);
             setCurrentEffect(null);
-            disableEffectButtons(false);
-            return;
         }
-
-        await effectCallback(lights);
-        await restoreLightStates(() => {
-            // Emit effect completed event
-            getAppEvents()?.emit('effect:completed', { effect: effectName, timestamp: Date.now() });
-            if (onComplete) onComplete();
-        });
-    } finally {
-        setEffectInProgress(false);
-        setCurrentEffect(null);
         disableEffectButtons(false);
     }
 }

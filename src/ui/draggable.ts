@@ -17,7 +17,14 @@ export function loadSavedPosition(
 
     const savedPosition = localStorage.getItem(storageKey);
     if (savedPosition) {
-        const position = JSON.parse(savedPosition) as Position;
+        let position: Position;
+        try {
+            position = JSON.parse(savedPosition) as Position;
+        } catch {
+            // Corrupt entry - ignore it rather than breaking initialization
+            return;
+        }
+        if (typeof position?.x !== 'number' || typeof position?.y !== 'number') return;
         const currentTransform = element.getAttribute('transform') ?? '';
         const scaleMatch = currentTransform.match(/scale\([^)]+\)/);
         const rotateMatch = currentTransform.match(/rotate\([^)]+\)/);
