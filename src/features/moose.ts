@@ -261,9 +261,14 @@ function createSpeechBubble(svgNS: string, activityName: string): SVGGElement {
  */
 function createMooseCharacter(activityName: string, x: number, y: number): SVGGElement {
     const svgNS = 'http://www.w3.org/2000/svg';
+    // Position with an outer group's transform attribute and animate the inner
+    // group: a CSS transform animation replaces an element's SVG transform
+    // attribute, which would otherwise draw the moose at the SVG origin
+    const positioner = document.createElementNS(svgNS, 'g') as SVGGElement;
+    positioner.setAttribute('id', 'active-moose');
+    positioner.setAttribute('transform', `translate(${x}, ${y})`);
     const mooseGroup = document.createElementNS(svgNS, 'g') as SVGGElement;
-    mooseGroup.setAttribute('id', 'active-moose');
-    mooseGroup.setAttribute('transform', `translate(${x}, ${y})`);
+    positioner.appendChild(mooseGroup);
 
     // Antlers
     createAntlers(mooseGroup, svgNS);
@@ -341,6 +346,7 @@ function createMooseCharacter(activityName: string, x: number, y: number): SVGGE
     const bubble = createSpeechBubble(svgNS, activityName);
     mooseGroup.appendChild(bubble);
 
+    // Callers animate the returned group; its parent is the positioner
     return mooseGroup;
 }
 
@@ -420,7 +426,8 @@ function removeMoose(element: SVGGElement): void {
         `moose-walk-out ${MOOSE_CONFIG.WALK_OUT_DURATION}ms ease-in`;
 
     setTimeout(() => {
-        element.remove();
+        // Remove the positioning wrapper along with the moose
+        ((element.parentNode as Element | null) ?? element).remove();
         mooseState.isActive = false;
         mooseState.currentActivity = null;
         Logger.info('Moose left!');
@@ -450,7 +457,7 @@ function showMoose(): void {
     const mooseElement = createMooseCharacter(activity.name, location.x, location.y);
     const container = document.getElementById('moose-container');
     if (container) {
-        container.appendChild(mooseElement);
+        container.appendChild(mooseElement.parentNode ?? mooseElement);
     }
 
     mooseState.isActive = true;

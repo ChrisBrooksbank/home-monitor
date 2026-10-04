@@ -7,12 +7,11 @@
 
 import { Logger } from '../utils/logger';
 import { Registry } from '../core/registry';
+// Imported directly (not looked up in the Registry) so the event bus is
+// guaranteed to exist when init() runs - this module initialises on import,
+// before app.ts has pulled core/events into the module graph
+import { AppEvents } from '../core/events';
 import type { MotionDetectedEvent, RoomPosition } from '../types';
-
-// Helper to get AppEvents from Registry
-function getAppEvents() {
-    return Registry.getOptional('AppEvents');
-}
 
 const NS = 'http://www.w3.org/2000/svg';
 
@@ -220,13 +219,10 @@ function updateIndicators(motionSensors: Record<string, MotionSensorState>): voi
  */
 function init(): void {
     // Subscribe to motion events - this decouples us from app.js
-    const appEvents = getAppEvents();
-    if (appEvents) {
-        appEvents.on('motion:detected', (data: MotionDetectedEvent) => {
-            showMotionIndicator(data.room);
-        });
-        Logger.info('Motion indicators subscribed to motion:detected events');
-    }
+    AppEvents.on('motion:detected', (data: MotionDetectedEvent) => {
+        showMotionIndicator(data.room);
+    });
+    Logger.info('Motion indicators subscribed to motion:detected events');
 }
 
 /**
