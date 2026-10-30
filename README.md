@@ -1,7 +1,5 @@
 # Home Monitor Dashboard
 
-**Live demo:** [home-monitor.netlify.app](https://home-monitor.netlify.app)
-
 A cosy, real-time smart home dashboard drawn as a pixel-art UK semi-detached house. It shows live data from Philips Hue sensors and controls Sonos speakers, TP-Link Tapo smart plugs, an NVIDIA SHIELD TV and a Google Nest thermostat. It's built as an installable Progressive Web App (PWA).
 
 ![Home Monitor demo: motion in the hall, the kitchen light switching on, Monty the Moose visiting, then nightfall](docs/demo.gif)
